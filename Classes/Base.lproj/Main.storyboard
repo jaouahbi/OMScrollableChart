@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15705" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15706"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Example" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="se3-FH-eOH" customClass="OMScrollableChart" customModule="Example" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="44" width="414" height="687"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="wcL-CB-q5w">
+                                <rect key="frame" x="0.0" y="822" width="414" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="pwd-Vv-IiD"/>
+                                </constraints>
+                                <segments>
+                                    <segment title=""/>
+                                    <segment title=""/>
+                                </segments>
+                                <connections>
+                                    <action selector="interpolationSegmentChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="MdI-Nx-F7d"/>
+                                </connections>
+                            </segmentedControl>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="dra-Ym-beS">
+                                <rect key="frame" x="38" y="782" width="338" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="T11-zA-IE5"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="simplifySliderChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="kA6-ZT-tsu"/>
+                                </connections>
+                            </slider>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="b4F-3H-Tf0">
+                                <rect key="frame" x="38" y="737" width="338" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="boK-T0-t5W"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="simplifySliderChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="wFW-PI-VNj"/>
+                                </connections>
+                            </slider>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="0Uv-DP-Nrs"/>
+                            <constraint firstItem="dra-Ym-beS" firstAttribute="top" secondItem="b4F-3H-Tf0" secondAttribute="bottom" constant="5" id="1GE-KY-JUX"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="dra-Ym-beS" secondAttribute="trailing" constant="40" id="2AM-yb-Cfw"/>
+                            <constraint firstItem="se3-FH-eOH" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="5OY-Pg-vr1"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="wcL-CB-q5w" secondAttribute="bottom" id="9mM-z2-8RT"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="M4V-Vo-bTS"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="top" secondItem="dra-Ym-beS" secondAttribute="bottom" id="SYx-bB-mLq"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="aOI-pY-FKR"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="top" secondItem="se3-FH-eOH" secondAttribute="bottom" constant="91" id="b7Y-Vs-CMH"/>
+                            <constraint firstAttribute="trailing" secondItem="se3-FH-eOH" secondAttribute="trailing" id="bcl-mS-lSK"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="b4F-3H-Tf0" secondAttribute="trailing" constant="40" id="h5g-ym-34U"/>
+                            <constraint firstItem="dra-Ym-beS" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="iHj-hX-XxL"/>
+                            <constraint firstItem="b4F-3H-Tf0" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="kny-Qg-Cf1"/>
+                            <constraint firstItem="se3-FH-eOH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="mg8-dr-Fyc"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                    </view>
+                    <connections>
+                        <outlet property="scrollView" destination="se3-FH-eOH" id="nIz-v2-1B4"/>
+                        <outlet property="segmentInterpolation" destination="wcL-CB-q5w" id="9TK-hY-FgN"/>
+                        <outlet property="slider" destination="dra-Ym-beS" id="EHy-fL-fCH"/>
+                        <outlet property="sliderAverage" destination="b4F-3H-Tf0" id="qqI-Og-G4M"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="137.68115942028987" y="116.51785714285714"/>
+        </scene>
+    </scenes>
+</document>
