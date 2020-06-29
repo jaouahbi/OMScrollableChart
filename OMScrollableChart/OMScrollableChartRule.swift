@@ -196,6 +196,9 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
+    
+    var symbols: [String]  = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    var currentSymbolIndex: Int { return 1 } //  Calendar.current.dateComponents([.day, .month, .year], from: Date()).month {
     /// create rule layout
     /// - Returns: Bool
     func createLayout() -> Bool {
@@ -205,13 +208,11 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         self.removeAllSubviews()
         let width  = chart.sectionWidth
         let height = ruleSize.height
-        if let month = Calendar.current.dateComponents([.day, .month, .year], from: Date()).month {
-            //let currentMonth = (month - 1)
+            let currentMonth = (currentSymbolIndex - 1)
             //let symbols = DateFormatter().monthSymbols
-            let symbols = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
             let numOfSections = Int(chart.numberOfSections)
             //for monthIndex in currentMonth...numOfSections + currentMonth {
-            for monthIndex in 0...numOfSections {
+            for monthIndex in currentMonth...numOfSections {
                 let label = UILabel(frame: .zero)
                 label.translatesAutoresizingMaskIntoConstraints = false
                 label.text = symbols[monthIndex % symbols.count]
@@ -225,7 +226,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 label.heightAnchor.constraint(equalToConstant: height).isActive = true
                 label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
             }
-        }
+        
         self.setBorder(border: .top, weight: borderDecorationWidth, color: decorationColor)
         return true
     }

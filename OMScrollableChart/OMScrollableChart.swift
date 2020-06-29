@@ -37,129 +37,6 @@ extension Array {
     }
 }
 
-/*
- 
- 
- //        let newApproximationRatio = 1.0 / (scale / (maximumZoomScale - minimumZoomScale))
- //        self.approximationRatio = newApproximationRatio
- 
- var pinchGesture = UIPinchGestureRecognizer()
- 
- Use this code
- 
- override func viewDidLoad() {
- super.viewDidLoad()
- 
- self.textview1.userInteractionEnabled = true
- self.textview1.multipleTouchEnabled = true
- 
- self.pinchGesture = UIPinchGestureRecognizer(target: self, action:#selector(pinchRecognized(_:)))
- self.textview1.addGestureRecognizer(self.pinchGesture)
- 
- // Do any additional setup after loading the view.
- }
- 
- @IBAction func pinchRecognized(pinch: UIPinchGestureRecognizer) {
- let fontSize = self.textview1.font!.pointSize*(pinch.scale)/2
- if fontSize > 12 && fontSize < 32{
- textview1.font = UIFont(name: self.textview1.font!.fontName, size:fontSize)
- }
- }
- */
-
-class OMTooltip: UILabel {
-    
-    var tooltipMoveAnimationDuration: TimeInterval = 0.2
-    var tooltipShowAnimationDuration: TimeInterval = 0.5
-    var tooltipHideAnimationDuration: TimeInterval = 4.0
-    
-    override func sizeThatFits( _ size: CGSize) -> CGSize {
-        let result = super.sizeThatFits(size)
-        return CGSize(width: result.width + 30,
-                      height: result.height + 5)
-    }
-    
-    func setText(_ name: String?) {
-        text = name
-        sizeToFit()
-    }
-    func show(_ position : CGPoint) {
-        
-        
-        UIView.animate(withDuration: tooltipShowAnimationDuration, delay: 0.1, options: [ .curveEaseOut], animations: {
-            self.alpha  = 1.0
-            self.move(position)
-        }, completion: { finished in
-            
-        })
-    }
-    
-    
-    func move(_ location: CGPoint) {
-        UIView.animate(withDuration: self.tooltipMoveAnimationDuration) {
-            self.frame  = CGRect(x: location.x,
-                                 y: location.y,
-                                 width: self.frame.width,
-                                 height: self.frame.height)
-        }
-    }
-    
-    func hide(_ location: CGPoint) {
-        UIView.animate(withDuration: tooltipHideAnimationDuration) {
-            self.alpha = 0
-        }
-    }
-    
-    
-}
-class OMPointLayer: CAShapeLayer {
-    
-    override init(layer: Any) {
-        super.init(layer: layer)
-    }
-    var center: CGPoint {
-        return CGPoint(x: bounds.width/2, y: bounds.height/2)
-    }
-    
-    var radius: CGFloat {
-        return (bounds.width + bounds.height)/2
-    }
-    
-    var colors: [UIColor] = [UIColor.clear, UIColor.clear] {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
-    
-    var locations: [CGFloat] = [0.0, 1.0]
-    var cgColors: [CGColor] {
-        return colors.map({ (color) -> CGColor in
-            return color.cgColor
-        })
-    }
-    
-    override init() {
-        super.init()
-        needsDisplayOnBoundsChange = true
-    }
-    
-    required init(coder aDecoder: NSCoder) {
-        super.init()
-    }
-    
-    override func draw(in ctx: CGContext) {
-        super.draw(in: ctx)
-        ctx.saveGState()
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
-        
-        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: cgColors as CFArray, locations: locations) else {
-            return
-        }
-        let endRadius = sqrt(pow(frame.width/2, 2) + pow(frame.height/2, 2))
-        ctx.drawRadialGradient(gradient, startCenter: center, startRadius: 0.0, endCenter: center, endRadius: endRadius, options: CGGradientDrawingOptions(rawValue: 0))
-    }
-}
-
 extension Array where Element: Comparable {
     var indexOfMax: Index? {
         guard var maxValue = self.first else { return nil }
@@ -211,56 +88,7 @@ protocol OMScrollableChartDataSource: class {
     // func numberOfSections(chart: OMScrollableChart) -> Int
 }
 
-//
-//class FadeScrollView: UIScrollView, UIScrollViewDelegate {
-//
-//    let fadePercentage: CGFloat = 0.2
-//    let gradientLayer = CAGradientLayer()
-//    let transparentColor = UIColor.clear.cgColor
-//    let opaqueColor = UIColor.black.cgColor
-//
-//    var topOpacity: CGColor {
-//        let scrollViewHeight = frame.size.height
-//        let scrollContentSizeHeight = contentSize.height
-//        let scrollOffset = contentOffset.y
-//
-//        let alpha:CGFloat = (scrollViewHeight >= scrollContentSizeHeight || scrollOffset <= 0) ? 1 : 0
-//
-//        let color = UIColor(white: 0, alpha: alpha)
-//        return color.cgColor
-//    }
-//
-//    var bottomOpacity: CGColor {
-//        let scrollViewHeight = frame.size.height
-//        let scrollContentSizeHeight = contentSize.height
-//        let scrollOffset = contentOffset.y
-//
-//        let alpha:CGFloat = (scrollViewHeight >= scrollContentSizeHeight || scrollOffset + scrollViewHeight >= scrollContentSizeHeight) ? 1 : 0
-//
-//        let color = UIColor(white: 0, alpha: alpha)
-//        return color.cgColor
-//    }
-//
-//    override func layoutSubviews() {
-//        super.layoutSubviews()
-//
-//        self.delegate = self
-//        let maskLayer = CALayer()
-//        maskLayer.frame = self.bounds
-//
-//        gradientLayer.frame = CGRect(x: self.bounds.origin.x, y: 0, width: self.bounds.size.width, height: self.bounds.size.height)
-//        gradientLayer.colors = [topOpacity, opaqueColor, opaqueColor, bottomOpacity]
-//        gradientLayer.locations = [0, NSNumber(floatLiteral: fadePercentage), NSNumber(floatLiteral: 1 - fadePercentage), 1]
-//        maskLayer.addSublayer(gradientLayer)
-//
-//        self.layer.mask = maskLayer
-//    }
-//
-//    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        gradientLayer.colors = [topOpacity, opaqueColor, opaqueColor, bottomOpacity]
-//    }
-//
-//}
+
 
 //https://gist.github.com/pixeldock/f1c3b2bf0f7fe48d412c09fcb2705bf1
 
@@ -274,11 +102,19 @@ extension Array {
         return Array(from[0..<numberOfElementsToGet])
     }
 }
-
-
+// MARK: - OMScrollableChart -
 class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
-    
-    
+    // MARK: - Currency Formatter -
+    lazy var currencyFormatter: NumberFormatter = {
+        let currencyFormatter = NumberFormatter()
+        currencyFormatter.usesGroupingSeparator = true
+        currencyFormatter.numberStyle = .currency
+        currencyFormatter.maximumFractionDigits = 0
+        // localize to your grouping and decimal separator
+        currencyFormatter.locale = Locale(identifier: "es_ES")
+        return currencyFormatter
+    }()
+    /// PolyLineInterpolation
     public enum PolyLineInterpolation {
         case none
         case smoothed
@@ -286,35 +122,155 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         case catmullRom(_ alpha: CGFloat)
         case hermite(_ alpha: CGFloat)
     }
-    
+    var polylineInterpolation: PolyLineInterpolation = .smoothed {
+        didSet {
+            updateLayout()
+        }
+    }
+    /// PolyLineSimplyfication
     public enum PolyLineSimplyfication {
         case none
         case approximation(_ number: Int)
         case averaged(_ groupby: Int)
-        
     }
     var simply: PolyLineSimplyfication = .none
+    /// PolyLineTypeOfData
+    public enum PolyLineTypeOfData {
+        case raw
+        case averaged
+        case approximation
+        case linregress
+    }
+    var type: PolyLineTypeOfData = .raw
+    // MARK:  - Dash lines -
+    var dashPattern: [CGFloat] = [3, 3, 3, 3]
+    var dashLineWidth: CGFloat = 0.5
+    var drawGradient: Bool = true
+    var gradientBaseColor = UIColor.lightGray
+    var lineColor = UIColor.darkGray
+    var fontFooterRuleColor = UIColor.black {
+        didSet {
+            footerRule?.fontColor = fontFooterRuleColor
+        }
+    }
+    var decorationFooterRuleColor = UIColor.black {
+        didSet {
+            footerRule?.decorationColor = decorationFooterRuleColor
+        }
+    }
+    var fontRootRuleColor = UIColor.black {
+        didSet {
+            rootRule?.fontColor = fontRootRuleColor
+        }
+    }
+    var fontTopRuleColor = UIColor.black {
+        didSet {
+            topRule?.fontColor = fontTopRuleColor
+        }
+    }
+    var dashLineColor = UIColor.gray.withAlphaComponent(0.8).cgColor
+    var lineWidth: CGFloat = 1
+    var approximationLineWidth: CGFloat = 0.5
+    var footerViewHeight: CGFloat = 20
+    var topViewHeight: CGFloat = 20
+    var tooltipFont = UIFont.systemFont(ofSize: 14)
+    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
+    var rulesPoints = [CGPoint]()
+    var ruleLeadingAnchor: NSLayoutConstraint?
+    var ruletopAnchor: NSLayoutConstraint?
+    var rulebottomAnchor: NSLayoutConstraint?
+    var rulewidthAnchor: NSLayoutConstraint?
+    var ruleFooterLeadingAnchor: NSLayoutConstraint?
+    var ruleFooterTopAnchor: NSLayoutConstraint?
+    var ruleFooterBottomAnchor: NSLayoutConstraint?
+    var ruleFooterWidthAnchor: NSLayoutConstraint?
+    var ruleFooterHeightAnchor: NSLayoutConstraint?
+    var showPoints: Bool = true
+    var verticalMargins: ( CGFloat, CGFloat) = (0, 0)
+    var circleSelectedColor = UIColor.red
+    var circleSelectedOpacy: Float = 1.0
+    var circleUnselectedOpacy: Float = 0
+    var circleUnselectedColor = UIColor.blue
+    var circleOutterColor = UIColor(white: 0.11, alpha: 0.5)
+    var animatePolyLine = false
+    var animateDashLines: Bool = false
+    var circleSize: CGSize = .zero
+    var numberOfPages: CGFloat = 1 {
+        didSet {
+            updateContentSize()
+        }
+    }
+    var toolTipBackgroundColor: UIColor = UIColor.white
+    var tooltipSize: CGSize = CGSize(width: 128, height: 128)
     
+    var animatePointLayers: Bool = false
+    var scaleFactor: CGFloat = 0.015
+    var circleShadowOffset = CGSize(width: 0, height: 0.5)
+    
+    // MARK: - Layers -
+    var dashLineLayers = [CAShapeLayer]()
+    var activeLayer: CAShapeLayer?
+    // Internal.
     private var pointCircleLayers = [OMPointLayer]()
-    
+    private var pointsLayer: CAShapeLayer  =  CAShapeLayer()
+    private var currentLayer: CAShapeLayer =  CAShapeLayer()
+    private var linePathDashPointsLayer: CAShapeLayer = CAShapeLayer()
+    // MARK: - Rules -
+    private var rootRule: ChartRuleProtocol?
+    private var footerRule: ChartRuleProtocol?
+    private var topRule: ChartRuleProtocol?
+    var rules = [ChartRuleProtocol]() // todo
+    weak var dataSource: OMScrollableChartDataSource?
+    var contentView: UIView!
+    var tolltipBorderColor = UIColor.black.cgColor
+    var tooltipBorderWidth: CGFloat = 0.2
+    lazy var tooltip: OMTooltip = {
+        let label = OMTooltip(frame: CGRect(x: 0, y: 0, width: 128, height: 30))
+        label.font = tooltipFont
+        label.alpha = 0
+        label.textAlignment = .center
+        label.layer.cornerRadius = 6
+        label.layer.masksToBounds = true
+        label.backgroundColor = toolTipBackgroundColor
+        label.layer.borderColor = tolltipBorderColor
+        label.layer.borderWidth = tooltipBorderWidth
+        label.layer.shadowColor   = UIColor.black.cgColor
+        label.layer.shadowOffset  = circleShadowOffset
+        label.layer.shadowOpacity = 0.7
+        label.layer.shadowRadius  = 3.0
+        self.contentView.addSubview(label)
+        return label
+    }()
+    var touchScreenLineLayerColor = UIColor.clear
+    var touchScreenLineWidth: CGFloat = 0.5
+    var touchScreenLineLayerPath: UIBezierPath?
+    lazy var touchScreenLineLayer: CAShapeLayer = {
+        let lineLayer = CAShapeLayer()
+        lineLayer.lineJoin = CAShapeLayerLineJoin.round
+        lineLayer.shadowColor   = UIColor.yellow.cgColor
+        //lineLayer.shadowOffset  = circleShadowOffset
+        lineLayer.shadowOpacity = 0.7
+        lineLayer.shadowRadius  = 1.0
+        self.contentView.layer.addSublayer(lineLayer)
+        return lineLayer
+    }()
+    var animateLineSelection: Bool = true
     // MARK: - UIBezierPaths -
     private var linePathDashPoints: UIBezierPath? {
         guard let internalPoints = internalPoints else {
             return nil
         }
-        let linePathDashPoints = UIBezierPath(points: internalPoints, maxYPosition: self.frame.maxY)
-        return linePathDashPoints
+        return UIBezierPath(points: internalPoints, maxYPosition: self.frame.maxY)
     }
-    private  var linePathPoints: UIBezierPath? {
+    var linePathPointsPointSize: CGFloat = 6
+    private var linePathPoints: UIBezierPath? {
         guard let internalPoints = internalPoints else {
             return nil
         }
-        let linePathPoints = UIBezierPath(pointPoints: internalPoints, pointSize: 6)
-        return linePathPoints
+        return UIBezierPath(pointPoints: internalPoints,
+                            pointSize: linePathPointsPointSize)
     }
-    
     //var approximationLineColor:  UIColor = .brown
-    
     var currentPath: UIBezierPath? {
         guard let internalPoints = internalPoints else {
             return nil
@@ -326,27 +282,25 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             return UIBezierPath(smoothedPoints: internalPoints,
                                 maxYPosition: self.frame.maxY)
         case .cubicCurve:
-            return  UIBezierPath(cubicCurvePoints: internalPoints, maxYPosition: self.frame.maxY)
+            return  UIBezierPath(cubicCurvePoints: internalPoints,
+                                 maxYPosition: self.frame.maxY)
         case .catmullRom(_):
-            return UIBezierPath(catmullRomPoints: internalPoints, maxYPosition: self.frame.maxY, closed: false, alpha: 0.5)
+            return UIBezierPath(catmullRomPoints: internalPoints,
+                                maxYPosition: self.frame.maxY,
+                                closed: false,
+                                alpha: 0.5)
         case .hermite(_):
-            return UIBezierPath(hermitePoints: internalPoints, maxYPosition: self.frame.maxY)
+            return UIBezierPath(hermitePoints: internalPoints,
+                                maxYPosition: self.frame.maxY)
         }
     }
-    
-    private  var pointsLayer: CAShapeLayer =  CAShapeLayer()
-    private  var currentLayer: CAShapeLayer =  CAShapeLayer()
-    private var linePathDashPointsLayer: CAShapeLayer = CAShapeLayer()
-    
-    // TODO: If the size of the discrete points dont change
+    // TODO: If the size of the discrete points don't change, assume don't change?
     func updateLayersIfNeeded() {
-        
         guard let linePathPoints = linePathPoints,
             let currentPath = currentPath,
             let linePathDashPoints = linePathDashPoints else {
                 return
         }
-        
         pointsLayer.path = linePathPoints.cgPath
         pointsLayer.fillColor = UIColor.gray.cgColor
         pointsLayer.strokeColor = self.lineColor.withAlphaComponent(0.8).cgColor
@@ -380,40 +334,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         currentLayer.isHidden = true
         
     }
-    
-    var dashLineLayers = [CAShapeLayer]()
-    //    private var pathVertical = UIBezierPath()
-    //    private var pathHorizontal = UIBezierPath()
-    
-    var activeLayer: CAShapeLayer?
-    
-    private var rootRule: ChartRuleProtocol?
-    
-    private var footerRule: ChartRuleProtocol?
-    
-    private var topRule: ChartRuleProtocol?
-    var rules = [ChartRuleProtocol]() // todo
-    weak var dataSource: OMScrollableChartDataSource?
-    var contentView: UIView!
-    
-    //    var footerView: UIStackView = UIStackView(frame: .zero)
-    //    var topView: UIStackView     = UIStackView(frame: .zero)
-    
-    /// <#Description#>
-    var polylineInterpolation: PolyLineInterpolation = .smoothed {
-        didSet {
-            updateLayout()
-        }
-    }
-    
+    // MARK: - Rules marks -
     var numberOfRuleMarks: CGFloat = 4 {
         didSet {
             setNeedsLayout()
         }
     }
-    var internalRuelesMarks = [Float]()
+    var internalRulesMarks = [Float]()
     var rulesMarks: [Float] {
-        return internalRuelesMarks.sorted(by: {return !($0 > $1)})
+        return internalRulesMarks.sorted(by: {return !($0 > $1)})
     }
     var showZeroMark: Bool = false {
         didSet {
@@ -425,51 +354,32 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             internalCalcRules()
         }
     }
-    
     func calcRules() -> Bool {
         guard numberOfRuleMarks > 0 && (range != 0)  else {
             return false
         }
-        internalRuelesMarks.removeAll()
-        
+        internalRulesMarks.removeAll()
         internalCalcRules()
-        
         if showZeroMark {
-            internalRuelesMarks.append(0)
+            internalRulesMarks.append(0)
         }
-        
         if showLimitsMarks {
-            internalRuelesMarks.append(maximumValue)
+            internalRulesMarks.append(maximumValue)
         }
         rulesPoints = makePoints(data: rulesMarks, size: contentSize)
-        
         rules.forEach{$0.setNeedsLayout()}
-        
         return true
     }
-    
-    lazy var currencyFormatter: NumberFormatter = {
-        let currencyFormatter = NumberFormatter()
-        currencyFormatter.usesGroupingSeparator = true
-        currencyFormatter.numberStyle = .currency
-        currencyFormatter.maximumFractionDigits = 0
-        // localize to your grouping and decimal separator
-        currencyFormatter.locale = Locale(identifier: "es_ES")
-        return currencyFormatter
-    }()
-    
     // Calculate the rules marks positions
     func internalCalcRules() {
-        
         let counter = Int(numberOfRuleMarks) + Int(showLimitsMarks ? 1 : 0) + Int( showZeroMark ? 1 : 0)
         let roundedStep = range / Float(counter)
-        
         for ruleMarkIndex in 0..<counter + 1    {
             let value = minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-            internalRuelesMarks.append(value.roundToNearestValue(value: roundMarkValueTo))
+            internalRulesMarks.append(value.roundToNearestValue(value: roundMarkValueTo))
         }
     }
-    
+    // MARK:  - Points generator -
     internal func updateRangeLimits(_ data: [Float]) {
         // Normalize values in array (i.e. scale to 0-1)...
         var min: Float = 0
@@ -542,20 +452,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
     
     private(set) var maximumValue: Float = 0
     private(set) var minimumValue: Float = 0
-    
-    
-    
     func mean(_ lhs: [Float]) -> Float {
         var result: Float = 0
         vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))
         return result
-        
     }
     func measq(_ lhs: [Float]) -> Float {
         var result: Float = 0
         vDSP_measqv(lhs, 1, &result, vDSP_Length(lhs.count))
         return result
-        
     }
     public func linregress(_ lhs: [Float], _ rhs: [Float]) -> (slope: Float, intercept: Float) {
         precondition(lhs.count == rhs.count, "Vectors must have equal count")
@@ -571,10 +476,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         let intercept = meany - slope * meanx
         return (slope, intercept)
     }
-    
     var linFunction: (slope: Float, intercept: Float)?
-    func makeLinregressPoints(_ size: CGSize, numberOfElements: Int) -> ChartData
-    {
+    func makeLinregressPoints(_ size: CGSize, numberOfElements: Int) -> ChartData {
         guard let originalData = originalData else {return  ([],  [] )}
         let originalDataIndex: [Float] = originalData.points.enumerated().map { Float($0.offset) }
         //        let max = originalData.points.max(by: { $0.x < $1.x})!
@@ -593,24 +496,21 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         // var index = 0
         let result: [Float] = [Float].init(repeating: 0, count: numberOfElements)
         
-        let resultre = result.enumerated().map{ dataForIndex(index: Float($0.offset))}
+        let resultRegress = result.enumerated().map{ dataForIndex(index: Float($0.offset))}
         //        for item in result  {
         //            result[index] = dataForIndex(index:  Float(index))
         //            index += 1
         //        }
         //
         
-        let newData = originalData.data + resultre
+        let newData = originalData.data + resultRegress
         let newPoints =  makePoints(data: newData, size: size)
-        return (newPoints,  resultre )
-        
+        return (newPoints, resultRegress)
     }
-    
     func dataForIndex(index: Float) -> Float {
         guard let linFunction = linFunction else { return 0 }
         return linFunction.slope * index + linFunction.intercept
     }
-    
     var numberOfElementsToAverage: Int = 3 {
         didSet {
             self.setNeedsLayout()
@@ -624,90 +524,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             self.setNeedsDisplay()
         }
     }
-    var dashPattern: [CGFloat] = [3, 3, 3, 3]
-    var dashLineWidth: CGFloat = 0.5
-    var drawGradient: Bool = true
-    var gradientBaseColor = UIColor.lightGray
-    var lineColor = UIColor.darkGray
-    var fontFooterRuleColor = UIColor.black {
-        didSet {
-            footerRule?.fontColor = fontFooterRuleColor 
-        }
-    }
-    var decorationFooterRuleColor = UIColor.black {
-        didSet {
-            footerRule?.decorationColor = decorationFooterRuleColor
-        }
-    }
-    var fontRootRuleColor = UIColor.black {
-        didSet {
-            rootRule?.fontColor = fontRootRuleColor
-        }
-    }
-    var fontTopRuleColor = UIColor.black {
-        didSet {
-            topRule?.fontColor = fontTopRuleColor
-        }
-    }
-    var dashLineColor = UIColor.gray.withAlphaComponent(0.8).cgColor
-    var lineWidth: CGFloat = 1
-    var approximationLineWidth: CGFloat = 0.5
-    var footerViewHeight: CGFloat = 20
-    var topViewHeight: CGFloat = 20
-    var tooltipFont = UIFont.systemFont(ofSize: 14)
-    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
-    var rulesPoints = [CGPoint]()
-    var ruleLeadingAnchor: NSLayoutConstraint?
-    var ruletopAnchor: NSLayoutConstraint?
-    var rulebottomAnchor: NSLayoutConstraint?
-    var rulewidthAnchor: NSLayoutConstraint?
     
-    var ruleFooterLeadingAnchor: NSLayoutConstraint?
-    var ruleFooterTopAnchor: NSLayoutConstraint?
-    var ruleFooterBottomAnchor: NSLayoutConstraint?
-    var ruleFooterWidthAnchor: NSLayoutConstraint?
-    var ruleFooterHeightAnchor: NSLayoutConstraint?
     
-    var showPoints: Bool = true
-    var verticalMargins: ( CGFloat, CGFloat) = (0, 0)
-    var circleSelectedColor = UIColor.red
-    var circleSelectedOpacy: Float = 1.0
-    var circleUnselectedOpacy: Float = 0
-    var circleUnselectedColor = UIColor.blue
-    var circleOutterColor = UIColor(white: 0.11, alpha: 0.5)
-    var animatePolyLine = false
-    var animateDashLines: Bool = false
-    var circleSize: CGSize = .zero
-    var numberOfPages: CGFloat = 1 {
-        didSet {
-            updateContentSize()
-        }
-    }
-    var toolTipBackgroundColor: UIColor = UIColor.white
-    var tooltipSize: CGSize = CGSize(width: 128, height: 128)
-    
-    var animatePointLayers: Bool = false
-    var scaleFactor: CGFloat = 0.015
-    var circleShadowOffset = CGSize(width: 0, height: 0.5)
-    //var singleTap: UITapGestureRecognizer?
-    //    var currentLayerIndex: Int = -1
-    //    var allLayers = [CAShapeLayer]()
-    //    @IBAction func tapRecognized(tap: UITapGestureRecognizer) {
-    //        print("tap \(tap.numberOfTouches)")
-    //        currentLayerIndex = (currentLayerIndex + 1) % allLayers.count
-    //        self.activeLayer = allLayers[currentLayerIndex]
-    //        self.allLayers.filter({$0 != self.activeLayer}).forEach({$0.isHidden = true})
-    //        self.activeLayer!.isHidden = false
-    //        dump(activeLayer)
-    //        self.contentView.setNeedsDisplay()
-    //    }
-    //    var pinchGesture: UIPinchGestureRecognizer?
-    //    @IBAction func pinchRecognized(pinch: UIPinchGestureRecognizer) {
-    //        let newScale = pinch.scale
-    //        print("pitch \(newScale)")
-    //        self.numberOfPages = ceil(newScale)
-    //        print(newScale)
-    //    }
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         setupView()
@@ -759,16 +577,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         self.setupContentView()
     }
     
-    func setupGestures() {
-        //self.delaysContentTouches = false
-        //self.singleTap = UITapGestureRecognizer(target: self, action: #selector(tapRecognized(tap:)))
-        //self.singleTap?.numberOfTapsRequired = 1
-        //self.singleTap?.numberOfTouchesRequired = 1
-        //self.addGestureRecognizer(singleTap!)
-        //self.pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchRecognized(pinch:)))
-        // self.contentView.addGestureRecognizer(self.pinchGesture!)
-    }
-    
     func setupContentView() {
         self.contentView = UIView(frame: self.bounds)
         self.addSubview(contentView)
@@ -794,10 +602,10 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
     // MARK: - Rotation support -
     fileprivate func updateContentSize() {
         self.layoutIfNeeded()
-        let newValue = CGSize(width: self.bounds.width * numberOfPages, height: self.bounds.height)
+        let totalWidth = self.bounds.width * numberOfPages
+        let newValue = CGSize(width: totalWidth, height: self.bounds.height)
         if self.contentSize != newValue {
             self.contentSize = newValue
-            
             contentView.frame = CGRect(x: 0, y: 0, width: self.contentSize.width, height: self.contentSize.height)
         }
         self.updateLayout()
@@ -954,63 +762,28 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             ctx.restoreGState()
         }
     }
-    //    // Draw the line.
-    //    fileprivate func drawGradientApproximation( ctx: CGContext?) {
-    //        if  let ctx = ctx {
-    //
-    //            let gradientApproximation = CGGradient(colorsSpace: nil, colors: [UIColor.white.withAlphaComponent(0.1).cgColor,
-    //                                                                              approximationLineColor.withAlphaComponent(0.8).cgColor,
-    //                                                                              approximationLineColor.withAlphaComponent(gradientFadePercentage).cgColor ,
-    //                                                                              UIColor.white.withAlphaComponent(0.8).cgColor
-    //                /*
-    //                 UIColor.black.cgColor*/] as CFArray,
-    //                                                   locations: [0, gradientFadePercentage, 1 - gradientFadePercentage, 1] )!
-    //
-    //
-    //            ctx.saveGState()
-    //
-    //            // Clip to the path, stroke and enjoy.
-    //            if  let approximationPath = linePathApproximationPointsLayer.path {
-    //
-    //
-    //                approximationLineColor.setStroke()
-    //                let approximationPath = UIBezierPath(cgPath: approximationPath)
-    //                approximationPath.lineWidth = approximationLineWidth
-    //                approximationPath.stroke()
-    //                approximationPath.addClip()
-    //
-    //                // Draw the gradient in the clipped region
-    //                ctx.drawLinearGradient(gradientApproximation,
-    //                                       start: CGPoint(x: rootRule!.ruleSize.width, y: 0),
-    //                                       end: CGPoint(x: rootRule!.ruleSize.width, y: contentSize.height),
-    //                                       options: [.drawsAfterEndLocation])
-    //            }
-    //
-    //
-    //
-    //            ctx.restoreGState()
-    //        }
-    //   }
-    
+   
+    fileprivate func drawGraph(_ ctx: CGContext) {
+        if drawGradient {
+            drawGradient(ctx: ctx)
+            //if approximationRatio > 0 {
+            // drawGradientApproximation(ctx: ctx)
+            //  }
+        } else {
+            ctx.saveGState()
+            // Clip to the path
+            if let path = activeLayer?.path {
+                let pathToFill = UIBezierPath(cgPath: path)
+                self.gradientBaseColor.setFill()
+                pathToFill.fill()
+            }
+            ctx.restoreGState()
+        }
+    }
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         if let ctx = UIGraphicsGetCurrentContext() {
-            if drawGradient {
-                drawGradient(ctx: ctx)
-                //if approximationRatio > 0 {
-                // drawGradientApproximation(ctx: ctx)
-                //  }
-            } else {
-                
-                ctx.saveGState()
-                // Clip to the path
-                if let path = activeLayer?.path {
-                    let pathToFill = UIBezierPath(cgPath: path)
-                    self.gradientBaseColor.setFill()
-                    pathToFill.fill()
-                }
-                ctx.restoreGState()
-            }
+            drawGraph(ctx)
         }
         //drawVerticalGridLines()
         //drawHorizalGridLines()
@@ -1037,38 +810,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
                            y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + pointsInsetTop)
         }
     }
-    
-    //    func groupAverage(_ arr: [Float], numberOfElements:Int) -> [Float] {
-    //        var result = [Float]();
-    //        var sum: Float
-    //        let to = arr.count/numberOfElements
-    //        var index: Int = 0
-    //        for i in stride(from: 0, to: to, by: 1)
-    //        {
-    //            sum = 0;
-    //            //      let xx = (arr.count - numberOfElements * i)
-    //            for j in stride(from: 0, to: numberOfElements , by: 1) {
-    //                // Check if value is numeric. If not use default value as 0
-    //                index = (i*numberOfElements)+j
-    //                sum += arr[index]
-    //            }
-    //
-    //            result.append( sum / Float(numberOfElements))
-    //
-    //        }
-    //        let rest = (arr.count % numberOfElements)
-    //        if rest > 0  {
-    //            sum = 0;
-    //            for i in stride(from: arr.count - rest, to: rest, by: 1)
-    //            {
-    //                sum += arr[i]
-    //            }
-    //            result.append( sum / Float(rest))
-    //
-    //        }
-    //        return result
-    //    }
-    
+   
     typealias ChartData = (points: [CGPoint], data: [Float])
     
     var averagedData: ChartData? {
@@ -1081,14 +823,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             //            }
         }
     }
-    enum TypeOfData {
-        case raw
-        case averaged
-        case approximation
-        case linregress
-    }
     
-    var type: TypeOfData = .raw
     var internalPoints: [CGPoint]?  {
         return currentData?.points
     }
@@ -1208,83 +943,23 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
     }
     
     
-    //    func addSubFooterViews() {
-    //
-    //        for item in footerLabels
-    //        {
-    //            footerView.removeArrangedSubview(item)
-    //            item.removeFromSuperview()
-    //        }
-    //        footerLabels.removeAll()
-    //        //let date = Calendar.current.dateComponents([.day , .month , .year], from: Date())
-    //        for index in 0...Int(numberOfSection) - 1
-    //        {
-    //            let label = UILabel(frame: .zero)
-    //            label.translatesAutoresizingMaskIntoConstraints = false
-    //            label.text = DateFormatter().monthSymbols[index]
-    //            label.textAlignment = .center
-    //            label.sizeToFit()
-    //            label.backgroundColor = UIColor.white
-    //            label.textColor = UIColor.black
-    //            //                label.layer.borderColor = UIColor.lightGray.cgColor
-    //            //                label.layer.borderWidth = 1
-    //            footerView.addArrangedSubview(label)
-    //
-    //
-    //            label.widthAnchor.constraint(equalToConstant: sectionWidth).isActive = true
-    //            label.heightAnchor.constraint(equalToConstant: footerViewHeight).isActive = true
-    //
-    //            footerLabels.append(label)
-    //
-    //        }
-    //
-    //        //        for item in topLabels
-    //        //        {
-    //        //            topView.removeArrangedSubview(item)
-    //        //            item.removeFromSuperview()
-    //        //        }
-    //        //        topLabels.removeAll()
-    //        //        for index in 0...Int(numberOfColumns)
-    //        //        {
-    //        //            let label = UILabel(frame: .zero)
-    //        //            label.translatesAutoresizingMaskIntoConstraints = false
-    //        //            //label.text = DateFormatter().shortWeekdaySymbols[0]
-    //        //            label.textAlignment = .center
-    //        //            //label.sizeToFit()
-    //        //            label.backgroundColor = UIColor(white: CGFloat(CGFloat(1.0 / Double(numberOfColumns)) * CGFloat(index)), alpha: 1.0)
-    //        //            label.textColor = UIColor.black
-    //        //            label.layer.borderColor = UIColor.lightGray.cgColor
-    //        //            label.layer.borderWidth = 1
-    //        //            topView.addArrangedSubview(label)
-    //        //
-    //        //
-    //        //            label.widthAnchor.constraint(equalToConstant: itemWidth).isActive = true
-    //        //            label.heightAnchor.constraint(equalToConstant: topViewHeight).isActive = true
-    //        //
-    //        //            topLabels.append(label)
-    //        //
-    //        //        }
-    //
-    //    }
-    
+    /// addRootRule
+    /// - Parameters:
+    ///   - rule: ChartRuleProtocol
+    ///   - view: UIView
     func addRootRule(_ rule: ChartRuleProtocol, view: UIView?) {
         assert(rule.type == .root)
         if rule.superview == nil {
             rule.translatesAutoresizingMaskIntoConstraints = false
-            
             if let view = view  {
                 view.insertSubview(rule, at: 0)
             } else {
                 self.insertSubview(rule, at: 0)
             }
-            
             ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-            ruletopAnchor =         rule.topAnchor.constraint(equalTo: self.topAnchor)
-            rulebottomAnchor =          rule.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-            rulewidthAnchor =          rule.widthAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.width))
-            
-            
-            
+            ruletopAnchor = rule.topAnchor.constraint(equalTo: self.topAnchor)
+            rulebottomAnchor = rule.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            rulewidthAnchor =  rule.widthAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.width))
             ruleLeadingAnchor?.isActive  = true
             ruletopAnchor?.isActive  = true
             rulebottomAnchor?.isActive  = true
@@ -1292,6 +967,10 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         }
         
     }
+    /// addFooterRule
+    /// - Parameters:
+    ///   - ruleFooter: ChartRuleProtocol
+    ///   - view: UIView
     fileprivate func addFooterRule(_  ruleFooter: ChartRuleProtocol? = nil, view: UIView? = nil) {
         guard let ruleFooter = ruleFooter else {
             return
@@ -1316,7 +995,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             ruleFooter.widthAnchor.constraint(equalToConstant: width).isActive = true
         }
     }
-    
+    /// addTopRule
+    /// - Parameter ruleTop: ChartRuleProtocol
     fileprivate func addTopRule(_ ruleTop: ChartRuleProtocol? = nil) {
         guard let ruleTop = ruleTop else {
             return
@@ -1333,32 +1013,27 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         ruleTop.widthAnchor.constraint(equalToConstant: contentSize.width).isActive = true
         ruleTop.backgroundColor = .gray
     }
-    
-    
+    /// createSuplementaryRules
     fileprivate func createSuplementaryRules() {
+        // DEBUG
         //       self.layer.borderColor = UIColor.red.cgColor
         //       self.layer.borderWidth = 1
-        
-        
         if let rootRule = rootRule {
             addRootRule(rootRule,view: self)
             rootRule.layer.borderColor = UIColor.red.cgColor
             rootRule.layer.borderWidth = 1
         }
-        
         if let footerRule = footerRule {
             addFooterRule(footerRule)
             footerRule.layer.borderColor = UIColor.red.cgColor
             footerRule.layer.borderWidth = 1
         }
-        
         if let topRule = topRule {
             addTopRule(topRule)
             topRule.layer.borderColor = UIColor.red.cgColor
             topRule.layer.borderWidth = 1
         }
     }
-    
     fileprivate func removeAllLayers() {
         self.pointCircleLayers.forEach({ (layer: CALayer) -> () in
             layer.removeFromSuperlayer()
@@ -1367,40 +1042,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         self.activeLayer?.removeFromSuperlayer()
         //self.linePathApproximationPointsLayer.removeFromSuperlayer()
     }
-    var tolltipBorderColor = UIColor.black.cgColor
-    var tooltipBorderWidth: CGFloat = 0.2
-    lazy var tooltip: OMTooltip = {
-        let label = OMTooltip(frame: CGRect(x: 0, y: 0, width: 128, height: 30))
-        label.font = tooltipFont
-        label.alpha = 0
-        label.textAlignment = .center
-        label.layer.cornerRadius = 6
-        label.layer.masksToBounds = true
-        label.backgroundColor = toolTipBackgroundColor
-        label.layer.borderColor = tolltipBorderColor
-        label.layer.borderWidth = tooltipBorderWidth
-        label.layer.shadowColor   = UIColor.black.cgColor
-        label.layer.shadowOffset  = circleShadowOffset
-        label.layer.shadowOpacity = 0.7
-        label.layer.shadowRadius  = 3.0
-        self.contentView.addSubview(label)
-        return label
-    }()
-    var touchScreenLineLayerColor = UIColor.clear
-    var touchScreenLineWidth: CGFloat = 0.5
-    var touchScreenLineLayerPath: UIBezierPath?
     
-    lazy var touchScreenLineLayer: CAShapeLayer = {
-        let lineLayer = CAShapeLayer()
-        lineLayer.lineJoin = CAShapeLayerLineJoin.round
-        lineLayer.shadowColor   = UIColor.yellow.cgColor
-        //lineLayer.shadowOffset  = circleShadowOffset
-        lineLayer.shadowOpacity = 0.7
-        lineLayer.shadowRadius  = 1.0
-        self.contentView.layer.addSublayer(lineLayer)
-        return lineLayer
-    }()
-    var animateLineSelection: Bool = true
     fileprivate func updateLineSelectionLayer(_ location: CGPoint) {
         let linePath = UIBezierPath()
         linePath.move(to: CGPoint( x: location.x, y: topViewHeight))
@@ -1619,7 +1261,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             }
         }
         
-
+        
         
         // Mark for display the rule.
         
@@ -1640,7 +1282,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             self.linregressData = makeLinregressPoints(contentSize, numberOfElements: 90)
             self.averagedData = makeAveragedPoints(data: rawData, size: contentSize)
             self.approximationData = makeApproximationPoints( size: contentSize)
-        
+            
             updateLayersIfNeeded()
             activeLayer = currentLayer
             
@@ -1720,6 +1362,12 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             //print("layout is ok")
         }
     }
+    
+    
+}
+
+// MARK: - Animations -
+extension OMScrollableChart {
     /// animatePoints
     /// - Parameters:
     ///   - layers: CAShapeLayer
@@ -1741,8 +1389,11 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         }
     }
     
+    /// animateOnSelectPoint
+    /// - Parameters:
+    ///   - selectedLayer: OMPointLayer
+    ///   - duration: TimeInterval [2.0]
     func animateOnSelectPoint(_ selectedLayer: OMPointLayer, duration: TimeInterval = 2.0) {
-        
         if let index = self.pointCircleLayers.firstIndex(of: selectedLayer) {
             let count = self.pointCircleLayers.count - 1
             let pointBegin = self.pointCircleLayers.takeElements(index)
@@ -1752,10 +1403,13 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             animatePoints(pointEnd, duration: duration)
         }
     }
-    
-    func animateLineSelection(_ layer: CAShapeLayer,_ newPath: CGPath, _ duration: TimeInterval = 1) {
+    /// animateLineSelection
+    /// - Parameters:
+    ///   - layer: CAShapeLayer
+    ///   - newPath: newPath
+    ///   - duration: duration [1.0]
+    func animateLineSelection(_ layer: CAShapeLayer,_ newPath: CGPath, _ duration: TimeInterval = 1.0) {
         // the new origin of the CAShapeLayer within its view
-        
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue =  layer.path           // animate from current position ...
         animation.toValue = newPath                        // ... to whereever the new position is
@@ -1767,7 +1421,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         // set the shape's final position to be the new position so when the animation is done, it's at its new "home"
         layer.add(animation, forKey: nil)
     }
-    
+    /// Animate DashLines phase
     func animateDashLinesPhase() {
         for layer in dashLineLayers {
             let animation = CABasicAnimation(keyPath: "lineDashPhase")
@@ -1778,7 +1432,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             layer.add(animation, forKey: "line")
         }
     }
-    
+    /// animateLine
     func animateLine() {
         let fromValue = self.contentOffset.x / self.contentSize.width
         let growAnimation = CABasicAnimation(keyPath: "strokeEnd")
@@ -1797,7 +1451,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         //        startAnimation.toValue = 0.8
         //
         //        let endAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        //        endAnimation.fromValue = 0.2
+        //      s  endAnimation.fromValue = 0.2
         //        endAnimation.toValue = 1.0
         //
         //        let animation = CAAnimationGroup()
@@ -1805,7 +1459,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         //        animation.duration = 2
         //        catmullRomLineLayer.add(animation, forKey: "MyAnimation")
     }
-    
     
     
 }
@@ -1827,7 +1480,4 @@ extension OMScrollableChart {
     func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
         setContentOffset(self.contentOffset, animated: true)
     }
-    
-    
-    
 }

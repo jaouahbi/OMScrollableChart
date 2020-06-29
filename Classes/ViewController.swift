@@ -36,52 +36,51 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
     }
     
     @IBOutlet var slider: UISlider!
-    @IBOutlet var scrollView: OMScrollableChart!
+    @IBOutlet var chart: OMScrollableChart!
     @IBOutlet var segmentInterpolation: UISegmentedControl!
     @IBOutlet var sliderAverage: UISlider!
     override func viewDidLoad() {
         super.viewDidLoad()
-        scrollView.bounces = false
-        scrollView.dataSource = self
-        scrollView.backgroundColor = .clear
-        scrollView.isPagingEnabled = true
+        chart.bounces = false
+        chart.dataSource = self
+        chart.backgroundColor = .clear
+        chart.isPagingEnabled = true
         
         slider.maximumValue  = 20
         slider.minimumValue  = 1
-        slider.value = Float(self.scrollView.approximationTolerance)
+        slider.value = Float(self.chart.approximationTolerance)
         sliderAverage.maximumValue = Float(chartPoints.count)
         sliderAverage.minimumValue = 0
-        sliderAverage.value = Float(self.scrollView.numberOfElementsToAverage)
+        sliderAverage.value = Float(self.chart.numberOfElementsToAverage)
         segmentInterpolation.removeAllSegments()
         segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
         segmentInterpolation.insertSegment(withTitle: "smoothed", at: 1, animated: false)
         segmentInterpolation.insertSegment(withTitle: "cubicCurve", at: 2, animated: false)
         segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
         segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
-        segmentInterpolation.selectedSegmentIndex = 0
-        
-        scrollView.updateData()
+        segmentInterpolation.selectedSegmentIndex = 1
+        chart.updateData()
     }
     @IBAction  func simplifySliderChange( _ sender: UISlider)  {
         if sender == sliderAverage {
-            self.scrollView.numberOfElementsToAverage = Int(sliderAverage.value)
+            self.chart.numberOfElementsToAverage = Int(sliderAverage.value)
         } else {
-            self.scrollView.approximationTolerance = CGFloat(slider.value)
+            self.chart.approximationTolerance = CGFloat(slider.value)
         }
     }
         
     @IBAction  func interpolationSegmentChange( _ sender: Any)  {
         switch segmentInterpolation.selectedSegmentIndex  {
         case 0:
-            scrollView.polylineInterpolation = .none
+            chart.polylineInterpolation = .none
             case 1:
-                scrollView.polylineInterpolation = .smoothed
+                chart.polylineInterpolation = .smoothed
             case 2:
-                scrollView.polylineInterpolation = .cubicCurve
+                chart.polylineInterpolation = .cubicCurve
             case 3:
-                scrollView.polylineInterpolation = .hermite(0.5)
+                chart.polylineInterpolation = .hermite(0.5)
             case 4:
-                scrollView.polylineInterpolation = .catmullRom(0.5)
+                chart.polylineInterpolation = .catmullRom(0.5)
         default:
             assert(false)
         }
