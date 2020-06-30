@@ -249,3 +249,104 @@ func setupGestures() {
 
 
 
+  
+//    func setupContentView() {
+//        self.contentView = UIView(frame: self.bounds)
+//        self.addSubview(contentView)
+//        //        NSLayoutConstraint.activate([
+//        //            // constrain scrollView to all 4 sides with 20-pts padding
+//        ////            topAnchor.constraint(equalTo: superview!.safeAreaLayoutGuide.topAnchor, constant: 20.0),
+//        ////            bottomAnchor.constraint(equalTo: superview!.safeAreaLayoutGuide.bottomAnchor, constant: -20.0),
+//        ////            leadingAnchor.constraint(equalTo: superview!.safeAreaLayoutGuide.leadingAnchor, constant: 20.0),
+//        ////            trailingAnchor.constraint(equalTo: superview!.safeAreaLayoutGuide.trailingAnchor, constant: -20.0),
+//        //
+//        //            // constrain contentView to all 4 sides of scrollView with 8-pts padding
+//        //            contentView.topAnchor.constraint(equalTo: topAnchor, constant: 20.0),
+//        //            contentView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20.0),
+//        //            contentView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20.0),
+//        //            contentView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20.0),
+//        //        ])
+//
+//        //        self.contentView.layer.borderColor = UIColor.red.cgColor
+//        //        self.contentView.layer.borderWidth = 2
+//    }
+    
+   
+
+  //    fileprivate var gridHeight: CGFloat
+  //    {
+  //        return self.contentSize.height/CGFloat(numberOfRows)
+  //    }
+  
+  
+  //    fileprivate func drawVerticalGridLines()
+  //    {
+  //        pathVertical = UIBezierPath()
+  //        pathVertical.lineWidth = 1
+  //
+  //        for index in 1...Int(numberOfColumns) - 1
+  //        {
+  //            let start = CGPoint(x: CGFloat(index) * itemWidth, y: 0)
+  //            let end = CGPoint(x: CGFloat(index) * itemWidth, y: self.frame.height)
+  //            pathVertical.move(to: start)
+  //            pathVertical.addLine(to: end)
+  //
+  //            //            let start2 = CGPoint(x: CGFloat(index) * itemWidth, y: 0)
+  //            //            let end2 = CGPoint(x: CGFloat(index) * itemWidth, y: 10)
+  //            //            pathVertical.move(to: start2)
+  //            //            pathVertical.addLine(to: end2)
+  //        }
+  //
+  //        //Close the path.
+  //        pathVertical.close()
+  //
+  //    }
+  //
+  //
+  //    fileprivate func drawHorizalGridLines()
+  //    {
+  //        pathHorizontal = UIBezierPath()
+  //        pathHorizontal.lineWidth = 1
+  //        for index in 1...Int(numberOfRows) - 1
+  //        {
+  //            let start = CGPoint(x:  0, y: CGFloat(index) * gridHeight)
+  //            let end = CGPoint(x:  bounds.width+contentOffset.x, y: CGFloat(index) * gridHeight)
+  //            pathHorizontal.move(to: start)
+  //            pathHorizontal.addLine(to: end)
+  //        }
+  //
+  //        //Close the path.
+  //        pathHorizontal.close()
+  //
+  //    }
+  
+  //    func drawDashLine( point: CGPoint, pointe: CGPoint ) {
+  //        let path = UIBezierPath()
+  //        // define the pattern & apply it
+  //        path.setLineDash(dashPattern, count: dashPattern.count, phase: 0)
+  //        path.lineWidth = dashLineWidth
+  //        path.move(to: point)
+  //        path.addLine(to: pointe)
+  //        path.stroke()
+  //    }
+  
+  
+//    var numberOfItemsPerSection: Int {
+//        return (rawData.count)! / numberOfSections
+//    }
+//    var numberOfItems: Int {           // Total
+//        return numberOfItemsPerSection * Int(numberOfPages)
+//    }
+//    var numberOfColumns: Int {
+//        return (numberOfItemsPerSection * numberOfSectionsPerPage) * Int(numberOfPages)
+//    }
+//    var itemWidth: CGFloat {
+//        return self.contentSize.width/CGFloat(numberOfColumns)
+//    }
+//
+
+
+// https://stackoverflow.com/questions/35915853/how-to-show-tooltip-on-a-point-click-in-swift
+// https://itnext.io/swift-uiview-lovely-animation-and-transition-d34bd623391f
+// https://stackoverflow.com/questions/29674959/linear-regression-accelerate-framework-in-swift
+// https://gist.github.com/marmelroy/ed4bd675bd75c757ab7447d1b3488886

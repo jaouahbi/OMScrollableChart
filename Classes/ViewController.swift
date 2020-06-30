@@ -68,7 +68,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
             self.chart.approximationTolerance = CGFloat(slider.value)
         }
     }
-        
     @IBAction  func interpolationSegmentChange( _ sender: Any)  {
         switch segmentInterpolation.selectedSegmentIndex  {
         case 0:
@@ -84,7 +83,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
         default:
             assert(false)
         }
-     
     }
 }
 
