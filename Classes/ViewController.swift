@@ -32,7 +32,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
     }
     
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
-        return 3
+        return 6
     }
     
     @IBOutlet var slider: UISlider!

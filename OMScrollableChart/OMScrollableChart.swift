@@ -82,7 +82,7 @@ protocol ChartProtocol {
 protocol OMScrollableChartDataSource: class {
     func dataPoints(chart: OMScrollableChart, section: Int) -> [Float]
     func numberOfPages(chart: OMScrollableChart) -> CGFloat
-    // func numberOfSections(chart: OMScrollableChart) -> Int
+    func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
 }
 // MARK: - OMScrollableChart -
 class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
@@ -360,7 +360,9 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
     }
     // Calculate the rules marks positions
     func internalCalcRules() {
-        let counter = Int(numberOfRuleMarks) + Int(showLimitsMarks ? 1 : 0) + Int( showZeroMark ? 1 : 0)
+        
+        let extraRulesMarks = Int(showLimitsMarks ? 1 : 0) + Int( showZeroMark ? 1 : 0)
+        let counter = Int(numberOfRuleMarks) + extraRulesMarks
         let roundedStep = range / Float(counter)
         for ruleMarkIndex in 0..<counter + 1    {
             let value = minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
@@ -552,12 +554,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         self.rules.append(footerRule)
     }
     // Setup all the view/subviews
+    fileprivate func addContentView() {
+        self.contentView = UIView(frame: self.bounds)
+        self.addSubview(contentView)
+    }
     func setupView() {
         self.registerNotifications()
         self.setupRules()
         self.setupScrollView()
-        self.contentView = UIView(frame: self.bounds)
-        self.addSubview(contentView)
+        addContentView()
     }
     // MARK: - Rotation support -
     fileprivate func updateContentSize() {
@@ -591,10 +596,12 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         }
         return false
     }
-    var numberOfSectionsPerPage = 6                   // For example: mouths or weeks
-    
+    var numberOfSectionsPerPage: Int                  // For example: mouths or weeks
+    {
+        return (dataSource?.numberOfSectionsPerPage(chart: self) ?? 1)
+    }
     var numberOfSections: Int {         // Total
-        return numberOfSectionsPerPage * Int(numberOfPages)
+        return numberOfSectionsPerPage  * Int(numberOfPages)
     }
     var sectionWidth: CGFloat {
         return self.contentSize.width/CGFloat(numberOfSections)
@@ -701,9 +708,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
                            y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + pointsInsetTop)
         }
     }
-    
     typealias ChartData = (points: [CGPoint], data: [Float])
-    
     var averagedData: ChartData? {
         didSet {
             //            guard let data = averagedData else {
@@ -941,7 +946,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         //touchScreenLineLayerPath = linePath
         touchScreenLineLayer.strokeColor = touchScreenLineLayerColor.cgColor
         touchScreenLineLayer.lineWidth = touchScreenLineWidth
-        
         //        if animateLineSelection {
         //
         //            animateLineSelection(c, linePath.cgPath, 2)
