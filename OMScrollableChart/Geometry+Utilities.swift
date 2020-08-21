@@ -636,7 +636,6 @@ func * (left: CGRect, right: CGFloat) -> CGRect {
 func *= (left: inout CGRect, right: CGFloat) {
     left = left * right
 }
-
 /**
  * ...
  * a / 4.0
@@ -644,7 +643,6 @@ func *= (left: inout CGRect, right: CGFloat) {
 func / (left: CGRect, right: CGFloat) -> CGRect {
     return CGRect(x: left.origin.x / right, y: left.origin.y / right, width: left.size.width / right, height: left.size.height / right)
 }
-
 /**
  * ...
  * a /= 4.0
@@ -652,7 +650,6 @@ func / (left: CGRect, right: CGFloat) -> CGRect {
 func /= (left: inout CGRect, right: CGFloat) {
     left = left / right
 }
-
 extension CGRect {
     /**
      * Extend CGRect by CGPoint
@@ -671,8 +668,6 @@ extension CGRect {
         return CGPoint(x: self.origin.x + self.size.width, y: self.origin.y + self.size.height)
     }
 }
-
-
 extension CGPoint {
     func translate(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
         return CGPoint(x: self.x + x, y: self.y + y)
@@ -728,7 +723,6 @@ extension CGPoint {
         let y = NSString(string: s.components(separatedBy: ",").last! as String).doubleValue
         return CGPoint(x: CGFloat(x), y: CGFloat(y))
     }
-    
     /// Get the mid point of the receiver with another passed point.
     ///
     /// - Parameter p2: other point.
@@ -777,10 +771,8 @@ extension CGPoint {
                 y += dy * t
             }
         }
-        
         dx = self.x - x
         dy = self.y - y
-        
         return Float(dx * dx + dy * dy)
     }
     func distanceToLine(from linePoint1: CGPoint, to linePoint2: CGPoint) -> CGFloat {
@@ -800,7 +792,6 @@ extension CGPoint {
     func average(with point: CGPoint) -> CGPoint {
         return CGPoint(x: (x + point.x) * 0.5, y: (y + point.y) * 0.5)
     }
-    
     /**
      Calculates the difference in x and y between 2 points.
      - parameter point: The point to calculate the difference to.
@@ -809,7 +800,6 @@ extension CGPoint {
     func differential(to point: CGPoint) -> CGPoint {
         return CGPoint(x: point.x - x, y: point.y - y)
     }
-    
     /**
      Calculates the distance between two points.
      - parameter point: the point to calculate the distance to.
@@ -818,7 +808,6 @@ extension CGPoint {
     func distance(to point: CGPoint) -> CGFloat {
         return differential(to: point).hypotenuse
     }
-    
     /**
      Calculates the hypotenuse of the x and y component of a point.
      - returns: A CGFloat for the hypotenuse of the point.
@@ -829,17 +818,14 @@ extension CGPoint {
 }
 
 public extension CGPoint {
-    
     /// - returns: A `CGVector` with dx: x and dy: y.
     var vector: CGVector {
         return CGVector(dx: x, dy: y)
     }
-    
     /// - returns: A `CGPoint` with rounded x and y values.
     var rounded: CGPoint {
         return CGPoint(x: round(x), y: round(y))
     }
-    
     /// - returns: The Euclidean distance from self to the given point.
     //    public func distance(to point: CGPoint) -> CGFloat {
     //        return (point - self).magnitude
@@ -856,7 +842,6 @@ public extension CGPoint {
         return CGPoint(x: x - rect.origin.x,
                        y: y - rect.origin.y)
     }
-    
     /// - returns: The position inside the provided rect,
     /// where horizontal and vertical position are normalized
     /// (i.e. mapped to 0-1 range).
@@ -865,10 +850,103 @@ public extension CGPoint {
         return CGPoint(x: (1.0 / rect.width) * p.x,
                        y: (1.0 / rect.width) * p.y)
     }
-    
     /// - returns: True if the line contains the point.
-     func isAt(line: [CGPoint]) -> Bool {
+    func isAt(line: [CGPoint]) -> Bool {
         return line.contains(self)
+    }
+    func projectLine( _ point:CGPoint, length:CGFloat) -> CGPoint  {
+        var newPoint = CGPoint(x: point.x, y: point.y)
+        let originX = (point.x - self.x);
+        let originY = (point.y - self.y);
+        if (originX.floatingPointClass == .negativeZero) {
+            newPoint.y += length;
+        } else if (originY.floatingPointClass == .negativeZero) {
+            newPoint.x += length;
+        } else {
+            #if CGFLOAT_IS_DOUBLE
+            let angle = atan(y / x);
+            newPoint.x += sin(angle) * length;
+            newPoint.y += cos(angle) * length;
+            #else
+            let angle = atanf(Float(originY) / Float(originX));
+            newPoint.x += CGFloat(sinf(angle) * Float(length));
+            newPoint.y += CGFloat(cosf(angle) * Float(length));
+            #endif
+        }
+        return newPoint;
     }
 }
 // swiftlint:enable identifier_name shorthand_operator
+extension CGAffineTransform {
+    var xScale: CGFloat { return sqrt(a * a + c * c) }
+    var yScale: CGFloat { return sqrt(b * b + d * d) }
+    var rotation: CGFloat { return CGFloat(atan2(Double(b), Double(a))) }
+    var xOffset: CGFloat { return tx }
+    var yOffset: CGFloat { return ty }
+}
+func rectGetCenter(_ rect : CGRect)-> CGPoint {
+    return CGPoint(x:rect.midX, y:rect.midY)
+}
+func sizeScaleByFactor(_ aSize:CGSize,  factor:CGFloat) -> CGSize {
+    return CGSize(width:aSize.width * factor, height: aSize.height * factor)
+}
+func aspectScaleFit(_ sourceSize:CGSize,  destRect:CGRect) -> CGFloat {
+    let destSize = destRect.size
+    let scaleW   = destSize.width / sourceSize.width
+    let scaleH   = destSize.height / sourceSize.height
+    return min(scaleW, scaleH)
+}
+func rectAroundCenter(_ center:CGPoint, size:CGSize) -> CGRect {
+    let halfWidth = size.width / 2.0
+    let halfHeight = size.height / 2.0
+    return CGRect(x:center.x - halfWidth, y:center.y - halfHeight, width:size.width, height:size.height)
+}
+func rectByFittingRect(sourceRect:CGRect, destinationRect:CGRect) -> CGRect {
+    let aspect = aspectScaleFit(sourceRect.size, destRect: destinationRect)
+    let  targetSize = sizeScaleByFactor(sourceRect.size, factor: aspect)
+    return rectAroundCenter(rectGetCenter(destinationRect), size: targetSize)
+}
+// https://gist.github.com/pixeldock/f1c3b2bf0f7fe48d412c09fcb2705bf1
+extension Array {
+    func takeElements(_ numberOfElements: Int, startAt: Int = 0) -> Array {
+        var numberOfElementsToGet = numberOfElements
+        if numberOfElementsToGet > count - startAt {
+            numberOfElementsToGet = count - startAt
+        }
+        let from = Array(self[startAt..<count])
+        return Array(from[0..<numberOfElementsToGet])
+    }
+}
+extension Array where Element: Comparable {
+    var indexOfMax: Index? {
+        guard var maxValue = self.first else { return nil }
+        var maxIndex = 0
+        for (index, value) in self.enumerated() {
+            if value > maxValue {
+                maxValue = value
+                maxIndex = index
+            }
+        }
+        return maxIndex
+    }
+    var indexOfMin: Index? {
+        guard var maxValue = self.first else { return nil }
+        var maxIndex = 0
+        for (index, value) in self.enumerated() {
+            if value < maxValue {
+                maxValue = value
+                maxIndex = index
+            }
+        }
+        return maxIndex
+    }
+}
+extension Float {
+    func roundToNearestValue(value: Float) -> Float {
+        let remainder = truncatingRemainder(dividingBy: value)
+        let shouldRoundUp = remainder >= value/2 ? true : false
+        let multiple = floor(self / value)
+        let returnValue = !shouldRoundUp ? value * multiple : value * multiple + value
+        return returnValue
+    }
+}

@@ -16,17 +16,44 @@ import UIKit
 
 let chartPoints: [Float] =   [1510, 100, 3000, 100, 1200, 13000,
              15000, -1500, 800, 1000, 6000, 1300,
-1510, 100, 3000, 100, 1200, 13000,
+             1510, 100, 3000, 100, 1200, 13000,
 15000, -1500, 800, 1000, 6000, 1300]
 
 
-
-class ViewController: UIViewController, OMScrollableChartDataSource {
+class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
+   
     
-    func dataPoints(chart: OMScrollableChart, section: Int) -> [Float] {
+    func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] {
         return chartPoints
     }
     
+    func dataLayers(_ render: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+          return []
+    }
+    
+    func footerSectionsText(chart: OMScrollableChart) -> [String]? {
+        return nil
+    }
+    
+    func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? {
+        return nil
+    }
+    
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderData {
+        return .discrete
+    }
+    
+    func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? {
+        return nil
+    }
+    
+    func isRenderLayersVisible(chart: OMScrollableChart, renderIndex: Int) -> Bool {
+        return true
+    }
+    
+    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: CAShapeLayer) {
+        
+    }
     func numberOfPages(chart: OMScrollableChart) -> CGFloat {
         return 2
     }
@@ -43,6 +70,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
         super.viewDidLoad()
         chart.bounces = false
         chart.dataSource = self
+                chart.renderSource = self
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
         
@@ -59,7 +87,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource {
         segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
         segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
         segmentInterpolation.selectedSegmentIndex = 1
-        chart.updateData()
+        chart.updateDataSourceData()
     }
     @IBAction  func simplifySliderChange( _ sender: UISlider)  {
         if sender == sliderAverage {

@@ -15,12 +15,19 @@ import UIKit
 // MARK: - ScrollView Extensions
 // Get the current page number
 extension UIScrollView {
-    var currentPage: Int {
+    var currentPageHorizontal: Int {
         return Int(round(self.contentOffset.x / self.bounds.size.width))
     }
     // If you have reversed offset (start from contentSize.width to 0)
-    var reverseCurrentPage: Int {
+    var reverseCurrentPageHorizontal: Int {
         return Int(round((contentSize.width - self.contentOffset.x) / self.bounds.size.width))-1
+    }
+    var currentPageVertical: Int {
+        return Int(round(self.contentOffset.y / self.bounds.size.height))
+    }
+    // If you have reversed offset (start from contentSize.width to 0)
+    var reverseCurrentPageVertical: Int {
+        return Int(round((contentSize.height - self.contentOffset.y) / self.bounds.size.height))-1
     }
 }
 enum ScrollDirection {

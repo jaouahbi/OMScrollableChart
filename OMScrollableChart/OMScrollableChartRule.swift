@@ -15,10 +15,10 @@
 import Foundation
 import UIKit
 
-enum ChartRuleType {
-    case root
-    case footer
-    case top
+enum ChartRuleType: Int {
+    case root = 0
+    case footer = 1
+    case top = 2
 }
 protocol ChartRuleProtocol: UIView {
     var chart: OMScrollableChart? {get set}
@@ -159,7 +159,7 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
     override func layoutSubviews() {
         super.layoutSubviews()
         if !createLayout() { // TODO: update layout
-            print("Unable to create the rule layout")
+           // GCLog.print("Unable to create the rule layout",.error)
         }
     }
 }
@@ -171,7 +171,6 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var chart: OMScrollableChart?
     var isPointsNeeded: Bool = false
     var type: ChartRuleType = .footer
-    var footerLabels: [UILabel] = []
     /// init
     /// - Parameter chart: OMScrollableChart
     required init(chart: OMScrollableChart) {
@@ -193,12 +192,10 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             arrangedSubviews.forEach({($0 as? UILabel)?.font = font})
         }
     }
+    var footerSectionsText = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
-    
-    var symbols: [String]  = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
-    var currentSymbolIndex: Int { return 1 } //  Calendar.current.dateComponents([.day, .month, .year], from: Date()).month {
     /// create rule layout
     /// - Returns: Bool
     func createLayout() -> Bool {
@@ -208,14 +205,16 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         self.removeAllSubviews()
         let width  = chart.sectionWidth
         let height = ruleSize.height
-            let currentMonth = (currentSymbolIndex - 1)
+        let numOfSections = Int(chart.numberOfSections)
+        let month = Calendar.current.dateComponents([.day, .month, .year], from: Date()).month ?? 0
+        //if let month = startIndex {
+            let currentMonth = month
             //let symbols = DateFormatter().monthSymbols
-            let numOfSections = Int(chart.numberOfSections)
-            //for monthIndex in currentMonth...numOfSections + currentMonth {
-            for monthIndex in currentMonth...numOfSections {
+            for monthIndex in currentMonth...numOfSections + currentMonth  {
+                //GCLog.print("monthIndex: \(monthIndex % footerSectionsText.count) \(footerSectionsText[monthIndex % footerSectionsText.count])", .trace)
                 let label = UILabel(frame: .zero)
                 label.translatesAutoresizingMaskIntoConstraints = false
-                label.text = symbols[monthIndex % symbols.count]
+                label.text = footerSectionsText[monthIndex % footerSectionsText.count]
                 label.textAlignment = .center
                 label.font = font
                 label.sizeToFit()
@@ -226,20 +225,20 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 label.heightAnchor.constraint(equalToConstant: height).isActive = true
                 label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
             }
-        
+       // }
         self.setBorder(border: .top, weight: borderDecorationWidth, color: decorationColor)
         return true
     }
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         if !createLayout() { // TODO: update layout
-            print("Unable to create the rule layout")
+           // GCLog.print("Unable to create the rule layout", .error)
         }
     }
     override func layoutSubviews() {
         super.layoutSubviews()
          if !createLayout() { // TODO: update layout
-            print("Unable to create the rule layout")
+            //GCLog.print("Unable to create the rule layout" ,.error)
         }
     }
 }

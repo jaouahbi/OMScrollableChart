@@ -12,11 +12,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// https://stackoverflow.com/questions/35915853/how-to-show-tooltip-on-a-point-click-in-swift
+// https://itnext.io/swift-uiview-lovely-animation-and-transition-d34bd623391f
+// https://stackoverflow.com/questions/29674959/linear-regression-accelerate-framework-in-swift
+// https://gist.github.com/marmelroy/ed4bd675bd75c757ab7447d1b3488886
+
 import UIKit
 import Accelerate
-
 // swiftlint:disable file_length
 // swiftlint:disable type_body_length
+
+extension UIColor {
+    @nonobjc class var paleGrey: UIColor {
+          return UIColor(red: 247.0 / 255.0, green: 247.0 / 255.0, blue: 250.0 / 255.0, alpha: 1.0)
+      }
+    @nonobjc class var greyishBlue: UIColor {
+        return UIColor(red: 89.0 / 255.0, green: 135.0 / 255.0, blue: 164.0 / 255.0, alpha: 1.0)
+    }
+}
+public extension CGPoint {
+
+    enum CoordinateSide {
+        case topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left
+    }
+
+    static func unitCoordinate(_ side: CoordinateSide) -> CGPoint {
+        switch side {
+        case .topLeft:      return CGPoint(x: 0.0, y: 0.0)
+        case .top:          return CGPoint(x: 0.5, y: 0.0)
+        case .topRight:     return CGPoint(x: 1.0, y: 0.0)
+        case .right:        return CGPoint(x: 0.0, y: 0.5)
+        case .bottomRight:  return CGPoint(x: 1.0, y: 1.0)
+        case .bottom:       return CGPoint(x: 0.5, y: 1.0)
+        case .bottomLeft:   return CGPoint(x: 0.0, y: 1.0)
+        case .left:         return CGPoint(x: 1.0, y: 0.5)
+        }
+    }
+}
+
+extension CATransaction {
+    class func withDisabledActions<T>(_ body: () throws -> T) rethrows -> T {
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        defer {
+            CATransaction.commit()
+        }
+        return try body()
+    }
+}
 
 extension Array where Element: Equatable {
     func indexes(of element: Element) -> [Int] {
@@ -24,69 +67,183 @@ extension Array where Element: Equatable {
     }
 }
 extension Array {
-    // https://gist.github.com/pixeldock/f1c3b2bf0f7fe48d412c09fcb2705bf1
-    func takeElements(_ numberOfElements: Int, startAt: Int = 0) -> Array {
-        var numberOfElementsToGet = numberOfElements
-        if numberOfElementsToGet > count - startAt {
-            numberOfElementsToGet = count - startAt
-        }
-        let from = Array(self[startAt..<count])
-        return Array(from[0..<numberOfElementsToGet])
-    }
-    func takeElementsChunked(into size: Int) -> [[Element]] {
+    func chunked(into size: Int) -> [[Element]] {
         return stride(from: 0, to: count, by: size).map {
             Array(self[$0 ..< Swift.min($0 + size, count)])
         }
     }
 }
-extension Array where Element: Comparable {
-    var indexOfMax: Index? {
-        guard var maxValue = self.first else { return nil }
-        var maxIndex = 0
-        for (index, value) in self.enumerated() {
-            if value > maxValue {
-                maxValue = value
-                maxIndex = index
-            }
-        }
-        return maxIndex
-    }
-    var indexOfMin: Index? {
-        guard var maxValue = self.first else { return nil }
-        var maxIndex = 0
-        for (index, value) in self.enumerated() {
-            if value < maxValue {
-                maxValue = value
-                maxIndex = index
-            }
-        }
-        return maxIndex
+protocol PointsGenerator {
+    func makePoints(data: [Float], size: CGSize) -> [CGPoint]
+    func updateRangeLimits(_ data: [Float])
+    var pointEdgeInset: UIEdgeInsets {get}
+    var maximumValue: Float {get}
+    var minimumValue: Float {get}
+    var pointsInsetTop: CGFloat  {get}
+    var pointsInsetBottom: CGFloat  {get}
+    /// Round  maximun valuer to
+    var roundMaxValueTo: Float  {get}
+    /// Round  minimun value to
+    var roundMinValueTo: Float {get}
+    var roundMarkValueTo: Float  {get}
+    var staticMinimum: Float?  {get}
+    var staticMaximum: Float?  {get}
+    var maximunMaximizatorFactor: Float  {get}
+    var minimunMaximizatorFactor: Float  {get}
+    var range: Float  {get}
+    var hScale: CGFloat  {get}
+    var isLimitsDirty: Bool {get set}
+}
+// Default values.
+extension PointsGenerator {
+    var hScale: CGFloat  {return 1.0}
+    var pointsInsetTop: CGFloat  { return 20}
+    var pointsInsetBottom: CGFloat  {return 20}
+    var staticMinimum: Float?  {return nil }
+    var staticMaximum: Float?  {return nil }
+    /// Round  minimun/maximun value to
+    var roundMaxValueTo: Float {return 10000 }
+    var roundMinValueTo: Float {return 1000 }
+    var roundMarkValueTo: Float {return 10000 }
+    var maximunMaximizatorFactor: Float  {return 1.0}
+    var minimunMaximizatorFactor: Float  {return 1.0}
+    var range: Float {
+        return maximumValue - minimumValue
     }
 }
-extension Float {
-    // TODO: make tests
-    func roundToNearestValue(value: Float) -> Float {
-        let remainder = truncatingRemainder(dividingBy: value)
-        let shouldRoundUp = remainder >= value/2 ? true : false
-        let multiple = floor(self / value)
-        let returnValue = !shouldRoundUp ? value * multiple : value * multiple + value
-        return returnValue
+// MRKE: - DiscretePointsGenerator -
+class DiscretePointsGenerator: PointsGenerator {
+    var pointEdgeInset: UIEdgeInsets = .zero
+    var isLimitsDirty: Bool = true
+    var maximumValue: Float = 0
+    var minimumValue: Float = 0
+    func updateRangeLimits(_ data: [Float]) {
+        // Normalize values in array (i.e. scale to 0-1)...
+        var min: Float = 0
+        if let minimum = staticMinimum {
+            min = minimum
+        } else {
+            vDSP_minv(data, 1, &min, vDSP_Length(data.count))
+        }
+        minimumValue = min.roundToNearestValue(value: roundMinValueTo) * maximunMaximizatorFactor
+        var max: Float = 0
+        if let maximum = staticMaximum {
+            max = maximum
+        } else {
+            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
+        }
+        maximumValue = max.roundToNearestValue(value: roundMaxValueTo) * minimunMaximizatorFactor
+        isLimitsDirty = false
+    }
+    func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
+        // claculate the size
+        let newSize = CGSize(width: size.width,
+                             height: size.height - (pointsInsetBottom + pointsInsetTop))
+        var scale = 1 / self.range
+        var minusMin = -minimumValue
+        var scaled = [Float](repeating: 0, count: data.count)
+        //        for (n = 0; n < N; ++n)
+        //           scaled[n] = (A[n] + B[n]) * C;
+        vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
+        let xScale = newSize.width / CGFloat(data.count)
+        return scaled.enumerated().map {
+            return CGPoint(x: xScale * hScale * CGFloat($0.offset),
+                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + pointsInsetTop)
+        }
     }
 }
-
 protocol ChartProtocol {
     associatedtype ChartData
-    var originalData: ChartData? {get set}
-    func updateData() -> Bool
+    var discreteData: [ChartData?] {get set}
+    func updateDataSourceData() -> Bool
 }
 protocol OMScrollableChartDataSource: class {
-    func dataPoints(chart: OMScrollableChart, section: Int) -> [Float]
+    func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float]
     func numberOfPages(chart: OMScrollableChart) -> CGFloat
+    func dataLayers(_ render: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer]
+    func footerSectionsText(chart: OMScrollableChart) -> [String]?
+    func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? 
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderData
+    func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? 
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
+    func isRenderLayersVisible(chart: OMScrollableChart, renderIndex: Int) -> Bool
+    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int ,layer: CAShapeLayer)
 }
-// MARK: - OMScrollableChart -
+protocol OMScrollableChartRenderableProtocol: class {
+    var numberOfRenders: Int {get}
+}
+
+
+extension OMScrollableChartRenderableProtocol {
+    var numberOfRenders: Int {
+           return 2
+       }
+}
+@objcMembers
 class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
-    // MARK: - Currency Formatter -
+    private var pointsLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
+    var polylineLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
+    var dashLineLayers = [OMGradientShapeClipLayer]()
+    var rootRule: ChartRuleProtocol?
+    var footerRule: ChartRuleProtocol?
+    var topRule: ChartRuleProtocol?
+    var rules = [ChartRuleProtocol]() // todo
+    weak var dataSource: OMScrollableChartDataSource?
+    weak var renderSource: OMScrollableChartRenderableProtocol?
+    // Content view
+    lazy var contentView: UIView =  {
+        let lazyContentView = UIView(frame: self.bounds)
+        self.addSubview(lazyContentView)
+        return lazyContentView
+    }()
+    // MARK: - Data Bounds -
+    // For example: mouths : 6
+    var numberOfSectionsPerPage: Int {
+        return dataSource?.numberOfSectionsPerPage(chart: self) ?? 1
+    }
+    var numberOfSections: Int {         // Total
+        return numberOfSectionsPerPage * Int(numberOfPages)
+    }
+    var sectionWidth: CGFloat {
+        return self.contentSize.width/CGFloat(numberOfSections)
+    }
+    var numberOfPages: CGFloat = 1 {
+        didSet {
+            updateContentSize()
+        }
+    }
+    // MARK: - Polyline -
+    public enum PolyLineInterpolation {
+        case none
+        case smoothed
+        case cubicCurve
+        case catmullRom(_ alpha: CGFloat)
+        case hermite(_ alpha: CGFloat)
+    }
+    // MARK: - UIBezierPaths -
+    var polylinePath: UIBezierPath? {
+        guard let polylinePoints = polylinePoints else {
+            return nil
+        }
+        switch polylineInterpolation {
+        case .none:
+            return UIBezierPath(points: polylinePoints, maxYPosition: 0)
+        case .smoothed:
+            return UIBezierPath(smoothedPoints: polylinePoints, maxYPosition: 0)
+        case .cubicCurve:
+            return  UIBezierPath(cubicCurvePoints: polylinePoints, maxYPosition: 0)
+        case .catmullRom(_):
+            return UIBezierPath(catmullRomPoints: polylinePoints, maxYPosition: 0, closed: false, alpha: 0.5)
+        case .hermite(_):
+            return UIBezierPath(hermitePoints: polylinePoints, maxYPosition: 0)
+        }
+    }
+    /// Polyline Interpolation
+    var polylineInterpolation: PolyLineInterpolation = .smoothed {
+        didSet {
+            updateLayout()
+        }
+    }
     lazy var currencyFormatter: NumberFormatter = {
         let currencyFormatter = NumberFormatter()
         currencyFormatter.usesGroupingSeparator = true
@@ -96,299 +253,10 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         currencyFormatter.locale = Locale(identifier: "es_ES")
         return currencyFormatter
     }()
-    /// PolyLineInterpolation
-    public enum PolyLineInterpolation {
-        case none
-        case smoothed
-        case cubicCurve
-        case catmullRom(_ alpha: CGFloat)
-        case hermite(_ alpha: CGFloat)
-    }
-    var polylineInterpolation: PolyLineInterpolation = .smoothed {
-        didSet {
-            updateLayout()
-        }
-    }
-    /// PolyLineSimplyfication
-    public enum PolyLineSimplyfication {
-        case none
-        case approximation(_ number: Int)
-        case averaged(_ groupby: Int)
-    }
-    var simply: PolyLineSimplyfication = .none
-    /// PolyLineTypeOfData
-    public enum PolyLineTypeOfData {
-        case raw
-        case averaged
-        case approximation
-        case linregress
-    }
-    var type: PolyLineTypeOfData = .raw
-    // MARK:  - Dash lines -
-    var dashPattern: [CGFloat] = [3, 3, 3, 3]
-    var dashLineWidth: CGFloat = 0.5
-    var drawGradient: Bool = true
-    var gradientBaseColor = UIColor.lightGray
-    var lineColor = UIColor.darkGray
-    var fontFooterRuleColor = UIColor.black {
-        didSet {
-            footerRule?.fontColor = fontFooterRuleColor
-        }
-    }
-    var decorationFooterRuleColor = UIColor.black {
-        didSet {
-            footerRule?.decorationColor = decorationFooterRuleColor
-        }
-    }
-    var fontRootRuleColor = UIColor.black {
-        didSet {
-            rootRule?.fontColor = fontRootRuleColor
-        }
-    }
-    var fontTopRuleColor = UIColor.black {
-        didSet {
-            topRule?.fontColor = fontTopRuleColor
-        }
-    }
-    var dashLineColor = UIColor.gray.withAlphaComponent(0.8).cgColor
-    var lineWidth: CGFloat = 1
-    var approximationLineWidth: CGFloat = 0.5
-    var footerViewHeight: CGFloat = 20
-    var topViewHeight: CGFloat = 20
-    var tooltipFont = UIFont.systemFont(ofSize: 14)
-    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
-    var rulesPoints = [CGPoint]()
-    var ruleLeadingAnchor: NSLayoutConstraint?
-    var ruletopAnchor: NSLayoutConstraint?
-    var rulebottomAnchor: NSLayoutConstraint?
-    var rulewidthAnchor: NSLayoutConstraint?
-    var ruleFooterLeadingAnchor: NSLayoutConstraint?
-    var ruleFooterTopAnchor: NSLayoutConstraint?
-    var ruleFooterBottomAnchor: NSLayoutConstraint?
-    var ruleFooterWidthAnchor: NSLayoutConstraint?
-    var ruleFooterHeightAnchor: NSLayoutConstraint?
-    var showPoints: Bool = true
-    var verticalMargins: ( CGFloat, CGFloat) = (0, 0)
-    var circleSelectedColor = UIColor.red
-    var circleSelectedOpacy: Float = 1.0
-    var circleUnselectedOpacy: Float = 0
-    var circleUnselectedColor = UIColor.blue
-    var circleOutterColor = UIColor(white: 0.11, alpha: 0.5)
-    var animatePolyLine = false
-    var animateDashLines: Bool = false
-    var circleSize: CGSize = .zero
-    var numberOfPages: CGFloat = 1 {
-        didSet {
-            updateContentSize()
-        }
-    }
-    var toolTipBackgroundColor: UIColor = UIColor.white
-    var tooltipSize: CGSize = CGSize(width: 128, height: 128)
     
-    var animatePointLayers: Bool = false
-    var scaleFactor: CGFloat = 0.015
-    var circleShadowOffset = CGSize(width: 0, height: 0.5)
     
-    // MARK: - Layers -
-    var dashLineLayers = [CAShapeLayer]()
-    var activeLayer: CAShapeLayer?
-    
-    var hScale: CGFloat = 1.0
-    var gradientFadePercentage: CGFloat = 0.2
-    // MARK: - Internal -
-    private(set) var maximumValue: Float = 0
-    private(set) var minimumValue: Float = 0
-    private var pointCircleLayers = [OMPointLayer]()
-    private var pointsLayer: CAShapeLayer  =  CAShapeLayer()
-    private var currentLayer: CAShapeLayer =  CAShapeLayer()
-    private var linePathDashPointsLayer: CAShapeLayer = CAShapeLayer()
-    // MARK: - Rules -
-    private var rootRule: ChartRuleProtocol?
-    private var footerRule: ChartRuleProtocol?
-    private var topRule: ChartRuleProtocol?
-    var rules = [ChartRuleProtocol]() // todo
-    weak var dataSource: OMScrollableChartDataSource?
-    var contentView: UIView!
-    var tolltipBorderColor = UIColor.black.cgColor
-    var tooltipBorderWidth: CGFloat = 0.2
-    // TODO: BAD
-    lazy var tooltip: OMTooltip = {
-        let label = OMTooltip(frame: CGRect(x: 0, y: 0, width: 128, height: 30))
-        label.font = tooltipFont // BAD
-        label.alpha = 0
-        label.textAlignment = .center
-        label.layer.cornerRadius = 6
-        label.layer.masksToBounds = true
-        label.backgroundColor = toolTipBackgroundColor // BAD
-        label.layer.borderColor = tolltipBorderColor // BAD
-        label.layer.borderWidth = tooltipBorderWidth // BAD
-        label.layer.shadowColor   = UIColor.black.cgColor
-        label.layer.shadowOffset  = circleShadowOffset // BAD
-        label.layer.shadowOpacity = 0.7
-        label.layer.shadowRadius  = 3.0
-        self.contentView.addSubview(label)
-        return label
-    }()
-    var touchScreenLineLayerColor = UIColor.clear
-    var touchScreenLineWidth: CGFloat = 0.5
-    var touchScreenLineLayerPath: UIBezierPath?
-    lazy var touchScreenLineLayer: CAShapeLayer = {
-        let lineLayer = CAShapeLayer()
-        lineLayer.lineJoin = CAShapeLayerLineJoin.round
-        lineLayer.shadowColor   = UIColor.black.cgColor
-        //lineLayer.shadowOffset  = circleShadowOffset
-        lineLayer.shadowOpacity = 0.7
-        lineLayer.shadowRadius  = 1.0
-        self.contentView.layer.addSublayer(lineLayer)
-        return lineLayer
-    }()
-    var animateLineSelection: Bool = true
-    // MARK: - UIBezierPaths -
-    private var linePathDashPoints: UIBezierPath? {
-        guard let internalPoints = internalPoints else {
-            return nil
-        }
-        return UIBezierPath(points: internalPoints, maxYPosition: self.frame.maxY)
-    }
-    var linePathPointsPointSize: CGFloat = 6
-    private var linePathPoints: UIBezierPath? {
-        guard let internalPoints = internalPoints else {
-            return nil
-        }
-        return UIBezierPath(pointPoints: internalPoints,
-                            pointSize: linePathPointsPointSize)
-    }
-    //var approximationLineColor:  UIColor = .brown
-    var currentPath: UIBezierPath? {
-        guard let internalPoints = internalPoints else {
-            return nil
-        }
-        switch polylineInterpolation {
-        case .none:
-            return UIBezierPath(points: internalPoints, maxYPosition: self.frame.maxY)
-        case .smoothed:
-            return UIBezierPath(smoothedPoints: internalPoints,
-                                maxYPosition: self.frame.maxY)
-        case .cubicCurve:
-            return  UIBezierPath(cubicCurvePoints: internalPoints,
-                                 maxYPosition: self.frame.maxY)
-        case .catmullRom(_):
-            return UIBezierPath(catmullRomPoints: internalPoints,
-                                maxYPosition: self.frame.maxY,
-                                closed: false,
-                                alpha: 0.5)
-        case .hermite(_):
-            return UIBezierPath(hermitePoints: internalPoints,
-                                maxYPosition: self.frame.maxY)
-        }
-    }
-    // TODO: If the size of the discrete points don't change, assume don't change?
-    func updateLayersIfNeeded() {
-        guard let linePathPoints = linePathPoints,
-            let currentPath = currentPath,
-            let linePathDashPoints = linePathDashPoints else {
-                return
-        }
-        pointsLayer.path = linePathPoints.cgPath
-        pointsLayer.fillColor = UIColor.gray.cgColor
-        pointsLayer.strokeColor = self.lineColor.withAlphaComponent(0.8).cgColor
-        pointsLayer.lineWidth = self.lineWidth
-        
-        pointsLayer.shadowColor = UIColor.black.cgColor
-        pointsLayer.shadowOffset = CGSize(width: 0, height: self.lineWidth * 2)
-        pointsLayer.shadowOpacity = 0.5
-        pointsLayer.shadowRadius  = 6.0
-        pointsLayer.frame = CGRect(x: 0,y: 0, width: self.contentSize.width, height: self.frame.height)
-        
-        pointsLayer.isHidden = showPoints
-        
-        linePathDashPointsLayer.path = linePathDashPoints.cgPath
-        linePathDashPointsLayer.lineDashPattern = dashPattern as [NSNumber]
-        linePathDashPointsLayer.fillColor = nil
-        linePathDashPointsLayer.strokeColor = dashLineColor
-        linePathDashPointsLayer.lineWidth = dashLineWidth
-        linePathDashPointsLayer.frame = CGRect(x: 0,y: 0, width: self.contentSize.width, height: self.frame.height)
-        linePathDashPointsLayer.isHidden = true
-        
-        currentLayer.path = currentPath.cgPath
-        currentLayer.fillColor = UIColor.clear.cgColor
-        currentLayer.strokeColor = self.lineColor.withAlphaComponent(0.8).cgColor
-        currentLayer.lineWidth = self.lineWidth
-        
-        currentLayer.shadowColor = UIColor.black.cgColor
-        currentLayer.shadowOffset = CGSize(width: 0, height:  self.lineWidth * 2)
-        currentLayer.shadowOpacity = 0.5
-        currentLayer.shadowRadius = 6.0
-        currentLayer.isHidden = true
-        
-    }
-    // MARK: - Rules marks -
-    var numberOfRuleMarks: CGFloat = 4 {
-        didSet {
-            setNeedsLayout()
-        }
-    }
-    var internalRulesMarks = [Float]()
-    var rulesMarks: [Float] {
-        return internalRulesMarks.sorted(by: {return !($0 > $1)})
-    }
-    var showZeroMark: Bool = false {
-        didSet {
-            internalCalcRules()
-        }
-    }
-    var showLimitsMarks: Bool = false {
-        didSet {
-            internalCalcRules()
-        }
-    }
-    func calcRules() -> Bool {
-        guard numberOfRuleMarks > 0 && (range != 0)  else {
-            return false
-        }
-        internalRulesMarks.removeAll()
-        internalCalcRules()
-        if showZeroMark {
-            internalRulesMarks.append(0)
-        }
-        if showLimitsMarks {
-            internalRulesMarks.append(maximumValue)
-        }
-        rulesPoints = makePoints(data: rulesMarks, size: contentSize)
-        rules.forEach{$0.setNeedsLayout()}
-        return true
-    }
-    // Calculate the rules marks positions
-    func internalCalcRules() {
-        
-        let extraRulesMarks = Int(showLimitsMarks ? 1 : 0) + Int( showZeroMark ? 1 : 0)
-        let counter = Int(numberOfRuleMarks) + extraRulesMarks
-        let roundedStep = range / Float(counter)
-        for ruleMarkIndex in 0..<counter + 1    {
-            let value = minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-            internalRulesMarks.append(value.roundToNearestValue(value: roundMarkValueTo))
-        }
-    }
-    // MARK:  - Points generator -
-    internal func updateRangeLimits(_ data: [Float]) {
-        // Normalize values in array (i.e. scale to 0-1)...
-        var min: Float = 0
-        if let minimum = minimum {
-            min = minimum
-        } else {
-            vDSP_minv(data, 1, &min, vDSP_Length(data.count))
-        }
-        minimumValue = min.roundToNearestValue(value: roundMinValueTo) * maximunMaximizatorFactor
-        var max: Float = 0
-        if let maximum = maximum {
-            max = maximum
-        } else {
-            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
-        }
-        maximumValue = max.roundToNearestValue(value: roundMaxValueTo) * minimunMaximizatorFactor
-        isLimitsDirty = false
-    }
     var isLimitsDirty: Bool = true
+    
     /// Round  maximun valuer to
     var roundMaxValueTo: Float = 10000 {
         didSet {
@@ -406,7 +274,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             isLimitsDirty = true
         }
     }
-    var minimum: Float? = nil {
+    var minimum: Float? = 0 {
         didSet {
             isLimitsDirty = true
         }
@@ -427,271 +295,41 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         }
         
     }
+    var hScale: CGFloat = 1.0
+    private(set) var maximumValue: Float = 0
+    private(set) var minimumValue: Float = 0
+    var pointsInsetTop: CGFloat    = 20
+    var pointsInsetBottom: CGFloat = 40
+    //    /// Round  maximun valuer to
+    //    var roundMaxValueTo: Float = 10000
+    //    /// Round  minimun value to
+    //    var roundMinValueTo: Float = 1000
+    //    var roundMarkValueTo: Float = 100
+    //    var minimum: Float? = 0
+    //    var maximum: Float? = nil
+    //    var maximunMaximizatorFactor: Float = 1.0
+    //    var minimunMaximizatorFactor: Float = 1.0
     var range: Float {
         return maximumValue - minimumValue
     }
-    
-    private(set) var rawData: [Float]? {
-        didSet {
-            isLimitsDirty = true
-        }
-    }
-    
-    
-    func mean(_ lhs: [Float]) -> Float {
-        var result: Float = 0
-        vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))
-        return result
-    }
-    func measq(_ lhs: [Float]) -> Float {
-        var result: Float = 0
-        vDSP_measqv(lhs, 1, &result, vDSP_Length(lhs.count))
-        return result
-    }
-    public func linregress(_ lhs: [Float], _ rhs: [Float]) -> (slope: Float, intercept: Float) {
-        precondition(lhs.count == rhs.count, "Vectors must have equal count")
-        let meanx = mean(lhs)
-        let meany = mean(rhs)
-        var result: [Float] = [Float].init(repeating: 0, count: lhs.count)
-        vDSP_vmul(lhs, 1, rhs, 1, &result, 1, vDSP_Length(lhs.count))
-        
-        let meanxy = mean(result)
-        let meanxSqr = measq(lhs)
-        
-        let slope = (meanx * meany - meanxy) / (meanx * meanx - meanxSqr)
-        let intercept = meany - slope * meanx
-        return (slope, intercept)
-    }
-    var linFunction: (slope: Float, intercept: Float)?
-    func makeLinregressPoints(_ size: CGSize, numberOfElements: Int) -> ChartData {
-        guard let originalData = originalData else {return  ([],  [] )}
-        let originalDataIndex: [Float] = originalData.points.enumerated().map { Float($0.offset) }
-        //        let max = originalData.points.max(by: { $0.x < $1.x})!
-        //        let distance = mean(originalDataX.enumerated().compactMap{
-        //            if $0.offset > 0 {
-        //                return originalDataX[$0.offset-1].distance(to: $0.element)
-        //            }
-        //            return nil
-        //        })
-        
-        
-        // let results = originalDataX//.enumerated().map{ return originalDataX.prefix($0.offset+1).reduce(.zero, +)}
-        
-        linFunction = linregress(originalDataIndex, originalData.data)
-        
-        // var index = 0
-        let result: [Float] = [Float].init(repeating: 0, count: numberOfElements)
-        
-        let resultRegress = result.enumerated().map{ dataForIndex(index: Float($0.offset))}
-        //        for item in result  {
-        //            result[index] = dataForIndex(index:  Float(index))
-        //            index += 1
-        //        }
-        //
-        
-        let newData = originalData.data + resultRegress
-        let newPoints =  makePoints(data: newData, size: size)
-        return (newPoints, resultRegress)
-    }
-    func dataForIndex(index: Float) -> Float {
-        guard let linFunction = linFunction else { return 0 }
-        return linFunction.slope * index + linFunction.intercept
-    }
-    var numberOfElementsToAverage: Int = 3 {
-        didSet {
-            self.setNeedsLayout()
-            self.setNeedsDisplay()
-        }
-    }
-    // 1.0 -> 20.0
-    var approximationTolerance: CGFloat = 1.0 {
-        didSet {
-            self.setNeedsLayout()
-            self.setNeedsDisplay()
-        }
-    }
-    override func didMoveToSuperview() {
-        super.didMoveToSuperview()
-        setupView()
-        self.clearsContextBeforeDrawing = true
-    }
-    fileprivate func registerNotifications() {
-        #if swift(>=4.2)
-        let notificationName = UIDevice.orientationDidChangeNotification
-        #else
-        let notificationName = NSNotification.Name.UIDeviceOrientationDidChange
-        #endif
-        NotificationCenter.default.addObserver(self,
-                                               selector: #selector(handleRotation),
-                                               name: notificationName,
-                                               object: nil)
-    }
-    // Unregister the ´orientationDidChangeNotification´ notification
-    fileprivate func unregisterNotifications () {
-        NotificationCenter.default.removeObserver(self)
-    }
-    // Setup the UIScrollView
-    func setupScrollView () {
-        self.delegate = self
-        if #available(iOS 11, *) {
-            self.contentInsetAdjustmentBehavior = .never
-        }
-    }
-    func setupRules() {
-        let newRule = OMScrollableChartRule(chart: self)
-        newRule.chart = self
-        newRule.font  = ruleFont
-        newRule.fontColor = fontRootRuleColor
-        let footerRule = OMScrollableChartRuleFooter(chart: self)
-        footerRule.chart = self
-        footerRule.font  = ruleFont
-        footerRule.fontColor = fontFooterRuleColor
-        //        self.addSubview(footerRule)
-        //        self.addSubview(newRule)
-        self.rootRule = newRule
-        self.footerRule = footerRule
-        self.rules.append(newRule)
-        self.rules.append(footerRule)
-    }
-    // Setup all the view/subviews
-    fileprivate func addContentView() {
-        self.contentView = UIView(frame: self.bounds)
-        self.addSubview(contentView)
-    }
-    func setupView() {
-        self.registerNotifications()
-        self.setupRules()
-        self.setupScrollView()
-        addContentView()
-    }
-    // MARK: - Rotation support -
-    fileprivate func updateContentSize() {
-        self.layoutIfNeeded()
-        let totalWidth = self.bounds.width * numberOfPages
-        let newValue = CGSize(width: totalWidth, height: self.bounds.height)
-        if self.contentSize != newValue {
-            self.contentSize = newValue
-            contentView.frame = CGRect(x: 0, y: 0, width: self.contentSize.width, height: self.contentSize.height)
-        }
-        self.updateLayout()
-    }
-    // MARK: - handleRotation -
-    @objc func handleRotation() {
-        self.updateContentSize()
-    }
-    deinit {
-        self.unregisterNotifications()
-    }
-    func updateData() -> Bool {
-        if let dataSource = dataSource {
-            //let numberOfSections = dataSource.numberOfSections(chart: self)
-            let newData = dataSource.dataPoints(chart: self, section: 0)
-            let newNumberOfPages = dataSource.numberOfPages(chart: self)
-            //print(self.rawData == newData)
-            //print(newNumberOfPages == self.numberOfPages)
-            self.rawData = newData
-            self.numberOfPages = newNumberOfPages
-            return true
-            //}
-        }
-        return false
-    }
-    var numberOfSectionsPerPage: Int                  // For example: mouths or weeks
-    {
-        return (dataSource?.numberOfSectionsPerPage(chart: self) ?? 1)
-    }
-    var numberOfSections: Int {         // Total
-        return numberOfSectionsPerPage  * Int(numberOfPages)
-    }
-    var sectionWidth: CGFloat {
-        return self.contentSize.width/CGFloat(numberOfSections)
-    }
-    func addDashLineLayer(point: CGPoint,
-                          pointe: CGPoint,
-                          stroke: UIColor? = nil,
-                          lineWidth: CGFloat? = nil,
-                          pattern: [NSNumber]? = nil) {
-        let lineLayer = CAShapeLayer()
-        lineLayer.strokeColor     = stroke?.cgColor ?? dashLineColor
-        lineLayer.lineWidth       = lineWidth ?? dashLineWidth
-        lineLayer.lineDashPattern = pattern ?? dashPattern as [NSNumber]
-        let path = CGMutablePath()
-        path.addLines(between: [point,
-                                pointe])
-        lineLayer.path = path
-        dashLineLayers.append(lineLayer)
-        contentView.layer.addSublayer(lineLayer)
-    }
-    // Draw the line.
-    fileprivate func drawGradient( ctx: CGContext?) {
-        if  let ctx = ctx {
-            let gradient = CGGradient(colorsSpace: nil, colors: [UIColor.white.withAlphaComponent(0.1).cgColor,
-                                                                 gradientBaseColor.cgColor,
-                                                                 gradientBaseColor.withAlphaComponent(gradientFadePercentage).cgColor ,
-                                                                 UIColor.white.withAlphaComponent(0.8).cgColor
-                /*
-                 UIColor.black.cgColor*/] as CFArray,
-                                      locations: [0, gradientFadePercentage, 1 - gradientFadePercentage, 1] )!
-            
-            
-            
-            ctx.saveGState()
-            
-            // Clip to the path, stroke and enjoy.
-            if let path = activeLayer?.path {
-                lineColor.setStroke()
-                let curPath = UIBezierPath(cgPath: path)
-                curPath.lineWidth = lineWidth
-                curPath.stroke()
-                curPath.addClip()
-                
-                // Draw the gradient in the clipped region
-                ctx.drawLinearGradient(gradient,
-                                       start: CGPoint(x: rootRule!.ruleSize.width, y: 0),
-                                       end: CGPoint(x: rootRule!.ruleSize.width, y: contentSize.height),
-                                       options: [.drawsAfterEndLocation])
-                
-                
-                
-            }
-            
-            
-            
-            ctx.restoreGState()
-        }
-    }
-    
-    fileprivate func drawGraph(_ ctx: CGContext) {
-        if drawGradient {
-            drawGradient(ctx: ctx)
-            //if approximationRatio > 0 {
-            // drawGradientApproximation(ctx: ctx)
-            //  }
+    func updateRangeLimits(_ data: [Float]) {
+        // Normalize values in array (i.e. scale to 0-1)...
+        var min: Float = 0
+        if let minimum = minimum {
+            min = minimum
         } else {
-            ctx.saveGState()
-            // Clip to the path
-            if let path = activeLayer?.path {
-                let pathToFill = UIBezierPath(cgPath: path)
-                self.gradientBaseColor.setFill()
-                pathToFill.fill()
-            }
-            ctx.restoreGState()
+            vDSP_minv(data, 1, &min, vDSP_Length(data.count))
         }
-    }
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        if let ctx = UIGraphicsGetCurrentContext() {
-            drawGraph(ctx)
+        minimumValue = min.roundToNearestValue(value: roundMinValueTo) * maximunMaximizatorFactor
+        var max: Float = 0
+        if let maximum = maximum {
+            max = maximum
+        } else {
+            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
         }
-        //drawVerticalGridLines()
-        //drawHorizalGridLines()
-        // Specify a border (stroke) color.
-        // UIColor.black.setStroke()
-        // pathVertical.stroke()
-        //        pathHorizontal.stroke()
+        maximumValue = max.roundToNearestValue(value: roundMaxValueTo) * minimunMaximizatorFactor
+        isLimitsDirty = false
     }
-    var pointsInsetTop: CGFloat    = 20
-    var pointsInsetBottom: CGFloat = 40
     func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
         // claculate the size
         let newSize = CGSize(width: size.width,
@@ -708,91 +346,395 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
                            y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + pointsInsetTop)
         }
     }
-    typealias ChartData = (points: [CGPoint], data: [Float])
-    var averagedData: ChartData? {
+    var numberOfElementsToAverage: Int = 3 {
         didSet {
-            //            guard let data = averagedData else {
-            //                return
-            //            }
-            //            if type == .averaged {
-            //                updateRangeLimits(data.data)
-            //            }
+            self.setNeedsLayout()
+            self.setNeedsDisplay()
         }
     }
-    
-    var internalPoints: [CGPoint]?  {
-        return currentData?.points
+    // 1.0 -> 20.0
+    var approximationTolerance: CGFloat = 1.0 {
+        didSet {
+            self.setNeedsLayout()
+            self.setNeedsDisplay()
+        }
+    }
+    // MARK: - Rules -
+    var numberOfRuleMarks: CGFloat = 1 {
+        didSet {
+            setNeedsLayout()
+        }
+    }
+    internal var internalRulesMarks = [Float]()
+    var rulesMarks: [Float] {
+        return internalRulesMarks.sorted(by: {return !($0 > $1)})
     }
     
-    var internalData: [Float]?  {
-        return currentData?.data
-    }
     
-    var currentData: ChartData? {
-        switch type {
-        case .raw:
-            return originalData
-        case .averaged:
-            if numberOfElementsToAverage == 0 {
-                return  originalData
-            } else {
-                return averagedData
+    
+    var polylineGradientFadePercentage: CGFloat = 0.4
+    var drawPolylineGradient: Bool =  true
+    var lineColor = UIColor.greyishBlue
+    var lineWidth: CGFloat = 1
+    
+    var dashPattern: [CGFloat] = [3, 6, 3, 6] {
+        didSet {
+            dashLineLayers.forEach({($0).lineDashPattern = dashPattern.map{NSNumber(value: Float($0))}})
+        }
+    }
+    var dashLineWidth: CGFloat = 0.5 {
+        didSet {
+            dashLineLayers.forEach({$0.lineWidth = dashLineWidth})
+        }
+    }
+    var dashLineColor = UIColor.lightGray.withAlphaComponent(0.8).cgColor {
+        didSet {
+            dashLineLayers.forEach({$0.strokeColor = dashLineColor})
+        }
+    }
+    // MARK: - Footer -
+    var decorationFooterRuleColor = UIColor.black {
+        didSet {
+            footerRule?.decorationColor = decorationFooterRuleColor
+        }
+    }
+    // MARK: - Font color -
+    var fontFooterRuleColor = UIColor.black {
+        didSet {
+            footerRule?.fontColor = fontFooterRuleColor
+        }
+    }
+    var fontRootRuleColor = UIColor.black {
+        didSet {
+            rootRule?.fontColor = fontRootRuleColor
+        }
+    }
+    var fontTopRuleColor = UIColor.black {
+        didSet {
+            topRule?.fontColor = fontTopRuleColor
+        }
+    }
+    var footerRuleBackgroundColor = UIColor.black {
+        didSet {
+            topRule?.backgroundColor = footerRuleBackgroundColor
+        }
+    }
+    var footerViewHeight: CGFloat = 20
+    var topViewHeight: CGFloat = 20
+    var ruleLeadingAnchor: NSLayoutConstraint?
+    var ruletopAnchor: NSLayoutConstraint?
+    var rulebottomAnchor: NSLayoutConstraint?
+    var rulewidthAnchor: NSLayoutConstraint?
+    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
+    var rulesPoints = [CGPoint]()
+    var animatePolyLine = false
+    var animateDashLines: Bool = false
+    var animatePointLayers: Bool = false
+    var animateLineSelection: Bool = false
+    var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
+    var selectedColor = UIColor.red
+    var selectedOpacy: Float = 1.0
+    var unselectedOpacy: Float = 0
+    var unselectedColor = UIColor.clear
+    private var contentOffsetKOToken: NSKeyValueObservation?
+    // MARK: -  register/unregister notifications and KO
+    fileprivate func registerNotifications() {
+        #if swift(>=4.2)
+        let notificationName = UIDevice.orientationDidChangeNotification
+        #else
+        let notificationName = NSNotification.Name.UIDeviceOrientationDidChange
+        #endif
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(handleRotation),
+                                               name: notificationName,
+                                               object: nil)
+        
+        contentOffsetKOToken = self.observe(\.contentOffset) { [weak self] object, change in
+            // the `[weak self]` is to avoid strong reference cycle; obviously,
+            // if you don't reference `self` in the closure, then `[weak self]` is not needed
+            //print("contentOffset is now \(object.contentOffset)")
+            guard let selfWeak = self else {
+                return
             }
-        case .approximation:
-            if approximationTolerance == 0 {
-                return originalData
-            } else {
-                return approximationData
+            for layer in selfWeak.dashLineLayers {
+                CATransaction.withDisabledActions {
+                    var layerFrame = layer.frame
+                    layerFrame.origin.y = object.contentOffset.y
+                    layerFrame.origin.x = object.contentOffset.x
+                    layer.frame = layerFrame
+                }
             }
-        case .linregress:
-            return linregressData
         }
     }
+    // Unregister the ´orientationDidChangeNotification´ notification
+    fileprivate func unregisterNotifications () {
+        NotificationCenter.default.removeObserver(self)
+    }
+    deinit {
+        unregisterNotifications()
+        contentOffsetKOToken?.invalidate()
+        contentOffsetKOToken = nil
+    }
+    // MARK: - handleRotation -
+    @objc func handleRotation() {
+        self.updateContentSize()
+    }
+    // Setup all the view/subviews
+    func setupView() {
+        self.registerNotifications()
+        // Setup the UIScrollView
+        self.delegate = self
+        if #available(iOS 11, *) {
+            self.contentInsetAdjustmentBehavior = .never
+        }
+        self.createSuplementaryRules()
+        self.setupTooltip()
+        //        if isScreenLine {
+        //            self.setupTouchScreenLineLayer()
+        //        }
+    }
+    //    //
+    //    var isScreenLine: Bool = false
+    //    var touchScreenLineLayerColor = UIColor.clear
+    //    var touchScreenLineWidth: CGFloat = 0.5
+    //    var touchScreenLineLayerPath: UIBezierPath?
+    //    var showScreenLineLayer = false
+    //    var touchScreenLineLayer: OMGradientShapeClipLayer = OMGradientShapeClipLayer()
+    //
+    //    func setupTouchScreenLineLayer() {
+    //        touchScreenLineLayer.lineJoin      = CAShapeLayerLineJoin.round
+    //        touchScreenLineLayer.shadowColor   = UIColor.gray.cgColor
+    //        //lineLayer.shadowOffset  = circleShadowOffset
+    //        touchScreenLineLayer.shadowOpacity = 0.7
+    //        touchScreenLineLayer.shadowRadius  = 1.0
+    //        self.contentView.layer.addSublayer(touchScreenLineLayer)
+    //    }
+    //
+    //    fileprivate func updateLineSelectionLayer(_ location: CGPoint) {
+    //        guard showScreenLineLayer else {
+    //            return
+    //        }
+    //        let linePath = UIBezierPath()
+    //        linePath.move(to: CGPoint( x: location.x, y: topViewHeight))
+    //        linePath.addLine(to: CGPoint( x: location.x, y: self.footerRule!.frame.origin.y ))
+    //        touchScreenLineLayer.strokeColor = touchScreenLineLayerColor.cgColor
+    //        touchScreenLineLayer.lineWidth = touchScreenLineWidth
+    //        touchScreenLineLayer.path = linePath.cgPath
+    //    }
     
     
-    var linregressData: ChartData? {
-        didSet {
-            //            guard let data = linregressData else {
-            //                return
-            //            }
+    // MARK: - Rotation support -
+    fileprivate func updateContentSize() {
+        self.layoutIfNeeded()
+        let newValue = CGSize(width: self.bounds.width * numberOfPages, height: self.bounds.height)
+        if self.contentSize != newValue {
+            self.contentSize = newValue
+            contentView.frame = CGRect(x: 0,
+                                       y: 0,
+                                       width: self.contentSize.width,
+                                       height: self.contentSize.height)
+        }
+        self.updateLayout()
+    }
+    var renderLayers: [[OMGradientShapeClipLayer]] = []
+    var pointsRender: [[CGPoint]] = []
+    var dataPointsRender: [[Float]] = []
+    
+    var isDirtyDataSource: Bool = true
+    func updateDataSourceData() -> Bool {
+        if let dataSource = dataSource {
+            if let render = self.renderSource, render.numberOfRenders > 0  {
+                var dataPointsRenderBackup = [[Float]]()
+                // get the layers.
+                for index in 0..<render.numberOfRenders {
+                    let dataPoints = dataSource.dataPoints(chart: self,
+                                                           renderIndex: index,
+                                                           section: 0)
+                    if !dataPointsRender.contains(dataPoints) {
+                        isDirtyDataSource = true
+                    }
+                    dataPointsRenderBackup.insert(dataPoints, at: index)
+                }
+                if isDirtyDataSource {
+                    dataPointsRender.removeAll()
+                    dataPointsRender.append(contentsOf: dataPointsRenderBackup)
+                } else {
+                    isDirtyDataSource = false
+                }
+            } else {
+                // Only exist one render.
+                let dataPoints = dataSource.dataPoints(chart: self,
+                                                       renderIndex: 0,
+                                                       section: 0)
+                if !dataPointsRender.contains(dataPoints) {
+                    isDirtyDataSource = true
+                }
+                if isDirtyDataSource {
+                    dataPointsRender.removeAll()
+                    dataPointsRender.insert(dataPoints, at: 0)
+                } else {
+                    isDirtyDataSource = false
+                }
+            }
+            if !isDirtyDataSource {
+                print("isDirtyData \(isDirtyDataSource)")
+            }
+            //let numberOfSections = dataSource.numberOfSections(chart: self)
+            let oldNumberOfPages = numberOfPages
+            let newNumberOfPages = dataSource.numberOfPages(chart: self)
             
-            //            if type == .linregress {
-            //                updateRangeLimits(data.data)
-            //            }
-        }
-    }
-    var originalData: ChartData? {
-        didSet {
-            //            guard let data = originalData else {
-            //                return
-            //            }
             
-            //if type == .raw {
-            //updateRangeLimits(data.data)
-            //}
+            if let footerRule = self.footerRule as? OMScrollableChartRuleFooter {
+                if let texts =  dataSource.footerSectionsText(chart: self) {
+                    footerRule.footerSectionsText = texts
+                }
+            }
+            self.numberOfPages = newNumberOfPages
+            return true
+        }
+        return false
+    }
+    //    fileprivate func updatePolylineLayer(_ polylinePath: UIBezierPath) {
+    //        //
+    //        polylineLayer.path          = polylinePath.cgPath
+    //        polylineLayer.fillColor     = UIColor.clear.cgColor
+    //        polylineLayer.strokeColor   = self.lineColor.withAlphaComponent(0.8).cgColor
+    //        polylineLayer.lineWidth     = self.lineWidth
+    //        //
+    //        polylineLayer.shadowColor   = UIColor.black.cgColor
+    //        polylineLayer.shadowOffset  = CGSize(width: 0, height:  self.lineWidth * 2)
+    //        polylineLayer.shadowOpacity = 0.5
+    //        polylineLayer.shadowRadius  = 6.0
+    //        //polylineLayer.isHidden = false
+    //    }
+    //    func updatePolylineLayerIfNeeded() {
+    //        guard  let polylinePath = polylinePath else {
+    //            return
+    //        }
+    //        updatePolylineLayer(polylinePath)
+    //    }
+    /// addDashLineLayer
+    /// - Parameters:
+    ///   - point: CGPoint
+    ///   - endPoint: CGPoint
+    ///   - stroke: UIColor
+    ///   - lineWidth: CGFloat
+    ///   - pattern: [NSNumber]?
+    func addDashLineLayer(point: CGPoint,
+                          endPoint: CGPoint,
+                          stroke: UIColor? = nil,
+                          lineWidth: CGFloat? = nil,
+                          pattern: [NSNumber]? = nil) {
+        
+        let lineLayer = OMGradientShapeClipLayer()
+        lineLayer.strokeColor = stroke?.cgColor ?? dashLineColor
+        lineLayer.lineWidth   = lineWidth ?? dashLineWidth
+        lineLayer.lineDashPattern = pattern ?? dashPattern as [NSNumber]
+        let path = CGMutablePath()
+        path.addLines(between: [point, endPoint])
+        lineLayer.path = path
+        lineLayer.name = "Dash"
+        dashLineLayers.append(lineLayer)
+        contentView.layer.addSublayer(lineLayer)
+    }
+    /// projectLineStrokeGradient
+    /// - Parameters:
+    ///   - internalPoints: [CGPoints]]
+    ///   - ctx: CGContext
+    ///   - gradient: CGGradient
+    fileprivate func projectLineStrokeGradient(_ internalPoints: [CGPoint], _ ctx: CGContext, _ gradient: CGGradient) {
+        ctx.saveGState()
+        for index in 0..<internalPoints.count - 1  {
+            var start: CGPoint = internalPoints[index]
+            // The ending point of the axis, in the shading's target coordinate space.
+            var end: CGPoint  = internalPoints[index+1]
+            // Draw the gradient in the clipped region
+            let hw = self.lineWidth * 0.5
+            start  = end.projectLine(start, length: hw)
+            end    = start.projectLine(end, length: -hw)
+            ctx.scaleBy(x: self.bounds.size.width,
+                        y: self.bounds.size.height )
+            ctx.drawLinearGradient(gradient,
+                                   start: start,
+                                   end: end,
+                                   options: [])
+        }
+        ctx.restoreGState()
+    }
+    fileprivate func drawGradient( ctx: CGContext?,
+                                   layer: CAShapeLayer,
+                                   fadeFactor: CGFloat = 0.4)  {
+        if  let ctx = ctx {
+            let locations =  [0, fadeFactor, 1 - fadeFactor, 1]
+            let gradient = CGGradient(colorsSpace: nil,
+                                      colors: [UIColor.white.withAlphaComponent(0.1).cgColor,
+                                               lineColor.cgColor,
+                                               lineColor.withAlphaComponent(polylineGradientFadePercentage).cgColor ,
+                                               UIColor.white.withAlphaComponent(0.8).cgColor] as CFArray,
+                                      locations:locations )!
+            // Clip to the path, stroke and enjoy.
+            if let path = layer.path {
+                lineColor.setStroke()
+                let curPath = UIBezierPath(cgPath: path)
+                curPath.lineWidth = lineWidth
+                curPath.stroke()
+                curPath.addClip()
+                // if we are using the stroke, we offset the from and to points
+                // by half the stroke width away from the center of the stroke.
+                // Otherwise we tend to end up with fills that only cover half of the
+                // because users set the start and end points based on the center
+                // of the stroke.
+                if let internalPoints = polylinePoints {
+                    projectLineStrokeGradient(internalPoints, ctx, gradient)
+                }
+            }
         }
     }
-    var approximationData: ChartData? {
-        didSet {
-            //            guard let data = approximationData else {
-            //                return
-            //            }
-            //            if type == .approximation {
-            //                updateRangeLimits(data.data)
-            //            }
-        }
+    public typealias ChartData = (points: [CGPoint], data: [Float])
+    enum RenderData {
+        case discrete
+        case averaged
+        case approximation
+        case linregress
     }
+    
+    internal var renderType: [RenderData] = []
+    
+    var linFunction: (slope: Float, intercept: Float)?
+    
+    
+    enum ChartRenders: Int {
+        case polyline = 0
+        case points = 1
+    }
+    var polylinePoints: [CGPoint]?  {
+        return pointsRender.count > 0 ? pointsRender[ChartRenders.polyline.rawValue] : nil
+    }
+    var polylineDataPoints: [Float]? {
+        return  dataPointsRender.count > 0 ? dataPointsRender[ChartRenders.polyline.rawValue] : nil
+    }
+    var pointsPoints: [CGPoint]?  {
+        return pointsRender.count > 0 ? pointsRender[ChartRenders.points.rawValue] : nil
+    }
+    var pointsDataPoints: [Float]? {
+        return  dataPointsRender.count > 0 ? dataPointsRender[ChartRenders.points.rawValue] : nil
+    }
+    
+    var averagedData: [ChartData?] = []
+    var linregressData: [ChartData?] = []
+    var discreteData:  [ChartData?] = []
+    var approximationData:  [ChartData?] = []
     func makeAveragedPoints( data: [Float], size: CGSize) ->  ([CGPoint], [Float])? {
         if numberOfElementsToAverage != 0 {
             var result: Float = 0
-            let positives = data.map{$0>0 ? $0 : abs($0)}
+            let positives = data.map{$0>0 ? $0: abs($0)}
             //            let negatives = data.filter{$0<0}
             //
             //            for ccc in negatives {
             //               let i = data.indexes(of: negatives)
             //            }
             
-            let chunked = positives.takeElementsChunked(into: numberOfElementsToAverage)
+            let chunked = positives.chunked(into: numberOfElementsToAverage)
             let averagedData: [Float] = chunked.map {
                 vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
                 return result
@@ -803,349 +745,299 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         }
         return nil
     }
-    
-    
     func makeRawPoints( data: [Float], size: CGSize) ->  ([CGPoint], [Float])? {
         if isLimitsDirty {
             updateRangeLimits(data)
         }
         return (makePoints(data: data, size: size), data)
     }
-    
-    func makeApproximationPoints( size: CGSize) ->  ([CGPoint], [Float])? {
-        guard approximationTolerance != 0, let data = self.originalData else {
-            return nil
+    func makeApproximationPoints( data: ChartData, size: CGSize) ->  ([CGPoint], [Float])? {
+        guard approximationTolerance != 0,
+            data.data.count > 0,
+            data.points.count > 0 else {
+                return nil
         }
-        
-        
-        let approximationPoints = OMSimplify.decimate(data.points, tolerance: CGFloat(approximationTolerance))
-        
+        let approximationPoints = OMSimplify.decimate(data.points,
+                                                      tolerance: CGFloat(approximationTolerance))
         return (approximationPoints, data.data)
-        
-        // Brute force the numberOfResultPoints
-        //        var bruteforceTolerance = 0
-        //        var maximunCount        = 100
-        //        var approximationPoints: [CGPoint]?
-        //        //let xxx = OMSimplify.simplify2(data.points)
-        //        repeat {
-        //            bruteforceTolerance += 1
-        //            approximationPoints = OMSimplify.decimate(data.points, tolerance: CGFloat(bruteforceTolerance))
-        //            if numberOfResultPoints >= approximationPoints!.count {
-        //                return (approximationPoints!, data.data)
-        //            }
-        //            maximunCount -= 1
-        //        } while(maximunCount > 0)
-        //        return (approximationPoints ?? data.points , data.data)
-    }
-    
-    
-    /// addRootRule
-    /// - Parameters:
-    ///   - rule: ChartRuleProtocol
-    ///   - view: UIView
-    func addRootRule(_ rule: ChartRuleProtocol, view: UIView?) {
-        assert(rule.type == .root)
-        if rule.superview == nil {
-            rule.translatesAutoresizingMaskIntoConstraints = false
-            if let view = view  {
-                view.insertSubview(rule, at: 0)
-            } else {
-                self.insertSubview(rule, at: 0)
-            }
-            ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-            ruletopAnchor = rule.topAnchor.constraint(equalTo: self.topAnchor)
-            rulebottomAnchor = rule.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-            rulewidthAnchor =  rule.widthAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.width))
-            ruleLeadingAnchor?.isActive  = true
-            ruletopAnchor?.isActive  = true
-            rulebottomAnchor?.isActive  = true
-            rulewidthAnchor?.isActive  = true
-        }
-        
-    }
-    /// addFooterRule
-    /// - Parameters:
-    ///   - ruleFooter: ChartRuleProtocol
-    ///   - view: UIView
-    fileprivate func addFooterRule(_  ruleFooter: ChartRuleProtocol? = nil, view: UIView? = nil) {
-        guard let ruleFooter = ruleFooter else {
-            return
-        }
-        assert(ruleFooter.type == .footer)
-        if ruleFooter.superview == nil {
-            ruleFooter.translatesAutoresizingMaskIntoConstraints = false
-            
-            if let view = view  {
-                view.addSubview(ruleFooter)
-            } else {
-                self.addSubview(ruleFooter)
-            }
-            
-            let width = ruleFooter.ruleSize.width > 0 ? ruleFooter.ruleSize.width: contentSize.width
-            
-            ruleFooter.backgroundColor = UIColor.gray
-            ruleFooter.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-            ruleFooter.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-            ruleFooter.topAnchor.constraint(equalTo: self.contentView.bottomAnchor, constant: -footerViewHeight).isActive = true
-            ruleFooter.heightAnchor.constraint(equalToConstant: CGFloat(ruleFooter.ruleSize.height)).isActive = true
-            ruleFooter.widthAnchor.constraint(equalToConstant: width).isActive = true
-        }
-    }
-    /// addTopRule
-    /// - Parameter ruleTop: ChartRuleProtocol
-    fileprivate func addTopRule(_ ruleTop: ChartRuleProtocol? = nil) {
-        guard let ruleTop = ruleTop else {
-            return
-        }
-        assert(ruleTop.type == .top)
-        //ruleTop.removeFromSuperview()
-        ruleTop.translatesAutoresizingMaskIntoConstraints = false
-        ruleTop.backgroundColor = UIColor.clear
-        self.addSubview(ruleTop)
-        //        topView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-        //        topView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-        ruleTop.topAnchor.constraint(equalTo:  self.topAnchor).isActive = true
-        ruleTop.heightAnchor.constraint(equalToConstant: CGFloat(topViewHeight)).isActive = true
-        ruleTop.widthAnchor.constraint(equalToConstant: contentSize.width).isActive = true
-        ruleTop.backgroundColor = .gray
-    }
-    /// createSuplementaryRules
-    fileprivate func createSuplementaryRules() {
-        // DEBUG
-        //       self.layer.borderColor = UIColor.red.cgColor
-        //       self.layer.borderWidth = 1
-        if let rootRule = rootRule {
-            addRootRule(rootRule,view: self)
-            rootRule.layer.borderColor = UIColor.red.cgColor
-            rootRule.layer.borderWidth = 1
-        }
-        if let footerRule = footerRule {
-            addFooterRule(footerRule)
-            footerRule.layer.borderColor = UIColor.red.cgColor
-            footerRule.layer.borderWidth = 1
-        }
-        if let topRule = topRule {
-            addTopRule(topRule)
-            topRule.layer.borderColor = UIColor.red.cgColor
-            topRule.layer.borderWidth = 1
-        }
     }
     fileprivate func removeAllLayers() {
-        self.pointCircleLayers.forEach({ (layer: CALayer) -> () in
-            layer.removeFromSuperlayer()
-        })
-        self.pointCircleLayers.removeAll()
-        self.activeLayer?.removeFromSuperlayer()
-        //self.linePathApproximationPointsLayer.removeFromSuperlayer()
+        self.renderLayers.forEach {
+            $0.forEach({ (layer: CALayer) -> () in
+                layer.removeFromSuperlayer()
+            })}
+        //self.polylineLayer.removeFromSuperlayer()
+        self.renderType = []
+        self.renderLayers = []
+    }
+    // MARK: - Tooltip -
+    var tooltip: OMBubbleTextView = OMBubbleTextView()
+    var tooltipBorderColor = UIColor.black.cgColor {
+        didSet {
+            tooltip.layer.borderColor = tooltipBorderColor
+        }
+    }
+    var tooltipBorderWidth: CGFloat = 0.0 {
+        didSet {
+            tooltip.layer.borderWidth = tooltipBorderWidth
+        }
+    }
+    var toolTipBackgroundColor: UIColor = UIColor.clear {
+        didSet {
+            tooltip.backgroundColor = toolTipBackgroundColor
+        }
+    }
+    var tooltipFont = UIFont.systemFont(ofSize: 12, weight: .light) {
+        didSet {
+            tooltip.font = tooltipFont
+        }
+    }
+    var tooltipAlpha: CGFloat = 0 {
+        didSet {
+            tooltip.alpha = tooltipAlpha
+        }
+    }
+    var estimatedTooltipFrame: CGRect {
+        let ratio: CGFloat = (1.0 / 8.0) * 0.5
+        let superHeight = self.superview?.frame.height ?? 1
+        let estimatedTooltipHeight = superHeight * ratio
+        return CGRect(x: 0,
+                      y: 0,
+                      width: 128,
+                      height: estimatedTooltipHeight > 0 ? estimatedTooltipHeight : 37.0)
+    }
+    /// Setup it
+    func setupTooltip() {
+        tooltip.frame = estimatedTooltipFrame
+        tooltip.alpha = tooltipAlpha
+        tooltip.font = tooltipFont
+        tooltip.textAlignment = .center
+        tooltip.layer.cornerRadius = 6
+        tooltip.layer.masksToBounds = true
+        tooltip.backgroundColor = toolTipBackgroundColor
+        tooltip.layer.borderColor = tooltipBorderColor
+        tooltip.layer.borderWidth = tooltipBorderWidth
+        // Shadow
+        tooltip.layer.shadowColor   = UIColor.black.cgColor
+        tooltip.layer.shadowOffset  = pointsLayersShadowOffset
+        tooltip.layer.shadowOpacity = 0.7
+        tooltip.layer.shadowRadius  = 3.0
+        
+        tooltip.isFlipped           = true
+        contentView.addSubview(tooltip)
+    }
+    // MARK: - Layout Cache -
+    // cache hashed frame + points
+    var layoutCache = [String: Any]()
+    var isLayoutCacheActive: Bool = true
+    /// Update internal layout
+    // swiftlint:disable cyclomatic_complexity
+    /// layoutRenders
+    /// - Parameters:
+    ///   - numberOfRenders: numberOfRenders
+    ///   - dataSource: OMScrollableChartDataSource
+    func layoutRenders(_ numberOfRenders: Int, _ dataSource: OMScrollableChartDataSource) {
+        // points and layers
+        pointsRender.removeAll()
+        renderLayers.removeAll()
+        // data
+        discreteData.removeAll()
+        averagedData.removeAll()
+        linregressData.removeAll()
+        approximationData.removeAll()
+        for renderIndex in 0..<numberOfRenders {
+            guard dataPointsRender[renderIndex].count > 0 else {
+                continue
+            }
+            // Get the render data (discrete / approx / averaged / regression)
+            let dataOfRender = dataSource.dataOfRender(chart: self, renderIndex: renderIndex)
+            renderLayers(renderIndex, renderAs: dataOfRender)
+            //
+            // Update the opacy
+            //
+            let opacity: Float = dataSource.isRenderLayersVisible(chart: self,
+                                                                  renderIndex: renderIndex) ? 1.0 : 0
+            self.renderLayers[renderIndex].forEach {
+                $0.opacity = opacity
+            }
+        }
+        // Insert the render layer
+        let allRendersLayers = renderLayers.flatMap({$0}).enumerated()
+        for (renderIndex, layer) in allRendersLayers {
+            self.contentView.layer.insertSublayer(layer, at: UInt32(renderIndex))
+        }
+    }
+    /// Update the chart layout
+    /// - Parameter forceLayout: Bool
+    fileprivate func updateLayout( forceLayout: Bool = false) {
+        //GCLog.print("updateLayout for render points blounded at frame \(self.frame).", .trace)
+        // If we need to force layout, we must ignore the layoput cache.
+        if forceLayout == false {
+            if isLayoutCacheActive {
+                let flatPointsToRender = pointsRender.flatMap({$0})
+                if flatPointsToRender.count > 0 {
+                    let frameHash  = self.frame.hashValue
+                    let pointsHash = flatPointsToRender.hashValue
+                    let dictKey = "\(frameHash ^ pointsHash)"
+                    if let item = layoutCache[dictKey] {
+                        //GCLog.print("[LCACHE] cache hit \(dictKey) \(item)", .trace)
+                        setNeedsDisplay()
+                        return
+                    }
+                    //GCLog.print("[LCACHE] cache miss \(dictKey)")
+                    layoutCache.updateValue(pointsRender,
+                                            forKey: dictKey)
+                }
+            }
+        }
+        // Create the points from the discrete data using the renders
+        if dataPointsRender.flatMap {$0}.count > 0 {
+            removeAllLayers()
+            
+            addLeadingRuleIfNeeded(rootRule, view: self)
+            addFooterRuleIfNeeded(footerRule)
+            
+            if let render = self.renderSource,
+                let dataSource = dataSource, render.numberOfRenders > 0  {
+                // layout renders
+                layoutRenders(render.numberOfRenders , dataSource)
+                // layout rules
+                layoutRules()
+                performDelayedAnimations()
+            }
+        }
+    }
+    lazy var delayedAnimations: DispatchWorkItem = {
+        return DispatchWorkItem {
+            if let render = self.renderSource,
+                let dataSource = self.dataSource,
+                render.numberOfRenders > 0,
+                self.renderLayers.flatMap({$0}).count > 0 {
+                CATransaction.begin()
+                CATransaction.setAnimationDuration(10)
+                // The 2 first renders has private animations, ignore it.
+                for renderIndex in 2..<render.numberOfRenders  {
+                    for (layerIndex, layer) in self.renderLayers[renderIndex].enumerated() {
+                        if layer.opacity > 0 {
+                            dataSource.animateLayers(chart: self,
+                                                     renderIndex: renderIndex,
+                                                     layerIndex: layerIndex,
+                                                     layer: layer)
+                            //                        let pausedTime = layer.timeOffset
+                            //                        layer.speed = 1.0
+                            //                        layer.timeOffset = 0.0
+                            //                        layer.beginTime = 0.0
+                            //                        let timeSincePause = layer.convertTime(CACurrentMediaTime(), from: nil) - pausedTime
+                            //                        layer.beginTime = timeSincePause
+                        }
+                    }
+                }
+                CATransaction.commit()
+            }
+            //            // Prepare animations if neeed
+            //            if self.animateDashLines {
+            //                self.animateDashLinesPhase()
+            //            }
+            //            if self.animatePointLayers {
+            //                self.animateOnSelectPoint(nil,
+            //                                          renderIndex: 0)
+            //            }
+            //            if self.animatePolyLine {
+            //                self.polylineLayer.strokeEnd = 0
+            //            }
+        }
+    }()
+    
+    func cancelDelayedAnimations() {
+        // optional: cancel task
+        delayedAnimations.cancel()
     }
     
-    fileprivate func updateLineSelectionLayer(_ location: CGPoint) {
-        let linePath = UIBezierPath()
-        linePath.move(to: CGPoint( x: location.x, y: topViewHeight))
-        linePath.addLine(to: CGPoint( x: location.x, y: self.footerRule!.frame.origin.y ))
-        //touchScreenLineLayerPath = linePath
-        touchScreenLineLayer.strokeColor = touchScreenLineLayerColor.cgColor
-        touchScreenLineLayer.lineWidth = touchScreenLineWidth
-        //        if animateLineSelection {
-        //
-        //            animateLineSelection(c, linePath.cgPath, 2)
-        //
-        //
-        //        } else{
-        touchScreenLineLayer.path = linePath.cgPath
-        //     }
-        
-        
-        
+    func performDelayedAnimations() {
+        let timeout: TimeInterval = 0.5
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + timeout,
+                                      execute: delayedAnimations)
     }
-    func selectPointCircleLayer(_ layer: CAShapeLayer) {
-        let allUnselectedPoints = self.pointCircleLayers.filter { $0 != layer }
-        allUnselectedPoints.forEach { (layer: CAShapeLayer) in
-            layer.fillColor = self.circleUnselectedColor.cgColor
-            layer.opacity   = circleUnselectedOpacy
-        }
-        layer.fillColor = self.circleSelectedColor.cgColor
-        layer.opacity   = self.circleSelectedOpacy
+    // swiftlint:enabled cyclomatic_complexity
+    func willSelectPointLayer(_ layer: OMGradientShapeClipLayer, renderIndex: Int) {
     }
-    func touchPointAsLayer( _ location: CGPoint) -> OMPointLayer? {
-        let mapped = pointCircleLayers.map {$0.frame.origin.distance(from: location)}
-        guard let index = mapped.indexOfMin else{
-            return nil
-        }
-        return self.pointCircleLayers[index]
+    func didSelectPointLayer(_ layer: OMGradientShapeClipLayer, renderIndex: Int) {
     }
-    func hitTestTouchPointAsLayer( _ location: CGPoint) -> CAShapeLayer? {
-        if let layer = self.contentView.layer.hitTest(location) as? CAShapeLayer { // If you hit a layer and if its a Shapelayer
-            return layer
+    
+    var oldFrame: CGRect = .zero
+    
+    func selectMostNearPoint( point: CGPoint, renderIndex: Int) {
+        /// Select the last point if the render is not hidden.
+        guard let lastPoint = locationToNearestLayer(point, renderIndex: renderIndex) else {
+            return
         }
-        return nil
+        selectPointLayer(lastPoint,
+                         selectedPoint: point,
+                         renderIndex: renderIndex)
     }
-    func selectPointLayer(_ layer: OMPointLayer) {
-        selectPointCircleLayer(layer)
-        if animatePointLayers {
-            animateOnSelectPoint(layer)
-        }
-        if let string = dataStringFromPoint(layer.position) {
-            tooltip.setText(string)
-            tooltip.show(layer.position)
-        }
+}
+extension OMScrollableChart {
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        setupView()
+        self.clearsContextBeforeDrawing = true
     }
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        super.touchesBegan(touches , with: event)
+        super.touchesBegan(touches, with: event)
         let location: CGPoint = locationFromTouch(touches)
-        updateLineSelectionLayer(location)
-        if let layer = hitTestTouchPointAsLayer(location) ?? touchPointAsLayer(location) ,
-            let pointLayer = layer as? OMPointLayer  {
-            selectPointLayer(pointLayer)
-        }
-    }
-    fileprivate func locationFromTouch(_ touches: Set<UITouch>) -> CGPoint {
-        if let touch = touches.first {
-            return touch.location(in: self.contentView)
+        //updateLineSelectionLayer(location)
+        let hitTestLayer: CALayer? = hitTestAsLayer(location) as? CAShapeLayer
+        if let hitTestLayer = hitTestLayer {
+            //GCLog.print("hitTestLayer found \(hitTestLayer.name) \(hitTestLayer.position) \(location) \(String(describing: hitTestLayer.classForCoder))", .info)
         }
         
-        return .zero
+        var isSelected: Bool = false
+        for renderIndex in 1..<renderLayers.count {
+            // Get the point more near
+            let selectedLayer = locationToNearestLayer(location,
+                                                       renderIndex: renderIndex)
+            if let selectedLayer = selectedLayer {
+                if hitTestLayer == selectedLayer {
+                    if animateLineSelection {
+                        self.animateLineOnSelectionPoint()
+                    }
+                    //GCLog.print("selectedLayer found \(selectedLayer.name) \(selectedLayer.position) \(location) \(String(describing: selectedLayer.classForCoder))", .info)
+                    
+                    selectPointLayer(selectedLayer,
+                                     selectedPoint: location,
+                                     renderIndex: renderIndex)
+                    isSelected = true
+                }
+            }
+        }
+        //
+        if !isSelected {
+            // test the layers
+            if let polylineLayer = locationToNearestLayer(location,
+                                                          renderIndex: 0),
+                let selectedLayer = locationToNearestLayer(location,
+                                                           renderIndex: 1) {
+                let point = CGPoint( x: selectedLayer.position.x,
+                y: selectedLayer.position.y )
+                selectPointLayer(selectedLayer,
+                                 selectedPoint: location,
+                                 animateFixLocation: true,
+                                 renderIndex: 1)
+            }
+        }
     }
-    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?){
-        super.touchesMoved(touches , with:event)
+        super.touchesMoved(touches, with:event)
         let location: CGPoint = locationFromTouch(touches)
-        updateLineSelectionLayer(location)
-        tooltip.move(location)
+        //updateLineSelectionLayer(location)
+        tooltip.moveTooltip(location)
     }
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches , with: event)
         let location: CGPoint = locationFromTouch(touches)
-        tooltip.hide(location)
+        tooltip.hideTooltip(location)
+        animateRotationAndPerspective(layer: tooltip.layer)
     }
-    fileprivate func addPointsLayers( _ points: [CGPoint] , size:CGSize, unselectedColor: UIColor) -> [OMPointLayer] {
-        var layers =  [OMPointLayer]()
-        for point in points {
-            let circleLayer = OMPointLayer()
-            let scaled = Swift.min(self.bounds.width, self.bounds.width) * scaleFactor
-            let layerSize = size == .zero ? CGSize(width: scaled, height: scaled): size
-            circleLayer.bounds = CGRect(x: 0,
-                                        y: 0,
-                                        width: layerSize.width,
-                                        height: layerSize.height)
-            
-            let path = UIBezierPath(ovalIn: circleLayer.bounds).cgPath
-            circleLayer.path            = path
-            circleLayer.fillColor       = unselectedColor.cgColor
-            circleLayer.position        = point
-            circleLayer.strokeColor     = UIColor.black.cgColor
-            circleLayer.lineWidth       = 0.5
-            
-            //            circleLayer.shadowColor     = UIColor.black.cgColor
-            //            circleLayer.shadowOffset    = circleShadowOffset
-            //            circleLayer.shadowOpacity   = 0.7
-            //            circleLayer.shadowRadius    = 3.0
-            circleLayer.isHidden        = !showPoints
-            
-            circleLayer.bounds = circleLayer.path!.boundingBoxOfPath
-            self.contentView.layer.addSublayer(circleLayer)
-            layers.append(circleLayer)
-        }
-        
-        return layers
-    }
-    func indexForPoint(_ point: CGPoint) -> Int? {
-        let newPoint = CGPoint(x: point.x, y: point.y)
-        return originalData?.points.map ({ $0.distance(to: newPoint)}).indexOfMin
-    }
-    func dataStringFromPoint(_ point: CGPoint) -> String? {
-        if self.type == .averaged {
-            if let firstIndex = indexForPoint(point) {
-                let item: Double = Double(originalData!.data[firstIndex])
-                if let currentStep = currencyFormatter.string(from: NSNumber(value: item)) {
-                    return  currentStep
-                }
-            }
-        } else {
-            if let firstIndex = internalPoints!.firstIndex(of: point)  {
-                let item: Double = Double(internalData![firstIndex])
-                if let currentStep = currencyFormatter.string(from: NSNumber(value:item)) {
-                    return currentStep
-                }
-            }
-        }
-        return nil
-    }
-    fileprivate func layoutRules() {
-        // rules lines
-        guard let rule = rootRule, calcRules() else {
-            return
-        }
-        dashLineLayers.forEach({$0.removeFromSuperlayer()})
-        let zeroMarkIndex = rulesMarks.firstIndex(of: 0)
-        let padding: CGFloat = rule.ruleSize.width
-        let width = contentView.frame.width
-        rulesPoints.enumerated().forEach { (offset: Int, item: CGPoint) in
-            if showZeroMark == false || zeroMarkIndex != offset {
-                addDashLineLayer(point: CGPoint(x: padding, y: item.y),
-                                 pointe: CGPoint(x: width, y: item.y))
-            } else {
-                if zeroMarkIndex == offset {
-                    addDashLineLayer(point: CGPoint(x: padding, y: item.y),
-                                     pointe: CGPoint(x: width, y: item.y),
-                                     stroke: UIColor.blue.withAlphaComponent(0.3),
-                                     lineWidth: 2,
-                                     pattern: [8, 6])
-                }
-            }
-        }
-        // Mark for display the rule.
-        rules.forEach {
-            if $0.isPointsNeeded {
-                $0.isPointsNeeded = $0.createLayout()
-            }
-        }
-    }
-    fileprivate func updateLayout() {
-        if let rawData = rawData {
-            removeAllLayers()
-            createSuplementaryRules()
-            self.originalData   = makeRawPoints(data: rawData, size: contentSize)
-            self.linregressData = makeLinregressPoints(contentSize, numberOfElements: 90)
-            self.averagedData = makeAveragedPoints(data: rawData, size: contentSize)
-            self.approximationData = makeApproximationPoints( size: contentSize)
-            updateLayersIfNeeded()
-            activeLayer = currentLayer
-            if let activeLayer = activeLayer {
-                self.contentView.layer.addSublayer(activeLayer)
-                if animatePolyLine {
-                    currentLayer.strokeEnd = 0
-                }
-                if showPoints {
-                    guard let currentData = currentData else {
-                        return
-                    }
-                    let finalCircleSize = CGSize(width: circleSize.width * 4,
-                                                 height: circleSize.height * 4)
-                    let unselectedColor =  circleUnselectedColor.withAlphaComponent(0.5)
-                    pointCircleLayers = addPointsLayers(currentData.points,
-                                                        size: finalCircleSize,
-                                                        unselectedColor: unselectedColor)
-                }
-                layoutRules()
-                // Update the current layer frame
-                currentLayer.frame = contentView.bounds
-                
-                if self.animateDashLines {
-                    animateDashLinesPhase()
-                }
-                if self.animatePolyLine {
-                    animateLine()
-                }
-                
-                setNeedsDisplay()
-            }
-            //            if self.animatePointLayers {
-            //                animateOnSelectPoint(nil)
-            //            }
-        }
-    }
-    
     override var contentOffset: CGPoint {
         get {
             return super.contentOffset
@@ -1153,148 +1045,181 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         set(newValue) {
             if contentOffset != newValue {
                 super.contentOffset = newValue
-                let aff = CGAffineTransform(translationX: contentOffset.x, y: contentOffset.y)
-                dashLineLayers.forEach({
-                    CATransaction.begin()
-                    CATransaction.setDisableActions(true)
-                    $0.setAffineTransform(aff)
-                    CATransaction.commit()
-                })
             }
         }
     }
-    
     override var frame: CGRect {
-        set(newValue){
-            super.frame = newValue;
+        set(newValue) {
+            super.frame = newValue
+            oldFrame = newValue
             self.setNeedsLayout()
         }
-        get { return super.frame}
+        get { return super.frame }
     }
-    
     override func layoutSubviews() {
         self.backgroundColor = .clear
         super.layoutSubviews()
-        if self.updateData() {
-            self.updateLayout()
+        if oldFrame != self.frame {
+            if self.updateDataSourceData() {
+                self.updateLayout(forceLayout: true)
+            } else {
+                //GCLog.print("layout is 1")
+            }
         } else {
-            //print("layout is ok")
+            //GCLog.print("The view frame was unchanged.", .trace)
         }
+    }
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        if let ctx = UIGraphicsGetCurrentContext() {
+            if drawPolylineGradient {
+                drawGradient(ctx: ctx,
+                             layer: polylineLayer,
+                             fadeFactor: polylineGradientFadePercentage)
+            } else {
+                ctx.saveGState()
+                // Clip to the path
+                if let path = polylineLayer.path {
+                    let pathToFill = UIBezierPath(cgPath: path)
+                    self.lineColor.setFill()
+                    pathToFill.fill()
+                }
+                ctx.restoreGState()
+            }
+        }
+        // drawVerticalGridLines()
+        // drawHorizalGridLines()
+        // Specify a border (stroke) color.
+        // UIColor.black.setStroke()
+        // pathVertical.stroke()
+        // pathHorizontal.stroke()
+    }
+    // MARK: Scroll Delegate
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if self.isTracking {
+            //self.setNeedsDisplay()
+        }
+        ruleLeadingAnchor?.constant = self.contentOffset.x
+    }
+    //  scrollViewDidEndDragging - The scroll view sends this message when
+    //    the user’s finger touches up after dragging content.
+    //    The decelerating property of UIScrollView controls deceleration.
+    //
+    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        
+    }
+    //    scrollViewWillBeginDecelerating - The scroll view calls
+    //    this method as the user’s finger touches up as it is
+    //    moving during a scrolling operation; the scroll view will continue
+    //    to move a short distance afterwards. The decelerating property of
+    //    UIScrollView controls deceleration
+    //
+    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
+        //self.layoutIfNeeded()
+    }
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+        didScrollingFinished(scrollView: scrollView)
+    }
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if decelerate {
+            //didEndDecelerating will be called for sure
+            return
+        } else {
+            didScrollingFinished(scrollView: scrollView)
+        }
+    }
+    func didScrollingFinished(scrollView: UIScrollView) {
+        //GCLog.print("Scrolling \(String(describing: scrollView.classForCoder)) was Finished", .trace)
+    }
+}
+// Regression
+extension OMScrollableChart {
+    func mean(_ lhs: [Float]) -> Float {
+        var result: Float = 0
+        vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))
+        return result
+        
+    }
+    func measq(_ lhs: [Float]) -> Float {
+        var result: Float = 0
+        vDSP_measqv(lhs, 1, &result, vDSP_Length(lhs.count))
+        return result
+        
+    }
+    public func linregress(_ lhs: [Float], _ rhs: [Float]) -> (slope: Float, intercept: Float) {
+        precondition(lhs.count == rhs.count, "Vectors must have equal count")
+        let meanx = mean(lhs)
+        let meany = mean(rhs)
+        var result: [Float] = [Float].init(repeating: 0, count: lhs.count)
+        vDSP_vmul(lhs, 1, rhs, 1, &result, 1, vDSP_Length(lhs.count))
+        
+        let meanxy = mean(result)
+        let meanxSqr = measq(lhs)
+        
+        let slope = (meanx * meany - meanxy) / (meanx * meanx - meanxSqr)
+        let intercept = meany - slope * meanx
+        return (slope, intercept)
+    }
+    
+    func makeLinregressPoints(data: ChartData, size: CGSize, numberOfElements: Int) -> ChartData {
+        let originalDataIndex: [Float] = data.points.enumerated().map { Float($0.offset) }
+        //        let max = originalData.points.max(by: { $0.x < $1.x})!
+        //        let distance = mean(originalDataX.enumerated().compactMap{
+        //            if $0.offset > 0 {
+        //                return originalDataX[$0.offset-1].distance(to: $0.element)
+        //            }
+        //            return nil
+        //        })
+        
+        
+        // let results = originalDataX//.enumerated().map{ return originalDataX.prefix($0.offset+1).reduce(.zero, +)}
+        
+        linFunction = linregress(originalDataIndex, data.data)
+        
+        // var index = 0
+        let result: [Float] = [Float].init(repeating: 0, count: numberOfElements)
+        
+        let resulLinregress = result.enumerated().map{ linregressDataForIndex(index: Float($0.offset))}
+        //        for item in result  {
+        //            result[index] = dataForIndex(index:  Float(index))
+        //            index += 1
+        //        }
+        //
+        // add the new points
+        let newData = data.data + resulLinregress
+        let newPoints =  makePoints(data: newData, size: size)
+        return (newPoints, newData)
+    }
+    func linregressDataForIndex(index: Float) -> Float {
+        guard let linFunction = linFunction else { return 0 }
+        return linFunction.slope * index + linFunction.intercept
     }
 }
 
-// MARK: - Animations -
-extension OMScrollableChart {
-    /// animatePoints
-    /// - Parameters:
-    ///   - layers: CAShapeLayer
-    ///   - delay: TimeInterval delay [0.1]
-    ///   - duration: TimeInterval duration [ 2.0]
-    func animatePoints(_ layers: [CAShapeLayer], delay: TimeInterval = 0.1, duration: TimeInterval = 2.0) {
-        var currentDelay = delay
-        for point in layers {
-            point.opacity = 1
-            let fadeAnimation = CABasicAnimation(keyPath: "opacity")
-            fadeAnimation.toValue = 0.3
-            fadeAnimation.beginTime = CACurrentMediaTime() + currentDelay
-            fadeAnimation.duration = duration
-            fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-            fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
-            fadeAnimation.isRemovedOnCompletion = false
-            point.add(fadeAnimation, forKey: nil)
-            currentDelay += 0.05
-        }
+extension CGPoint: Hashable {
+    //    func distance(point: CGPoint) -> Float {
+    //        let dx = Float(x - point.x)
+    //        let dy = Float(y - point.y)
+    //        return sqrt((dx * dx) + (dy * dy))
+    //    }
+    public var hashValue: Int {
+        // iOS Swift Game Development Cookbook
+        // https://gist.github.com/FredrikSjoberg/ced4ad5103863ab95dc8b49bdfd99eb2
+        return x.hashValue << 32 ^ y.hashValue
     }
-    
-    /// animateOnSelectPoint
-    /// - Parameters:
-    ///   - selectedLayer: OMPointLayer
-    ///   - duration: TimeInterval [2.0]
-    func animateOnSelectPoint(_ selectedLayer: OMPointLayer, duration: TimeInterval = 2.0) {
-        if let index = self.pointCircleLayers.firstIndex(of: selectedLayer) {
-            let count = self.pointCircleLayers.count - 1
-            let pointBegin = self.pointCircleLayers.takeElements(index)
-            let pointEnd   = self.pointCircleLayers.takeElements(count - index,
-                                                                 startAt: index + 1)
-            animatePoints(pointBegin.reversed(), duration: duration)
-            animatePoints(pointEnd, duration: duration)
-        }
-    }
-    /// animateLineSelection
-    /// - Parameters:
-    ///   - layer: CAShapeLayer
-    ///   - newPath: newPath
-    ///   - duration: duration [1.0]
-    func animateLineSelection(_ layer: CAShapeLayer,_ newPath: CGPath, _ duration: TimeInterval = 1.0) {
-        // the new origin of the CAShapeLayer within its view
-        let animation = CABasicAnimation(keyPath: "path")
-        animation.fromValue =  layer.path           // animate from current position ...
-        animation.toValue = newPath                        // ... to whereever the new position is
-        animation.duration = duration
-        animation.isAdditive = true
-        animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
-        animation.fillMode = CAMediaTimingFillMode.forwards
-        animation.isRemovedOnCompletion = false
-        // set the shape's final position to be the new position so when the animation is done, it's at its new "home"
-        layer.add(animation, forKey: nil)
-    }
-    /// Animate DashLines phase
-    func animateDashLinesPhase() {
-        for layer in dashLineLayers {
-            let animation = CABasicAnimation(keyPath: "lineDashPhase")
-            animation.fromValue = 0
-            animation.toValue = layer.lineDashPattern?.reduce(0) { $0 - $1.intValue } ?? 0
-            animation.duration = 1
-            animation.repeatCount = .infinity
-            layer.add(animation, forKey: "line")
-        }
-    }
-    /// animateLine
-    func animateLine() {
-        let fromValue = self.contentOffset.x / self.contentSize.width
-        let growAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
-        growAnimation.fromValue = fromValue
-        growAnimation.toValue = 1
-        growAnimation.beginTime = CACurrentMediaTime() + 0.5
-        growAnimation.duration = 1.5
-        growAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
-        growAnimation.fillMode = CAMediaTimingFillMode.forwards
-        growAnimation.isRemovedOnCompletion = false
-        activeLayer?.add(growAnimation, forKey: "StrokeAnimation")
-        
-        //        let startAnimation = CABasicAnimation(keyPath: "strokeStart")
-        //        startAnimation.fromValue = 0
-        //        startAnimation.toValue = 0.8
-        //
-        //        let endAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        //      s  endAnimation.fromValue = 0.2
-        //        endAnimation.toValue = 1.0
-        //
-        //        let animation = CAAnimationGroup()
-        //        animation.animations = [startAnimation, endAnimation]
-        //        animation.duration = 2
-        //        catmullRomLineLayer.add(animation, forKey: "MyAnimation")
-    }
-    
-    
 }
-extension OMScrollableChart {
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
-        if self.isTracking {
-            self.setNeedsDisplay()
-            // ...
-        }
-        ruleLeadingAnchor?.constant = self.contentOffset.x
-        //        self.layoutIfNeeded()
-        //        //
-        //        rule?.frame = CGRect(x: self.frame.origin.x+self.contentOffset.x,
-        //                             y: self.frame.origin.y+self.contentOffset.y,
-        //                             width: ruleWidth,
-        //                             height: self.frame.height)
+
+func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+    return lhs.distanceFrom(rhs) < 0.000001 //CGPointEqualToPoint(lhs, rhs)
+}
+
+extension Array: Hashable where Iterator.Element: Hashable {
+    public var hashValue: Int {
+        return self.reduce(1, { $0.hashValue ^ $1.hashValue })
     }
-    func scrollViewWillBeginDecelerating(_ scrollView: UIScrollView) {
-        setContentOffset(self.contentOffset, animated: true)
+}
+extension CGRect: Hashable {
+    public var hashValue: Int {
+        return NSCoder.string(for: self).hashValue
     }
 }
