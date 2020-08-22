@@ -15,9 +15,9 @@ import UIKit
 
 
 let chartPoints: [Float] =   [1510, 100, 3000, 100, 1200, 13000,
-             15000, -1500, 800, 1000, 6000, 1300,
-             1510, 100, 3000, 100, 1200, 13000,
-15000, -1500, 800, 1000, 6000, 1300]
+             15000, -1500, 800, 1000, 6000, 1300]
+//             1510, 100, 3000, 100, 1200, 13000,
+//15000, -1500, 800, 1000, 6000, 1300]
 
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
