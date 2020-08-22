@@ -26,6 +26,7 @@
 		D12CBF0824F0078D001ADC2C /* UIBezierPath+Interpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12CBEFA24F0078D001ADC2C /* UIBezierPath+Interpolation.swift */; };
 		D12CBF0924F0078D001ADC2C /* Geometry+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12CBEFB24F0078D001ADC2C /* Geometry+Utilities.swift */; };
 		D12CBF0A24F0078D001ADC2C /* OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D12CBEFC24F0078D001ADC2C /* OMScrollableChart.swift */; };
+		D15C5CEE24F12D3600A2D00D /* UIColor+OMSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +64,7 @@
 		D12CBEFA24F0078D001ADC2C /* UIBezierPath+Interpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+Interpolation.swift"; sourceTree = "<group>"; };
 		D12CBEFB24F0078D001ADC2C /* Geometry+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Geometry+Utilities.swift"; sourceTree = "<group>"; };
 		D12CBEFC24F0078D001ADC2C /* OMScrollableChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OMScrollableChart.swift; sourceTree = "<group>"; };
+		D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+OMSC.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -127,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				D12CBEEE24F0078D001ADC2C /* UIScrollView+ChartExtension.swift */,
+				D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */,
 				D12CBEEF24F0078D001ADC2C /* LICENSE */,
 				D12CBEF024F0078D001ADC2C /* OMScrollableChartRule.swift */,
 				D12CBEF124F0078D001ADC2C /* Example-Bridging-Header.h */,
@@ -254,6 +257,7 @@
 				D12CBF0824F0078D001ADC2C /* UIBezierPath+Interpolation.swift in Sources */,
 				D12CBF0424F0078D001ADC2C /* OMScrollableChart+Renders.swift in Sources */,
 				7D226A7D2384C3510074C44E /* AppDelegate.swift in Sources */,
+				D15C5CEE24F12D3600A2D00D /* UIColor+OMSC.swift in Sources */,
 				D12CBEFF24F0078D001ADC2C /* OMScrollableChartRule.swift in Sources */,
 				D12CBF0224F0078D001ADC2C /* CGPath+Extension.swift in Sources */,
 				D12CBF0A24F0078D001ADC2C /* OMScrollableChart.swift in Sources */,

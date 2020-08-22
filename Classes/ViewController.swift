@@ -22,12 +22,12 @@ let chartPoints: [Float] =   [1510, 100, 3000, 100, 1200, 13000,
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
    
-    
+
+   
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] {
         return chartPoints
     }
-    
-    func dataLayers(_ render: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+ func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
           return []
     }
     
@@ -63,6 +63,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     }
     
     @IBOutlet var slider: UISlider!
+    @IBOutlet var sliderLimit: UISlider!
     @IBOutlet var chart: OMScrollableChart!
     @IBOutlet var segmentInterpolation: UISegmentedControl!
     @IBOutlet var sliderAverage: UISlider!
@@ -74,20 +75,33 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
         
+        
+        segmentInterpolation.removeAllSegments()
+           segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
+           segmentInterpolation.insertSegment(withTitle: "smoothed", at: 1, animated: false)
+           segmentInterpolation.insertSegment(withTitle: "cubicCurve", at: 2, animated: false)
+           segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
+           segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
+           segmentInterpolation.selectedSegmentIndex = 1
+        
+   
         slider.maximumValue  = 20
         slider.minimumValue  = 1
         slider.value = Float(self.chart.approximationTolerance)
         sliderAverage.maximumValue = Float(chartPoints.count)
         sliderAverage.minimumValue = 0
         sliderAverage.value = Float(self.chart.numberOfElementsToAverage)
-        segmentInterpolation.removeAllSegments()
-        segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
-        segmentInterpolation.insertSegment(withTitle: "smoothed", at: 1, animated: false)
-        segmentInterpolation.insertSegment(withTitle: "cubicCurve", at: 2, animated: false)
-        segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
-        segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
-        segmentInterpolation.selectedSegmentIndex = 1
-        chart.updateDataSourceData()
+        
+        _ = chart.updateDataSourceData()
+        
+        sliderLimit.maximumValue  = chart.maximumValue
+        sliderLimit.minimumValue  = chart.minimumValue
+    }
+    @IBAction  func limitsSliderChange( _ sender: UISlider)  {
+        if sender == sliderLimit {
+            chart.minimum =  Float(CGFloat(sliderLimit.value))
+        _ = chart.updateDataSourceData()
+        }
     }
     @IBAction  func simplifySliderChange( _ sender: UISlider)  {
         if sender == sliderAverage {

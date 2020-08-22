@@ -1,66 +1,12 @@
 //
 //  OMBubbleTextView.swift
-//  testLayers
+//  OMBubbleTextView
 //
 //  Created by Jorge Ouahbi on 19/08/2020.
 //  Copyright © 2020 Jorge Ouahbi. All rights reserved.
 //
 
 import UIKit
-
-extension UIColor {
-    convenience init(_ hex: UInt) {
-        self.init(
-            red: CGFloat((hex & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((hex & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(hex & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
-        )
-    }
-    convenience init(hex: UInt) {
-        self.init(
-            red: CGFloat((hex & 0xFF0000) >> 16) / 255.0,
-            green: CGFloat((hex & 0x00FF00) >> 8) / 255.0,
-            blue: CGFloat(hex & 0x0000FF) / 255.0,
-            alpha: CGFloat(1.0)
-        )
-    }
-    
-    func isLight() -> Bool {
-        guard let components = cgColor.components,
-            components.count >= 3 else { return false }
-        let brightness = ((components[0] * 299) + (components[1] * 587) + (components[2] * 114)) / 1000
-        return !(brightness < 0.5)
-    }
-    
-    public var complementaryColor: UIColor {
-        if #available(iOS 13, tvOS 13, *) {
-            return UIColor { traitCollection in
-                return self.isLight() ? self.darker : self.lighter
-            }
-        } else {
-            return isLight() ? darker : lighter
-        }
-    }
-    
-    public var lighter: UIColor {
-        return adjust(by: 1.35)
-    }
-    
-    public var darker: UIColor {
-        return adjust(by: 0.94)
-    }
-    
-    func adjust(by percent: CGFloat) -> UIColor {
-        var hxxxx: CGFloat = 0, sxxxx: CGFloat = 0, bxxxx: CGFloat = 0, axxxx: CGFloat = 0
-        getHue(&hxxxx, saturation: &sxxxx, brightness: &bxxxx, alpha: &axxxx)
-        return UIColor(hue: hxxxx, saturation: sxxxx, brightness: bxxxx * percent, alpha: axxxx)
-    }
-    
-    func makeGradient() -> [UIColor] {
-        return [self, self.complementaryColor, self]
-    }
-}
 
 public protocol TooltipleableView where Self: UIView {
     func moveTooltip(_ position: CGPoint, duration: TimeInterval)
@@ -75,7 +21,7 @@ class OMBubbleShapeView: UIView {
     @IBInspectable var fillColor:    UIColor = .paleGrey { didSet { setNeedsDisplay() } }
     @IBInspectable var strokeColor:  UIColor = UIColor(white: 0.91, alpha: 1.0)   { didSet { setNeedsDisplay() } }
     @IBInspectable var drawGlossEffect: Bool = true
-    let rgbColorspace = CGColorSpaceCreateDeviceRGB()
+    internal let rgbColorspace = CGColorSpaceCreateDeviceRGB()
     
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
@@ -142,6 +88,11 @@ class OMBubbleShapeView: UIView {
         case left
         case right
     }
+    /// Build the callout clip path in the direction drectioin
+    /// - Parameters:
+    ///   - direction: CalloutDirection
+    ///   - isFlipped: filp it?
+    /// - Returns: UIBezierPath
     func calloutClipPath( with direction: CalloutDirection,
                           isFlipped: Bool = false) -> UIBezierPath {
         let rect = bounds.insetBy(dx: lineWidth / 2, dy: lineWidth / 2)
@@ -246,7 +197,7 @@ class OMBubbleShapeView: UIView {
         UIGraphicsEndImageContext()
         return sharedMask
     }()
-    
+    var shadowGradientColor: UIColor = .paleGrey
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         if let ctx = UIGraphicsGetCurrentContext() {
@@ -267,7 +218,7 @@ class OMBubbleShapeView: UIView {
                 
                 drawShadowGradient(context: ctx,
                                    rect: backgroundRect,
-                                   shadowColor: UIColor.paleGrey.complementaryColor,
+                                   shadowColor: shadowGradientColor.complementaryColor,
                                    topCenter:  topCenter,
                                    bottomCenter: bottomCenter)
                 
@@ -277,7 +228,7 @@ class OMBubbleShapeView: UIView {
                 
                 drawShadowGradient(context: ctx,
                                    rect: backgroundRect,
-                                   shadowColor: .paleGrey,
+                                   shadowColor: shadowGradientColor,
                                    topCenter: topCenter,
                                    bottomCenter: bottomCenter)
                 ctx.endTransparencyLayer()
@@ -295,7 +246,7 @@ class OMBubbleShapeView: UIView {
                 drawGlossy(context: ctx,
                            rect: glossRect,
                            startPoint: CGPoint(x: glossRect.minX, y: glossRect.minY),
-                           endPoint: CGPoint(x:glossRect.maxX, y: glossRect.maxY))
+                           endPoint: CGPoint(x: glossRect.maxX, y: glossRect.maxY))
                 
                 
                 
@@ -321,6 +272,7 @@ class OMBubbleShapeView: UIView {
 // MARK: - OMBubbleTextView -
 @IBDesignable
 class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
+    
     //  text alignment.b j
     @IBInspectable var textAlignment: NSTextAlignment = .center {
         didSet {setNeedsDisplay()}
@@ -340,6 +292,15 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
             setNeedsDisplay()
         }
     }
+    @IBInspectable var boundInOneLine: Bool = false {
+           didSet {
+               sizeToFit()
+               setNeedsDisplay()
+           }
+       }
+    private var boundingSize: CGSize = .zero
+    
+    /// Called when a designable object is created in Interface Builder.
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
         
@@ -356,25 +317,24 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         if let text = string {
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = textAlignment
-            paragraphStyle.lineBreakMode = .byWordWrapping
+            if !boundInOneLine {
+                paragraphStyle.lineBreakMode = .byWordWrapping
+            }
             return NSAttributedString(string: text, attributes: [NSAttributedString.Key.font: font as Any,
-                                                                 NSAttributedString.Key.paragraphStyle : paragraphStyle,
+                                                                 NSAttributedString.Key.paragraphStyle: paragraphStyle,
                                                                  NSAttributedString.Key.foregroundColor: textColor])
         }
         return nil
     }
-    
-    func centeredInRect( innerRect: CGRect, outerRect: CGRect) -> CGRect {
-        let originX = outerRect.origin.x + ((outerRect.size.width - innerRect.size.width) * 0.5)
-        let originY = outerRect.origin.y + ((outerRect.size.height - innerRect.size.height) * 0.5)
-        return CGRect(x: originX, y: originY, width: innerRect.size.width, height: innerRect.size.height).integral;
-    }
-    
-    var boundingSize: CGSize = .zero
     override func sizeThatFits( _ size: CGSize) -> CGSize {
         var result = super.sizeThatFits(size)
         if let attributtedString = attributtedString {
-            let boundingRect = attributtedString.boundingRect(with: CGSize(width: size.width, height: .greatestFiniteMagnitude),
+            
+            let forceTextInOneLine = boundInOneLine ?
+            CGSize(width: CGFloat.greatestFiniteMagnitude, height: font.lineHeight) :
+                CGSize(width: size.width, height: CGFloat.greatestFiniteMagnitude)
+            
+            let boundingRect = attributtedString.boundingRect(with: forceTextInOneLine,
                                                               options: [.usesFontLeading,
                                                                         .usesLineFragmentOrigin,
                                                                         .truncatesLastVisibleLine],
@@ -411,7 +371,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
             offset.y = inRect.origin.y - rect.origin.y
         } else if rect.origin.y + rect.height > inRect.origin.y + inRect.height {
             // It's out to the bottom
-            offset.y = (rect.origin.y + rect.height) - inRect.origin.y + inRect.height
+            offset.y = (rect.origin.y + rect.height) - (inRect.origin.y + inRect.height)
         }
         return offset
     }
@@ -421,9 +381,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
                        delay: 0.1,
                        options: [.curveEaseOut], animations: {
                         self.alpha = 1.0
-                        let originY = position.y
-                        let point = CGPoint(x: position.x, y: originY)
-                        self.moveTooltip(point)
+                        self.moveTooltip(position)
         }, completion: { finished in
         })
     }
@@ -492,9 +450,10 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
                 attributtedString?.draw(in: CGRect(origin: CGPoint(x: 0, y: 5), size: boundingSize))
             } else {
                 let inRect = CGRect(origin: .zero, size: boundingSize)
-                let outerRect = centeredInRect(innerRect: inRect,
-                                                             outerRect: rect)
-                attributtedString?.draw(in: outerRect)
+                let originX = rect.origin.x + ((rect.size.width - inRect.size.width) * 0.5)
+                let originY = rect.origin.y + ((rect.size.height - inRect.size.height) * 0.5)
+                let drawRect = CGRect(x: originX, y: originY, width: inRect.size.width, height: inRect.size.height).integral;
+                attributtedString?.draw(in: drawRect)
             }
             ctx.endTransparencyLayer()
             UIGraphicsPopContext()
@@ -564,7 +523,8 @@ extension UIView {
         
     }
     func grow(duration: CFTimeInterval) {
-        self.layer.add(keyFrameGrowAnimation(duration: duration), forKey: "keyFrameGrowAnimation")
+        self.layer.add(keyFrameGrowAnimation(duration: duration),
+                       forKey: "keyFrameGrowAnimation")
     }
     
     func shakeGrow(duration: CFTimeInterval) {

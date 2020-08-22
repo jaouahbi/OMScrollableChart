@@ -22,20 +22,14 @@ import Accelerate
 // swiftlint:disable file_length
 // swiftlint:disable type_body_length
 
-extension UIColor {
-    @nonobjc class var paleGrey: UIColor {
-          return UIColor(red: 247.0 / 255.0, green: 247.0 / 255.0, blue: 250.0 / 255.0, alpha: 1.0)
-      }
-    @nonobjc class var greyishBlue: UIColor {
-        return UIColor(red: 89.0 / 255.0, green: 135.0 / 255.0, blue: 164.0 / 255.0, alpha: 1.0)
-    }
-}
-public extension CGPoint {
 
+
+public extension CGPoint {
+    
     enum CoordinateSide {
         case topLeft, top, topRight, right, bottomRight, bottom, bottomLeft, left
     }
-
+    
     static func unitCoordinate(_ side: CoordinateSide) -> CGPoint {
         switch side {
         case .topLeft:      return CGPoint(x: 0.0, y: 0.0)
@@ -86,8 +80,8 @@ protocol PointsGenerator {
     /// Round  minimun value to
     var roundMinValueTo: Float {get}
     var roundMarkValueTo: Float  {get}
-    var staticMinimum: Float?  {get}
-    var staticMaximum: Float?  {get}
+    var minimum: Float?  {get}
+    var maximum: Float?  {get}
     var maximunMaximizatorFactor: Float  {get}
     var minimunMaximizatorFactor: Float  {get}
     var range: Float  {get}
@@ -99,8 +93,8 @@ extension PointsGenerator {
     var hScale: CGFloat  {return 1.0}
     var pointsInsetTop: CGFloat  { return 20}
     var pointsInsetBottom: CGFloat  {return 20}
-    var staticMinimum: Float?  {return nil }
-    var staticMaximum: Float?  {return nil }
+    var minimum: Float?  {return nil }
+    var maximum: Float?  {return nil }
     /// Round  minimun/maximun value to
     var roundMaxValueTo: Float {return 10000 }
     var roundMinValueTo: Float {return 1000 }
@@ -120,14 +114,14 @@ class DiscretePointsGenerator: PointsGenerator {
     func updateRangeLimits(_ data: [Float]) {
         // Normalize values in array (i.e. scale to 0-1)...
         var min: Float = 0
-        if let minimum = staticMinimum {
+        if let minimum = minimum {
             min = minimum
         } else {
             vDSP_minv(data, 1, &min, vDSP_Length(data.count))
         }
         minimumValue = min.roundToNearestValue(value: roundMinValueTo) * maximunMaximizatorFactor
         var max: Float = 0
-        if let maximum = staticMaximum {
+        if let maximum = maximum {
             max = maximum
         } else {
             vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
@@ -160,7 +154,7 @@ protocol ChartProtocol {
 protocol OMScrollableChartDataSource: class {
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float]
     func numberOfPages(chart: OMScrollableChart) -> CGFloat
-    func dataLayers(_ render: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer]
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer]
     func footerSectionsText(chart: OMScrollableChart) -> [String]?
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? 
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderData
@@ -176,8 +170,8 @@ protocol OMScrollableChartRenderableProtocol: class {
 
 extension OMScrollableChartRenderableProtocol {
     var numberOfRenders: Int {
-           return 2
-       }
+        return 2
+    }
 }
 @objcMembers
 class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
@@ -274,7 +268,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             isLimitsDirty = true
         }
     }
-    var minimum: Float? = 0 {
+    var minimum: Float? = nil {
         didSet {
             isLimitsDirty = true
         }
@@ -419,7 +413,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             topRule?.backgroundColor = footerRuleBackgroundColor
         }
     }
-    var footerViewHeight: CGFloat = 20
+    var footerViewHeight: CGFloat = 30
     var topViewHeight: CGFloat = 20
     var ruleLeadingAnchor: NSLayoutConstraint?
     var ruletopAnchor: NSLayoutConstraint?
@@ -532,7 +526,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             contentView.frame = CGRect(x: 0,
                                        y: 0,
                                        width: self.contentSize.width,
-                                       height: self.contentSize.height)
+                                       height: self.contentSize.height - footerViewHeight)
         }
         self.updateLayout()
     }
@@ -580,14 +574,20 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
                 print("isDirtyData \(isDirtyDataSource)")
             }
             //let numberOfSections = dataSource.numberOfSections(chart: self)
-            let oldNumberOfPages = numberOfPages
-            let newNumberOfPages = dataSource.numberOfPages(chart: self)
-            
-            
+        
             if let footerRule = self.footerRule as? OMScrollableChartRuleFooter {
                 if let texts =  dataSource.footerSectionsText(chart: self) {
-                    footerRule.footerSectionsText = texts
+                    if texts != footerRule.footerSectionsText {
+                        footerRule.footerSectionsText = texts
+                        print("footerSectionsTextChanged \(isDirtyDataSource)")
+                    }
                 }
+            }
+            let oldNumberOfPages = numberOfPages
+            let newNumberOfPages = dataSource.numberOfPages(chart: self)
+            if oldNumberOfPages != newNumberOfPages {
+                print("numberOfPagesChanged \(isDirtyDataSource)")
+                // _delegate.numberOfPagesChanged()
             }
             self.numberOfPages = newNumberOfPages
             return true
@@ -620,7 +620,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
     ///   - stroke: UIColor
     ///   - lineWidth: CGFloat
     ///   - pattern: [NSNumber]?
-    func addDashLineLayer(point: CGPoint,
+    func addDashLineLayerFromRuleMark(point: CGPoint,
                           endPoint: CGPoint,
                           stroke: UIColor? = nil,
                           lineWidth: CGFloat? = nil,
@@ -893,10 +893,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         // Create the points from the discrete data using the renders
         if dataPointsRender.flatMap {$0}.count > 0 {
             removeAllLayers()
-            
             addLeadingRuleIfNeeded(rootRule, view: self)
             addFooterRuleIfNeeded(footerRule)
-            
             if let render = self.renderSource,
                 let dataSource = dataSource, render.numberOfRenders > 0  {
                 // layout renders
@@ -939,7 +937,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             //                self.animateDashLinesPhase()
             //            }
             //            if self.animatePointLayers {
-            //                self.animateOnSelectPoint(nil,
+            //                self.animateOnRenderLayerSelection(nil,
             //                                          renderIndex: 0)
             //            }
             //            if self.animatePolyLine {
@@ -947,7 +945,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
             //            }
         }
     }()
-    
     func cancelDelayedAnimations() {
         // optional: cancel task
         delayedAnimations.cancel()
@@ -971,7 +968,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol {
         guard let lastPoint = locationToNearestLayer(point, renderIndex: renderIndex) else {
             return
         }
-        selectPointLayer(lastPoint,
+        selectRenderLayerWithAnimation(lastPoint,
                          selectedPoint: point,
                          renderIndex: renderIndex)
     }
@@ -988,41 +985,40 @@ extension OMScrollableChart {
         //updateLineSelectionLayer(location)
         let hitTestLayer: CALayer? = hitTestAsLayer(location) as? CAShapeLayer
         if let hitTestLayer = hitTestLayer {
-            //GCLog.print("hitTestLayer found \(hitTestLayer.name) \(hitTestLayer.position) \(location) \(String(describing: hitTestLayer.classForCoder))", .info)
-        }
-        
-        var isSelected: Bool = false
-        for renderIndex in 1..<renderLayers.count {
-            // Get the point more near
-            let selectedLayer = locationToNearestLayer(location,
-                                                       renderIndex: renderIndex)
-            if let selectedLayer = selectedLayer {
-                if hitTestLayer == selectedLayer {
-                    if animateLineSelection {
-                        self.animateLineOnSelectionPoint()
+            var isSelected: Bool = false
+            for renderIndex in 1..<renderLayers.count {
+                // Get the point more near
+                let selectedLayer = locationToNearestLayer(location,
+                                                           renderIndex: renderIndex)
+                if let selectedLayer = selectedLayer {
+                    if hitTestLayer == selectedLayer {
+                        if animateLineSelection {
+                            self.animateLineOnSelectionPoint()
+                        }
+                        //GCLog.print("selectedLayer found \(selectedLayer.name) \(selectedLayer.position) \(location) \(String(describing: selectedLayer.classForCoder))", .info)
+                        
+                        selectRenderLayerWithAnimation(selectedLayer,
+                                         selectedPoint: location,
+                                         renderIndex: renderIndex)
+                        isSelected = true
                     }
-                    //GCLog.print("selectedLayer found \(selectedLayer.name) \(selectedLayer.position) \(location) \(String(describing: selectedLayer.classForCoder))", .info)
-                    
-                    selectPointLayer(selectedLayer,
-                                     selectedPoint: location,
-                                     renderIndex: renderIndex)
-                    isSelected = true
                 }
             }
-        }
-        //
-        if !isSelected {
-            // test the layers
-            if let polylineLayer = locationToNearestLayer(location,
-                                                          renderIndex: 0),
-                let selectedLayer = locationToNearestLayer(location,
-                                                           renderIndex: 1) {
-                let point = CGPoint( x: selectedLayer.position.x,
-                y: selectedLayer.position.y )
-                selectPointLayer(selectedLayer,
-                                 selectedPoint: location,
-                                 animateFixLocation: true,
-                                 renderIndex: 1)
+            
+            //
+            if !isSelected {
+                // test the layers
+                if let polylineLayer = locationToNearestLayer(location,
+                                                              renderIndex: 0),
+                    let selectedLayer = locationToNearestLayer(location,
+                                                               renderIndex: 1) {
+                    let point = CGPoint( x: selectedLayer.position.x,
+                                         y: selectedLayer.position.y )
+                    selectRenderLayerWithAnimation(selectedLayer,
+                                     selectedPoint: location,
+                                     animation: true,
+                                     renderIndex: 1)
+                }
             }
         }
     }

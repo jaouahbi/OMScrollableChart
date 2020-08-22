@@ -27,9 +27,9 @@ protocol ChartRuleProtocol: UIView {
     init(chart: OMScrollableChart)
     var font: UIFont {get set}
     var fontColor: UIColor {get set}
-    var decorationColor : UIColor {get set}
+    var decorationColor: UIColor {get set}
     var leftInset: CGFloat {get set}
-    var ruleSize: CGSize {get set}
+    var ruleSize: CGSize {get}
     func createLayout() -> Bool
 }
 
@@ -97,7 +97,7 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
     var type: ChartRuleType = .root
     var chart: OMScrollableChart?
     var decorationColor: UIColor = .black
-    var isPointsNeeded: Bool = true
+    var isPointsNeeded: Bool =  true
     required init(chart: OMScrollableChart) {
         super.init(frame: .zero)
         self.chart = chart
@@ -163,14 +163,19 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
         }
     }
 }
-let kDefFooterRuleHeight: CGFloat = 30
+
 
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var leftInset: CGFloat = 15
     var chart: OMScrollableChart?
-    var isPointsNeeded: Bool = false
+    var isPointsNeeded: Bool  =  false
     var type: ChartRuleType = .footer
+    var footerRuleHeight: CGFloat = 30 {
+        didSet {
+            setNeedsLayout()
+        }
+    }
     /// init
     /// - Parameter chart: OMScrollableChart
     required init(chart: OMScrollableChart) {
@@ -181,7 +186,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    var ruleSize: CGSize = CGSize(width: 0, height: kDefFooterRuleHeight)
+    var ruleSize: CGSize { return CGSize(width: 0, height: footerRuleHeight)}
     var fontColor = UIColor.black {
         didSet {
             arrangedSubviews.forEach({($0 as? UILabel)?.textColor = fontColor})

@@ -21,14 +21,14 @@ import UIKit
 import Accelerate
 
 /*
-                    [topRule]
-             ---------------------
-            |
+ [topRule]
+ ---------------------
+ |
  rootRule   |
-            |
-            |
-            |       footerRule
-            |______________________
+ |
+ |
+ |       footerRule
+ |______________________
  */
 
 extension OMScrollableChart {
@@ -66,68 +66,63 @@ extension OMScrollableChart {
     ///   - rule: ruleFooter description
     ///   - view: UIView
     func addFooterRuleIfNeeded(_  rule: ChartRuleProtocol? = nil, view: UIView? = nil) {
-          guard let rule = rule else {
+        guard let rule = rule else {
             return
         }
         assert(rule.type == .footer)
         if rule.superview == nil {
             rule.translatesAutoresizingMaskIntoConstraints = false
-              if let view = view {
+            if let view = view {
                 view.insertSubview(rule, at: rule.type.rawValue)
             } else {
                 self.insertSubview(rule, at: rule.type.rawValue)
             }
             
             let width = rule.ruleSize.width > 0 ?
-                        rule.ruleSize.width :
-                        contentSize.width
+                rule.ruleSize.width :
+                contentSize.width
             
             rule.backgroundColor = UIColor.gray
             rule.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
             rule.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
             rule.topAnchor.constraint(equalTo: self.contentView.bottomAnchor,
-                                            constant: -footerViewHeight).isActive = true
+                                      constant: 0).isActive = true
             rule.heightAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.height)).isActive = true
             rule.widthAnchor.constraint(equalToConstant: width).isActive = true
         }
     }
     
-//     func addTopRuleIfNeeded(_ ruleTop: ChartRuleProtocol? = nil) {
-//        guard let ruleTop = ruleTop else {
-//            return
-//        }
-//        assert(ruleTop.type == .top)
-//        //ruleTop.removeFromSuperview()
-//        ruleTop.translatesAutoresizingMaskIntoConstraints = false
-//        ruleTop.backgroundColor = UIColor.clear
-//        self.addSubview(ruleTop)
-//        //        topView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
-//        //        topView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
-//        ruleTop.topAnchor.constraint(equalTo:  self.topAnchor).isActive = true
-//        ruleTop.heightAnchor.constraint(equalToConstant: CGFloat(topViewHeight)).isActive = true
-//        ruleTop.widthAnchor.constraint(equalToConstant: contentSize.width).isActive = true
-//        ruleTop.backgroundColor = .gray
-//    }
-
+    //     func addTopRuleIfNeeded(_ ruleTop: ChartRuleProtocol? = nil) {
+    //        guard let ruleTop = ruleTop else {
+    //            return
+    //        }
+    //        assert(ruleTop.type == .top)
+    //        //ruleTop.removeFromSuperview()
+    //        ruleTop.translatesAutoresizingMaskIntoConstraints = false
+    //        ruleTop.backgroundColor = UIColor.clear
+    //        self.addSubview(ruleTop)
+    //        //        topView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+    //        //        topView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+    //        ruleTop.topAnchor.constraint(equalTo:  self.topAnchor).isActive = true
+    //        ruleTop.heightAnchor.constraint(equalToConstant: CGFloat(topViewHeight)).isActive = true
+    //        ruleTop.widthAnchor.constraint(equalToConstant: contentSize.width).isActive = true
+    //        ruleTop.backgroundColor = .gray
+    //    }
+    
     // Calculate the rules marks positions
     func internalCalcRules() {
-        
-        var counter  = Int(numberOfRuleMarks) + 2
-        //    counter += showLimitsMarks ? 1 : 0
-        //    counter += showZeroMark ? 1 : 0
-        
-        let roundedStep = range / Float(counter)
-        
-        for ruleMarkIndex in 0..<counter {
+        // + 2 is the limit up and down
+        let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2
+        let roundedStep = range / Float(numberOfAllRuleMarks)
+        for ruleMarkIndex in 0..<numberOfAllRuleMarks {
             let value = minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
             internalRulesMarks.append(value.roundToNearestValue(value: roundMarkValueTo))
         }
-        
         internalRulesMarks.append(maximumValue)
     }
     // Create and add
     func createSuplementaryRules() {
-            
+        
         let rootRule = OMScrollableChartRule(chart: self)
         rootRule.chart = self
         rootRule.font  = ruleFont
@@ -143,11 +138,11 @@ extension OMScrollableChart {
         self.rules.append(rootRule)
         self.rules.append(footerRule)
         
-
         
-//        if let topRule = topRule {
-//            addTopRuleIfNeeded(topRule)
-//        }
+        
+        //        if let topRule = topRule {
+        //            addTopRuleIfNeeded(topRule)
+        //        }
     }
     func calcRulesPoints() -> Bool {
         guard numberOfRuleMarks > 0 && (range != 0)  else {
@@ -157,7 +152,7 @@ extension OMScrollableChart {
         internalCalcRules()
         
         rulesPoints = makePoints(data: rulesMarks, size: contentSize)
-
+        
         return true
     }
     
@@ -165,7 +160,11 @@ extension OMScrollableChart {
         // rules lines
         
         let oldRulesPoints = rulesPoints
-        guard let rule = rootRule, calcRulesPoints() else {
+        guard let rule = rootRule else {
+            return
+        }
+        
+        guard calcRulesPoints() else {
             return
         }
         
@@ -181,18 +180,21 @@ extension OMScrollableChart {
         let width = contentView.frame.width
         rulesPoints.enumerated().forEach { (offset: Int, item: CGPoint) in
             
-//            if showZeroMark == false || zeroMarkIndex != offset {
-                addDashLineLayer(point: CGPoint(x: padding, y: item.y),
-                                 endPoint: CGPoint(x: width, y: item.y))
-//            } else {
-//                if zeroMarkIndex == offset {
-//                    addDashLineLayer(point: CGPoint(x: padding, y: item.y),
-//                                     endPoint: CGPoint(x: width, y: item.y),
-//                                     stroke: UIColor.blue.withAlphaComponent(0.3),
-//                                     lineWidth: 2,
-//                                     pattern: [8, 6])
-//                }
-//            }
+            //            if showZeroMark == false || zeroMarkIndex != offset {
+            
+            let markPointLeft = CGPoint(x: padding, y: item.y)
+            let markPointRight = CGPoint(x: width, y: item.y)
+            addDashLineLayerFromRuleMark(point: markPointLeft,
+                                         endPoint: markPointRight)
+            //            } else {
+            //                if zeroMarkIndex == offset {
+            //                    addDashLineLayer(point: CGPoint(x: padding, y: item.y),
+            //                                     endPoint: CGPoint(x: width, y: item.y),
+            //                                     stroke: UIColor.blue.withAlphaComponent(0.3),
+            //                                     lineWidth: 2,
+            //                                     pattern: [8, 6])
+            //                }
+            //            }
         }
         // Mark for display the rule.
         rules.forEach {

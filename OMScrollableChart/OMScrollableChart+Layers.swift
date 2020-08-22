@@ -247,7 +247,9 @@ extension OMScrollableChart {
     }
     
     
-    func animateOnSelectPoint(_ selectedLayer: OMGradientShapeClipLayer?, renderIndex:Int, duration: TimeInterval = 2.0) {
+    func animateOnRenderLayerSelection(_ selectedLayer: OMGradientShapeClipLayer?,
+                                       renderIndex:Int,
+                                       duration: TimeInterval = 2.0) {
         var index: Int = 0
         guard renderLayers.count > 0 else {
             return
