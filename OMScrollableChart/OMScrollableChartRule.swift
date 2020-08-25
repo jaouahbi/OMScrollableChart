@@ -16,25 +16,28 @@ import Foundation
 import UIKit
 
 enum ChartRuleType: Int {
-    case root = 0
+    case leading = 0
     case footer = 1
     case top = 2
+    case trailing = 3
 }
 protocol ChartRuleProtocol: UIView {
-    var chart: OMScrollableChart? {get set}
+    var chart: OMScrollableChart! {get set}
+    init(chart: OMScrollableChart!)
     var type: ChartRuleType {get set}
-    var isPointsNeeded: Bool {get set}
-    init(chart: OMScrollableChart)
+    //var isPointsNeeded: Bool {get set}
     var font: UIFont {get set}
     var fontColor: UIColor {get set}
     var decorationColor: UIColor {get set}
     var leftInset: CGFloat {get set}
     var ruleSize: CGSize {get}
+    var views: [UIView]? {get}
     func createLayout() -> Bool
 }
 
+
 extension UIView {
-    func removeAllSubviews() {
+    func removeSubviewsFromSuperview() {
         self.subviews.forEach({ $0.removeFromSuperview()})
     }
 }
@@ -85,20 +88,17 @@ extension UIView {
   }
 }
 
-extension UIColor {
-    @nonobjc class var darkGreyBlueTwo: UIColor {
-        return UIColor(red: 50.0 / 255.0, green: 81.0 / 255.0, blue: 108.0 / 255.0, alpha: 1.0)
-    }
-}
-
 // MARK: - OMScrollableChartRule -
 class OMScrollableChartRule: UIView, ChartRuleProtocol {
-    
-    var type: ChartRuleType = .root
-    var chart: OMScrollableChart?
+    private var labelViews = [UIView]()
+    var views: [UIView]?  {
+        return labelViews
+    }
+    var type: ChartRuleType = .leading
+    var chart: OMScrollableChart!
     var decorationColor: UIColor = .black
-    var isPointsNeeded: Bool =  true
-    required init(chart: OMScrollableChart) {
+    //var isPointsNeeded: Bool =  true
+    required init(chart: OMScrollableChart!) {
         super.init(frame: .zero)
         self.chart = chart
         backgroundColor = .clear
@@ -107,55 +107,45 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
         super.init(coder: coder)
         backgroundColor = .clear
     }
-    
-    var ruleSize: CGSize = CGSize(width: 60, height: 0)
     var fontColor = UIColor.black {
         didSet {
-            subviews.forEach({($0 as? UILabel)?.textColor = fontColor})
+            views?.forEach({($0 as? UILabel)?.textColor = fontColor})
         }
     }
     var font = UIFont.systemFont(ofSize: 14, weight: .thin) {
         didSet {
-            subviews.forEach({($0 as? UILabel)?.font = font})
+            views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
-    //    override func draw(_ rect: CGRect) {
-    //        super.draw(rect)
-    //
-    //        UIColor.clear.setFill()
-    //        UIRectFill(rect)
-    //    }
-    
-    //    override func didMoveToSuperview() {
-    //        super.didMoveToSuperview()
-    //        _ = createLayout()
-    //    }
+    var ruleSize: CGSize = CGSize(width: 60, height: 0)
     var leftInset: CGFloat = 15
     func createLayout() -> Bool {
         guard let chart = chart else {
             return false
         }
-        
-        self.removeAllSubviews()
+
+        labelViews.forEach({$0.removeFromSuperview()})
+        labelViews.removeAll()
         let fontSize: CGFloat = font.pointSize * 0.5
-        
-        let rulesPoints = chart.rulesPoints // (data: chart.rulesMarks, size: chart.contentSize)
-        for (index, item) in rulesPoints.enumerated() {
-            if let currentStep = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
-                let string = NSAttributedString(string: currentStep,
+  
+        for (index, item) in chart.rulesPoints.enumerated() {
+            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
+                let string = NSAttributedString(string: stepString,
                                                 attributes: [NSAttributedString.Key.font: self.font,
                                                              NSAttributedString.Key.foregroundColor: self.fontColor])
                 let label = UILabel()
                 label.attributedText = string
                 label.sizeToFit()
                 label.frame = CGRect(x: leftInset,
-                                     y: (item.y - fontSize), width: label.bounds.width, height: label.bounds.height)
+                                     y: (item.y - fontSize),
+                                     width: label.bounds.width,
+                                     height: label.bounds.height)
                 self.addSubview(label)
+                labelViews.append(label)
             }
         }
         return true
     }
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         if !createLayout() { // TODO: update layout
@@ -167,10 +157,15 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
 
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
+   
+    
     var leftInset: CGFloat = 15
-    var chart: OMScrollableChart?
-    var isPointsNeeded: Bool  =  false
+    var chart: OMScrollableChart!
+    //var isPointsNeeded: Bool  =  false
     var type: ChartRuleType = .footer
+    var views: [UIView]? {
+        return arrangedSubviews
+    }
     var footerRuleHeight: CGFloat = 30 {
         didSet {
             setNeedsLayout()
@@ -178,7 +173,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     }
     /// init
     /// - Parameter chart: OMScrollableChart
-    required init(chart: OMScrollableChart) {
+    required init(chart: OMScrollableChart!) {
         super.init(frame: .zero)
         self.chart = chart
         backgroundColor = .clear
@@ -189,25 +184,26 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var ruleSize: CGSize { return CGSize(width: 0, height: footerRuleHeight)}
     var fontColor = UIColor.black {
         didSet {
-            arrangedSubviews.forEach({($0 as? UILabel)?.textColor = fontColor})
+            views?.forEach({($0 as? UILabel)?.textColor = fontColor})
         }
     }
     var font = UIFont.systemFont(ofSize: 14, weight: .thin) {
         didSet {
-            arrangedSubviews.forEach({($0 as? UILabel)?.font = font})
+            views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
-    var footerSectionsText = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+    var footerSectionsText = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"] {
+        didSet {
+            setNeedsLayout()
+        }
+    }
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
     /// create rule layout
     /// - Returns: Bool
     func createLayout() -> Bool {
-        guard let chart = chart else {
-            return false
-        }
-        self.removeAllSubviews()
+        self.removeSubviewsFromSuperview()
         let width  = chart.sectionWidth
         let height = ruleSize.height
         let numOfSections = Int(chart.numberOfSections)
@@ -231,7 +227,9 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
             }
        // }
-        self.setBorder(border: .top, weight: borderDecorationWidth, color: decorationColor)
+        self.setBorder(border: .top,
+                       weight: borderDecorationWidth,
+                       color: decorationColor)
         return true
     }
     override func didMoveToSuperview() {

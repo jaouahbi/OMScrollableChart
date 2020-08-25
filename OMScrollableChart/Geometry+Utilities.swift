@@ -15,7 +15,8 @@ import Foundation
 import CoreGraphics
 
 // swiftlint:disable identifier_name shorthand_operator
-
+// swiftlint:disable file_length
+// swiftlint:disable type_body_length
 struct Point3D {
     var x:CGFloat, y:CGFloat, z:CGFloat;
 }
@@ -664,10 +665,17 @@ extension CGRect {
     /**
      * Get end point of CGRect
      */
-    func maxPoint() -> CGPoint {
-        return CGPoint(x: self.origin.x + self.size.width, y: self.origin.y + self.size.height)
+    func max() -> CGPoint {
+        return CGPoint(x: self.maxX, y: self.maxY)
     }
+    func min() -> CGPoint {
+        return CGPoint(x: self.minX, y: self.minY)
+    }
+    func mid() -> CGPoint {
+         return CGPoint(x: self.midX, y: self.midY)
+     }
 }
+
 extension CGPoint {
     func translate(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
         return CGPoint(x: self.x + x, y: self.y + y)
@@ -877,35 +885,29 @@ public extension CGPoint {
     }
 }
 // swiftlint:enable identifier_name shorthand_operator
-extension CGAffineTransform {
-    var xScale: CGFloat { return sqrt(a * a + c * c) }
-    var yScale: CGFloat { return sqrt(b * b + d * d) }
-    var rotation: CGFloat { return CGFloat(atan2(Double(b), Double(a))) }
-    var xOffset: CGFloat { return tx }
-    var yOffset: CGFloat { return ty }
-}
-func rectGetCenter(_ rect : CGRect)-> CGPoint {
-    return CGPoint(x:rect.midX, y:rect.midY)
-}
-func sizeScaleByFactor(_ aSize:CGSize,  factor:CGFloat) -> CGSize {
-    return CGSize(width:aSize.width * factor, height: aSize.height * factor)
-}
-func aspectScaleFit(_ sourceSize:CGSize,  destRect:CGRect) -> CGFloat {
-    let destSize = destRect.size
-    let scaleW   = destSize.width / sourceSize.width
-    let scaleH   = destSize.height / sourceSize.height
-    return min(scaleW, scaleH)
-}
-func rectAroundCenter(_ center:CGPoint, size:CGSize) -> CGRect {
-    let halfWidth = size.width / 2.0
-    let halfHeight = size.height / 2.0
-    return CGRect(x:center.x - halfWidth, y:center.y - halfHeight, width:size.width, height:size.height)
-}
-func rectByFittingRect(sourceRect:CGRect, destinationRect:CGRect) -> CGRect {
-    let aspect = aspectScaleFit(sourceRect.size, destRect: destinationRect)
-    let  targetSize = sizeScaleByFactor(sourceRect.size, factor: aspect)
-    return rectAroundCenter(rectGetCenter(destinationRect), size: targetSize)
-}
+//
+//func rectGetCenter(_ rect : CGRect)-> CGPoint {
+//    return CGPoint(x:rect.midX, y:rect.midY)
+//}
+//func sizeScaleByFactor(_ aSize:CGSize,  factor:CGFloat) -> CGSize {
+//    return CGSize(width:aSize.width * factor, height: aSize.height * factor)
+//}
+//func aspectScaleFit(_ sourceSize:CGSize,  destRect:CGRect) -> CGFloat {
+//    let destSize = destRect.size
+//    let scaleW   = destSize.width / sourceSize.width
+//    let scaleH   = destSize.height / sourceSize.height
+//    return min(scaleW, scaleH)
+//}
+//func rectAroundCenter(_ center:CGPoint, size:CGSize) -> CGRect {
+//    let halfWidth = size.width / 2.0
+//    let halfHeight = size.height / 2.0
+//    return CGRect(x:center.x - halfWidth, y:center.y - halfHeight, width:size.width, height:size.height)
+//}
+//func rectByFittingRect(sourceRect:CGRect, destinationRect:CGRect) -> CGRect {
+//    let aspect = aspectScaleFit(sourceRect.size, destRect: destinationRect)
+//    let  targetSize = sizeScaleByFactor(sourceRect.size, factor: aspect)
+//    return rectAroundCenter(rectGetCenter(destinationRect), size: targetSize)
+//}
 // https://gist.github.com/pixeldock/f1c3b2bf0f7fe48d412c09fcb2705bf1
 extension Array {
     func takeElements(_ numberOfElements: Int, startAt: Int = 0) -> Array {
@@ -941,12 +943,87 @@ extension Array where Element: Comparable {
         return maxIndex
     }
 }
-extension Float {
-    func roundToNearestValue(value: Float) -> Float {
-        let remainder = truncatingRemainder(dividingBy: value)
-        let shouldRoundUp = remainder >= value/2 ? true : false
-        let multiple = floor(self / value)
-        let returnValue = !shouldRoundUp ? value * multiple : value * multiple + value
-        return returnValue
+//extension Float {
+//    func roundToNearestValue(value: Float) -> Float {
+//        let mask = value - 1.0
+//        return  self + (-self + mask)
+//    }
+//}
+extension CGPoint {
+    func slopeTo(_ point: CGPoint) -> CGFloat {
+        let delta = point.deltaTo(self)
+        return delta.y / delta.x
+    }
+    func addTo(_ point: CGPoint) -> CGPoint {
+        return CGPoint(x: self.x + point.x, y: self.y + point.y)
+    }
+    func absoluteDeltaY(_ point: CGPoint) -> Double {
+        return Double(abs(self.y - point.y))
+    }
+    func deltaTo(_ point: CGPoint) -> CGPoint {
+        return CGPoint(x: self.x - point.x, y: self.y - point.y)
+    }
+    func multiplyBy(_ value: CGFloat) -> CGPoint{
+        return CGPoint(x: self.x * value, y: self.y * value)
+    }
+    func addX(_ value: CGFloat) -> CGPoint {
+        return CGPoint(x: self.x + value, y: self.y)
+    }
+    func belowLine(_ point1: CGPoint, point2: CGPoint) -> Bool {
+        guard point1.x != point2.x else { return self.y < point1.y && self.y < point2.y }
+        let point = point1.x < point2.x ? [point1,point2] : [point2,point1]
+        if self.x == point[0].x {
+            return self.y < point[0].y
+        } else if self.x == point[1].x {
+            return self.y < point[1].y
+        }
+        let delta = point[1].deltaTo(point[0])
+        let slope = delta.y / delta.x
+        let myDeltaX = self.x - point[0].x
+        let pointOnLineY = slope * myDeltaX + point[0].y
+        return self.y < pointOnLineY
+    }
+    func aboveLine(_ point1: CGPoint, point2: CGPoint) -> Bool {
+        guard point1.x != point2.x else { return self.y > point1.y && self.y > point2.y }
+        let point = point1.x < point2.x ? [point1,point2] : [point2,point1]
+        if self.x == point[0].x {
+            return self.y > point[0].y
+        } else if self.x == point[1].x {
+            return self.y > point[1].y
+        }
+        let delta = point[1].deltaTo(point[0])
+        let slope = delta.y / delta.x
+        let myDeltaX = self.x - point[0].x
+        let pointOnLineY = slope * myDeltaX + point[0].y
+        return self.y > pointOnLineY
     }
 }
+extension CGPoint: Hashable {
+    //    func distance(point: CGPoint) -> Float {
+    //        let dx = Float(x - point.x)
+    //        let dy = Float(y - point.y)
+    //        return sqrt((dx * dx) + (dy * dy))
+    //    }
+    public var hashValue: Int {
+        // iOS Swift Game Development Cookbook
+        // https://gist.github.com/FredrikSjoberg/ced4ad5103863ab95dc8b49bdfd99eb2
+        return x.hashValue << 32 ^ y.hashValue
+    }
+}
+
+func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+    return lhs.distanceFrom(rhs) < 0.000001 //CGPointEqualToPoint(lhs, rhs)
+}
+
+extension Array: Hashable where Iterator.Element: Hashable {
+    public var hashValue: Int {
+        return self.reduce(1, { $0.hashValue ^ $1.hashValue })
+    }
+}
+extension CGRect: Hashable {
+    public var hashValue: Int {
+        return NSCoder.string(for: self).hashValue
+    }
+}
+// swiftlint:enabled file_length
+// swiftlint:enabled type_body_length

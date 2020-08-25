@@ -1,3 +1,17 @@
+// Copyright 2018 Jorge Ouahbi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 //
 //  OMScrollableChart+Shapes.swift
 //  CanalesDigitalesGCiOS
@@ -7,170 +21,170 @@
 //
 
 import UIKit
+
 extension OMScrollableChart {
     
-    
-    func animateLayerPath( _ shapeLayer: CAShapeLayer,
-                           pathStart: UIBezierPath,
-                           pathEnd: UIBezierPath,
-                           duration: TimeInterval = 10) {
-        //: Start with star1
-        shapeLayer.path = pathStart.cgPath
-        //: Create the animation from star1 to star2 (infinitely repeat, autoreverse)
-        let animation = CABasicAnimation(keyPath: "path")
-        animation.fromValue = shapeLayer.path
-        animation.toValue = pathEnd.cgPath
-        animation.duration = duration
-        animation.autoreverses = true
-        shapeLayer.add(animation, forKey: animation.keyPath)
-        //shapeLayer.path = pathEnd.cgPath
-        
-    }
-    
-    private func privateDataLayers(_ render: Int,
-                                    points: [CGPoint]) -> [OMGradientShapeClipLayer] {
-        switch render {
-        case 0:
-            let layers = updatePolylineLayer(lineWidth: 4,
-                                             color: .greyishBlue)
+    // Render the internal layers:
+    // 0 - Polyline
+    // 1 - Discrete points
+    private func renderDefaultLayers(_ renderIndex: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+        switch renderIndex {
+        case OMScrollableChart.Renders.polyline.rawValue:
+            let lineWidth: CGFloat = 4
+            let color  = UIColor.greyishBlue
+            let layers = updatePolylineLayer(lineWidth: lineWidth, color: color)
             layers.forEach({$0.name = "polyline"})
             return layers
-        case 1:
+        case OMScrollableChart.Renders.points.rawValue:
+            let pointSize = CGSize(width: 8, height: 8)
             let layers = createPointsLayers(points,
-                                            size: CGSize(width: 8, height: 8),
+                                            size: pointSize,
                                             color: .greyishBlue)
             layers.forEach({$0.name = "point"})
             return layers
-            
         default:
             return []
         }
     }
-    
-   func renderLayers(_ renderIndex: Int,
-                         renderAs: OMScrollableChart.RenderData) {
-           
-           guard let dataSource = dataSource else {
-               return
-           }
-           let data = dataPointsRender[renderIndex]
-           if let discreteData = makeRawPoints(data: data, size: contentSize) {
-               switch renderAs {
-               case .approximation:
-                   if let approximationData = makeApproximationPoints( data: discreteData, size: contentSize) {
-                       self.approximationData.insert(approximationData, at: renderIndex)
-                       self.pointsRender.insert(approximationData.0, at: renderIndex)
-                    var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: approximationData.0)
-                       // accumulate layers
-                       if layers.isEmpty {
-                           layers = privateDataLayers(renderIndex,
-                                                      points: approximationData.0)
-                       }
-                       
-                       self.renderLayers.insert(layers, at: renderIndex)
-                   }
-               case .averaged:
-                   if let averagedData = makeAveragedPoints(data: data, size: contentSize) {
-                       self.averagedData.insert(averagedData, at: renderIndex)
-                       self.pointsRender.insert(averagedData.0, at: renderIndex)
-                    var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: averagedData.0)
-                       // accumulate layers
-                       if layers.isEmpty {
-                           layers = privateDataLayers(renderIndex,
-                                                      points: averagedData.0)
-                       }
-                       // accumulate layers
-                       self.renderLayers.insert(layers, at: renderIndex)
-                   }
-               case .discrete:
-                   
-                   //                      let linregressData = makeLinregressPoints(data: discreteData,
-                   //                                                                size: contentSize,
-                   //                                                                numberOfElements: 1)
-                   
-                   self.discreteData.insert(discreteData, at: renderIndex)
-                   self.pointsRender.insert(discreteData.0, at: renderIndex)
-                   var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: discreteData.0)
-                   // accumulate layers
-                   if layers.isEmpty {
-                       layers = privateDataLayers(renderIndex,
-                                                  points: discreteData.0)
-                   }
-                   // accumulate layers
-                   self.renderLayers.insert(layers, at: renderIndex)
-               case .linregress:
-                   let linregressData = makeLinregressPoints(data: discreteData, size: contentSize,numberOfElements: discreteData.0.count + 1)
-                   self.linregressData.insert(linregressData, at: renderIndex)
-                   self.pointsRender.insert(linregressData.0, at: renderIndex)
-                   var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex,section: 0, points: linregressData.0)
-                   // accumulate layers
-                   if layers.isEmpty {
-                       layers = privateDataLayers(renderIndex,
-                                                  points: linregressData.0)
-                   }
-                   // accumulate layers
-                   self.renderLayers.insert(layers, at: renderIndex)
-               }
-               self.renderType.insert(renderAs, at: renderIndex)
-           }
-       }
-    
-    func updatePolylineLayer(  lineWidth: CGFloat,
-                               color: UIColor) -> [OMGradientShapeClipLayer] {
-        
+    var polylinePath: UIBezierPath? {
+        guard  let polylinePoints =  polylinePoints,
+            let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
+                return nil
+        }
+        return polylinePath
+    }
+    func updatePolylineLayer( lineWidth: CGFloat,
+                              color: UIColor) -> [OMGradientShapeClipLayer] {
         guard  let polylinePath = polylinePath else {
             return []
         }
-        
         let polylineLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
-        
         self.lineWidth = lineWidth
         self.lineColor = color
-        
         polylineLayer.path          = polylinePath.cgPath
         polylineLayer.fillColor     = UIColor.clear.cgColor
         polylineLayer.strokeColor   = self.lineColor.withAlphaComponent(0.8).cgColor
         polylineLayer.lineWidth     = self.lineWidth
-        //
         polylineLayer.shadowColor   = UIColor.black.cgColor
         polylineLayer.shadowOffset  = CGSize(width: 0, height:  self.lineWidth * 2)
         polylineLayer.shadowOpacity = 0.5
         polylineLayer.shadowRadius  = 6.0
-        
         // Update the frame
-        polylineLayer.frame             = contentView.bounds
+        polylineLayer.frame         = contentView.bounds
         
         return [polylineLayer]
     }
+    func renderLayers(_ renderIndex: Int,
+                      renderAs: OMScrollableChart.RenderData) {
+        guard let dataSource = dataSource else {
+            return
+        }
+        let data = dataPointsRender[renderIndex]
+        switch renderAs {
+        case .approximation:
+            if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
+                if let approximationData = makeApproximationPoints( data: discreteData, size: contentSize) {
+                    self.approximationData.insert(approximationData, at: renderIndex)
+                    self.pointsRender.insert(approximationData.0, at: renderIndex)
+                    var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: approximationData.0)
+                    // accumulate layers
+                    if layers.isEmpty {
+                        layers = renderDefaultLayers(renderIndex,
+                                                     points: approximationData.0)
+                    }
+                    
+                    self.renderLayers.insert(layers, at: renderIndex)
+                }
+            }
+        case .averaged:
+            if let averagedData = makeAveragedPoints(data: data, size: contentSize, renderIndex: renderIndex) {
+                self.averagedData.insert(averagedData, at: renderIndex)
+                self.pointsRender.insert(averagedData.0, at: renderIndex)
+                var layers = dataSource.dataLayers(chart: self,
+                                                   renderIndex: renderIndex,
+                                                   section: 0, points: averagedData.0)
+                // accumulate layers
+                if layers.isEmpty {
+                    layers = renderDefaultLayers(renderIndex,
+                                                 points: averagedData.0)
+                }
+                // accumulate layers
+                self.renderLayers.insert(layers, at: renderIndex)
+            }
+        case .discrete:
+            
+            //                      let linregressData = makeLinregressPoints(data: discreteData,
+            //                                                                size: contentSize,
+            //                                                                numberOfElements: 1)
+            if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
+                self.discreteData.insert(discreteData, at: renderIndex)
+                self.pointsRender.insert(discreteData.0, at: renderIndex)
+                var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: discreteData.0)
+                // accumulate layers
+                if layers.isEmpty {
+                    layers = renderDefaultLayers(renderIndex,
+                                                 points: discreteData.0)
+                }
+                // accumulate layers
+                self.renderLayers.insert(layers, at: renderIndex)
+            }
+        case .linregress:
+            if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
+                let linregressData = makeLinregressPoints(data: discreteData, size: contentSize,numberOfElements: discreteData.0.count + 1, renderIndex: renderIndex)
+                self.linregressData.insert(linregressData, at: renderIndex)
+                self.pointsRender.insert(linregressData.0, at: renderIndex)
+                var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex,section: 0, points: linregressData.0)
+                // accumulate layers
+                if layers.isEmpty {
+                    layers = renderDefaultLayers(renderIndex,
+                                                 points: linregressData.0)
+                }
+                
+                // accumulate layers
+                self.renderLayers.insert(layers, at: renderIndex)
+            }
+        }
+        self.renderType.insert(renderAs, at: renderIndex)
+        
+    }
+    
     func createPointsLayers( _ points: [CGPoint],
                              size: CGSize,
                              color: UIColor) -> [OMShapeLayerRadialGradientClipPath] {
         var layers =  [OMShapeLayerRadialGradientClipPath]()
         for point in points {
-            let circleLayer = OMShapeLayerRadialGradientClipPath()
-            circleLayer.bounds = CGRect(x: 0,
-                                        y: 0,
-                                        width: size.width,
-                                        height: size.height)
-            let path = UIBezierPath(ovalIn: circleLayer.bounds).cgPath
-            circleLayer.gradientColor   = color
-            circleLayer.path            = path
-            circleLayer.fillColor       = color.cgColor
-            circleLayer.position        = point
-            circleLayer.strokeColor     = nil //UIColor.black.cgColor
-            circleLayer.lineWidth       = 0.5
-            
-            circleLayer.shadowColor     = UIColor.black.cgColor
-            circleLayer.shadowOffset    = pointsLayersShadowOffset
-            circleLayer.shadowOpacity   = 0.7
-            circleLayer.shadowRadius    = 3.0
-            circleLayer.isHidden        = false
-            //circleLayer.opacity         = showPoints ? 1 : 0
-            circleLayer.bounds = circleLayer.path!.boundingBoxOfPath
+            let circleLayer = createPointLayer(point, size: size, color: color)
             layers.append(circleLayer)
         }
         return layers
     }
+    
+    func createPointLayer( _ point: CGPoint,
+                           size: CGSize,
+                           color: UIColor) -> OMShapeLayerRadialGradientClipPath {
+        let circleLayer = OMShapeLayerRadialGradientClipPath()
+        circleLayer.bounds = CGRect(x: 0,
+                                    y: 0,
+                                    width: size.width,
+                                    height: size.height)
+        let path = UIBezierPath(ovalIn: circleLayer.bounds).cgPath
+        circleLayer.gradientColor   = color
+        circleLayer.path            = path
+        circleLayer.fillColor       = color.cgColor
+        circleLayer.position        = point
+        circleLayer.strokeColor     = nil
+        circleLayer.lineWidth       = 0.5
+        
+        circleLayer.shadowColor     = UIColor.black.cgColor
+        circleLayer.shadowOffset    = pointsLayersShadowOffset
+        circleLayer.shadowOpacity   = 0.7
+        circleLayer.shadowRadius    = 3.0
+        circleLayer.isHidden        = false
+        circleLayer.bounds          = circleLayer.path!.boundingBoxOfPath
+        
+        return circleLayer
+    }
+    
     func createInverseRectanglePaths( _ points: [CGPoint],
                                       columnIndex: Int,
                                       count: Int) -> [UIBezierPath] {
@@ -180,15 +194,14 @@ extension OMScrollableChart {
             let widthDivisor = width / CGFloat(count)
             let originX = points[currentPointIndex].x + (widthDivisor * CGFloat(columnIndex))
             let point = CGPoint(x: originX, y: points[currentPointIndex].y)
-            let height = self.frame.maxY - points[currentPointIndex].y - footerViewHeight
+            let height = contentView.frame.maxY - points[currentPointIndex].y
             let path = UIBezierPath(
                 rect: CGRect(
                     x: point.x,
                     y: point.y + height,
                     width: width / CGFloat(count),
-                    height: footerViewHeight)
+                    height: 1)
             )
-            
             paths.append(path)
         }
         
@@ -198,9 +211,12 @@ extension OMScrollableChart {
                                 columnIndex: Int,
                                 count: Int,
                                 color: UIColor) -> [OMGradientShapeClipLayer] {
+        
         var layers =  [OMGradientShapeClipLayer]()
         for currentPointIndex in 0..<points.count - 1 {
+            
             let width = abs(points[currentPointIndex].x - points[currentPointIndex+1].x)
+            let height =  contentView.frame.maxY - points[currentPointIndex].y
             let widthDivisor = width / CGFloat(count)
             let originX = points[currentPointIndex].x + (widthDivisor * CGFloat(columnIndex))
             let point = CGPoint(x: originX, y: points[currentPointIndex].y)
@@ -209,7 +225,7 @@ extension OMScrollableChart {
                     x: point.x,
                     y: point.y,
                     width: width / CGFloat(count),
-                    height: self.frame.maxY - points[currentPointIndex].y - footerViewHeight)
+                    height: height) //self.frame.maxY - points[currentPointIndex].y - footerViewHeight)
             )
             let rectangleLayer = OMShapeLayerLinearGradientClipPath()
             rectangleLayer.gardientColor   = color
@@ -229,199 +245,5 @@ extension OMScrollableChart {
         }
         return layers
     }
-    func selectRenderLayer(_ layer: OMGradientShapeClipLayer, renderIndex: Int) {
-        let allUnselectedRenderLayers = self.renderLayers[renderIndex].filter { $0 != layer }
-        print("allUnselectedRenderLayers = \(allUnselectedRenderLayers.count)")
-        allUnselectedRenderLayers.forEach { (layer: OMGradientShapeClipLayer) in
-            layer.gardientColor = self.unselectedColor
-            layer.opacity   = self.unselectedOpacy
-        }
-        layer.gardientColor = self.selectedColor
-        layer.opacity   = self.selectedOpacy
-    }
-    func locationToNearestLayer( _ location: CGPoint, renderIndex: Int) -> OMGradientShapeClipLayer? {
-        let mapped = renderLayers[renderIndex].map {
-            return $0.frame.origin.distance(from: location)
-        }
-        guard let index = mapped.indexOfMin else {
-            return nil
-        }
-        return renderLayers[renderIndex][index]
-    }
-    func touchPointAsFarLayer( _ location: CGPoint, renderIndex: Int) -> OMGradientShapeClipLayer? {
-        let mapped = renderLayers[renderIndex].map {
-            return $0.frame.origin.distance(from: location)
-        }
-        guard let index = mapped.indexOfMax else {
-            return nil
-        }
-        return renderLayers[renderIndex][index]
-    }
-    func hitTestAsLayer( _ location: CGPoint) -> CALayer? {
-        if let layer = contentView.layer.hitTest(location) { // If you hit a layer and if its a Shapelayer
-            return layer
-        }
-        return nil
-    }
-    fileprivate func didSelectedRenderLayerIndex(_ dataIndex: Int) {
-        if let footer = footerRule as? OMScrollableChartRuleFooter {
-            if dataIndex < footer.arrangedSubviews.count {
-                footer.arrangedSubviews[dataIndex].shakeGrow(duration: 1.0)
-            } else {
-                print("section out of bounds")
-            }
-        }
-    }
-    func selectRenderLayerWithAnimation(_ layerPoint: OMGradientShapeClipLayer,
-                          selectedPoint: CGPoint,
-                          animation: Bool = false,
-                          renderIndex: Int) {
-        //selectRenderLayer(layerPoint, renderIndex: renderIndex)
-        
-        if animatePointLayers {
-            animateOnRenderLayerSelection(layerPoint,
-                                          renderIndex: renderIndex)
-        }
-        var tooltipPosition = CGPoint.zero,
-            tooltipPositionFix = CGPoint.zero
     
-        if let dataIndex = dataIndexFromPoint(layerPoint.position,
-                                              renderIndex: renderIndex) {
-            
-            didSelectedRenderLayerIndex(dataIndex)
-            let tooltipText = dataSource?.dataPointTootipText(chart: self,
-                                                              renderIndex: renderIndex,
-                                                              dataIndex: dataIndex,
-                                                              section: 0)
-            if animation {
-                tooltipPositionFix = layerPoint.position
-            }
-            
-            let dataSection = dataSource?.dataSectionForIndex(chart: self,
-                                                              dataIndex: dataIndex,
-                                                              section: 0) ?? ""
-            
-            tooltipPosition = CGPoint(x: layerPoint.position.x,
-                                      y: selectedPoint.y)
-            
-            if let tooltipText = tooltipText {
-                tooltip.string = "\(dataSection) \(tooltipText)"
-                tooltip.displayTooltip(tooltipPosition)
-            } else {
-                if let string = dataStringFromPoint(layerPoint.position, renderIndex: renderIndex) {
-                    tooltip.string = "\(dataSection) \(string)"
-                } else {
-                    let amount = Double(dataPointsRender[renderIndex][dataIndex])
-                    tooltip.string = "\(dataSection) \(formatData(amount))"
-                }
-                tooltip.displayTooltip(tooltipPosition)
-            }
-        }
-        if animation {
-            let distance = tooltipPositionFix.distance(to: tooltipPosition)
-            let factor: TimeInterval = TimeInterval(1 / (self.contentView.bounds.height / distance))
-            
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                self.tooltip.moveTooltip(tooltipPositionFix,
-                                               duration: 2.0 / factor)
-             }
-        }
-    }
-    func formatData(_ value: Double,
-                    fractionDigits: Int = 2,
-                    locale: Locale? = Locale(identifier: "ES_es"),
-                    alwaysShowsDecimalSeparator: Bool = true) -> String {
-        let currencyFormatter = NumberFormatter()
-        currencyFormatter.formatterBehavior = .behavior10_4
-        currencyFormatter.alwaysShowsDecimalSeparator = alwaysShowsDecimalSeparator
-        if fractionDigits == 0 {
-            currencyFormatter.generatesDecimalNumbers = false
-            currencyFormatter.maximumFractionDigits = 0
-            currencyFormatter.minimumFractionDigits = 0
-        } else {
-            currencyFormatter.generatesDecimalNumbers = true
-            currencyFormatter.maximumFractionDigits = fractionDigits
-            currencyFormatter.minimumFractionDigits = fractionDigits
-        }
-        currencyFormatter.numberStyle = .decimal
-        currencyFormatter.decimalSeparator  = ","
-        currencyFormatter.groupingSeparator = "."
-        // We'll force unwrap with the !, if you've got defined data you may need more error checking
-        let result = currencyFormatter.string(from: NSNumber(value: value )) ?? " "
-        return "\(result)  \((locale?.currencySymbol ?? ""))"
-    }
-    func locationFromTouch(_ touches: Set<UITouch>) -> CGPoint {
-        if let touch = touches.first {
-            return touch.location(in: self.contentView)
-        }
-        return .zero
-    }
-    func indexForPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
-        let newPoint = CGPoint(x: point.x, y: point.y)
-        return discreteData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
-    }
-    func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
-        if self.renderType[renderIndex] == .averaged {
-            if let render = discreteData[renderIndex],
-                let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-                let item: Double = Double(render.data[firstIndex])
-                if let currentStep = currencyFormatter.string(from: NSNumber(value: item)) {
-                    return  currentStep
-                }
-            }
-        } else {
-            if let render = discreteData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point) {
-                let item: Double = Double(render.data[firstIndex])
-                if let currentStep = currencyFormatter.string(from: NSNumber(value: item)) {
-                    return currentStep
-                }
-            }
-        }
-        return nil
-    }
-    func dataFromPoint(_ point: CGPoint, renderIndex: Int) -> Float? {
-        if self.renderType[renderIndex] == .averaged {
-            if let render = discreteData[renderIndex],
-                let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-                return Float(render.data[firstIndex])
-            }
-        } else {
-            if let render = discreteData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point) {
-                return Float(render.data[firstIndex])
-            }
-        }
-        return nil
-    }
-    func dataIndexFromPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
-        if self.renderType[renderIndex] == .averaged {
-            if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-                return firstIndex
-            }
-        } else {
-            if let render = discreteData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return firstIndex
-                }
-            }
-        }
-
-        let result = dataIndexFromLayers(point, renderIndex: renderIndex)
-        return result
-    }
-    func dataIndexFromLayers(_ point: CGPoint, renderIndex: Int) -> Int? {
-        if self.renderType[renderIndex] == .averaged {
-            if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-                return firstIndex
-            }
-        } else {
-            if let layersPathContains = renderLayers[renderIndex].filter({
-                return $0.path!.contains(point)
-            }).first {
-                return renderLayers[renderIndex].firstIndex(of: layersPathContains)
-            }
-        }
-        return nil
-    }
 }

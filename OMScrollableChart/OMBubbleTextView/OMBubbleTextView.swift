@@ -1,10 +1,16 @@
+// Copyright 2018 Jorge Ouahbi
 //
-//  OMBubbleTextView.swift
-//  OMBubbleTextView
+// Licensed under the Apache License, Version 2.0 (the "License")
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//  Created by Jorge Ouahbi on 19/08/2020.
-//  Copyright © 2020 Jorge Ouahbi. All rights reserved.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import UIKit
 
@@ -19,18 +25,18 @@ class OMBubbleShapeView: UIView {
     @IBInspectable var lineWidth:    CGFloat = 1         { didSet { setNeedsDisplay() } }
     @IBInspectable var calloutSize:  CGFloat = 7.5       { didSet { setNeedsDisplay() } }
     @IBInspectable var fillColor:    UIColor = .paleGrey { didSet { setNeedsDisplay() } }
+    @IBInspectable var shadowGradientColor: UIColor = .paleGrey { didSet { setNeedsDisplay() } }
     @IBInspectable var strokeColor:  UIColor = UIColor(white: 0.91, alpha: 1.0)   { didSet { setNeedsDisplay() } }
     @IBInspectable var drawGlossEffect: Bool = true
+    @IBInspectable  var isFlipped: Bool = false { didSet {setNeedsDisplay()}}
+    var calloutDirection: CalloutDirection = .left { didSet {setNeedsDisplay()}}
+    var gradientMask: UIImage? { return isFlipped ? gradientMaskInvert : gradientMaskNormal}
     internal let rgbColorspace = CGColorSpaceCreateDeviceRGB()
     
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         defaultLayerInitializer()
     }
-    override func layoutSubviews() {
-        super.layoutSubviews()
-    }
-    
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
         setNeedsDisplay()
@@ -46,16 +52,19 @@ class OMBubbleShapeView: UIView {
     }
     func drawGlossy(context: CGContext, rect: CGRect, startPoint: CGPoint,  endPoint: CGPoint) {
         // Draw the gloss gradient
-        let numberOfLocations = 2;
-        let locations:[CGFloat] = [ 0.0, 1.0 ];
-        let components:[CGFloat] = [ 1.0, 1.0, 1.0, 0.35,  // Start color
-                                     1.0, 1.0, 1.0, 0.06 ]; // End color
+        let numberOfLocations = 2
+        let locations:[CGFloat] = [ 0.0, 1.0 ]
+        let components:[CGFloat] = [ 1.0, 1.0, 1.0, 0.35,   // Start color
+            1.0, 1.0, 1.0, 0.06 ] // End color
         if let glossGradient = CGGradient(colorSpace: rgbColorspace,
                                           colorComponents: components,
                                           locations: locations,
                                           count: numberOfLocations) {
             
-            context.drawLinearGradient(glossGradient, start: startPoint, end: endPoint, options: CGGradientDrawingOptions(rawValue: 0))
+            context.drawLinearGradient(glossGradient,
+                                       start: startPoint,
+                                       end: endPoint,
+                                       options: CGGradientDrawingOptions(rawValue: 0))
         }
     }
     
@@ -65,12 +74,20 @@ class OMBubbleShapeView: UIView {
                              topCenter: CGPoint,
                              bottomCenter: CGPoint) {
         
-        let numberOfLocations = 2;
-        var locationsShadowGradient:[CGFloat] = [ 0.0, 1.0 ];
-        var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        if shadowColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+        let numberOfLocations = 2
+        var locationsShadowGradient:[CGFloat] = [0.0, 1.0]
+        var red: CGFloat = 0,
+        green: CGFloat = 0,
+        blue: CGFloat = 0,
+        alpha: CGFloat = 0
+        
+        if shadowColor.getRed(&red,
+                              green: &green,
+                              blue: &blue,
+                              alpha: &alpha) {
             
-            var componentsShadowGradient: [CGFloat] = [red, green, blue, 0, red, green, blue, 0.6]
+            var componentsShadowGradient: [CGFloat] = [red, green, blue, 0,
+                                                       red, green, blue, 0.6]
             
             if let shadowGradient = CGGradient(colorSpace: rgbColorspace,
                                                colorComponents: &componentsShadowGradient,
@@ -144,16 +161,7 @@ class OMBubbleShapeView: UIView {
         }
         return path
     }
-    var calloutDirection: CalloutDirection = .left {
-        didSet {setNeedsDisplay()}
-    }
-    @IBInspectable   var isFlipped: Bool = false {
-        didSet {setNeedsDisplay()}
-    }
     
-    @IBInspectable  var gradientMask: UIImage? {
-        return isFlipped ? gradientMaskInvert : gradientMaskNormal
-    }
     lazy var gradientMaskNormal: UIImage? = {
         var sharedMask: UIImage?
         //create gradient mask
@@ -197,14 +205,16 @@ class OMBubbleShapeView: UIView {
         UIGraphicsEndImageContext()
         return sharedMask
     }()
-    var shadowGradientColor: UIColor = .paleGrey
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         if let ctx = UIGraphicsGetCurrentContext() {
-            let calloutPath = calloutClipPath(with: calloutDirection, isFlipped: isFlipped)
+            let calloutPath = calloutClipPath(with: calloutDirection,
+                                              isFlipped: isFlipped)
             ctx.addPath(calloutPath.cgPath)
             ctx.clip()
-            fillColor.withAlphaComponent(0.5).setFill()
+            let fillAlpha: CGFloat = 0.5
+            // fill the clip area
+            fillColor.withAlphaComponent(fillAlpha).setFill()
             calloutPath.fill()
             
             if drawGlossEffect {
@@ -215,7 +225,6 @@ class OMBubbleShapeView: UIView {
                 let topCenter = CGPoint(x: backgroundRect.midX, y: 0.0)
                 let bottomCenter = CGPoint(x: backgroundRect.midX, y: backgroundRect.size.height)
                 ctx.beginTransparencyLayer(auxiliaryInfo: nil)
-                
                 drawShadowGradient(context: ctx,
                                    rect: backgroundRect,
                                    shadowColor: shadowGradientColor.complementaryColor,
@@ -225,7 +234,6 @@ class OMBubbleShapeView: UIView {
                 ctx.addPath(calloutPath.cgPath)
                 ctx.replacePathWithStrokedPath()
                 ctx.clip(to: rect, mask: (gradientMask?.cgImage)!)
-                
                 drawShadowGradient(context: ctx,
                                    rect: backgroundRect,
                                    shadowColor: shadowGradientColor,
@@ -235,33 +243,26 @@ class OMBubbleShapeView: UIView {
                 
                 // Gloss
                 
-                let glossRect = CGRect(x: backgroundRect.origin.x,
-                                       y: backgroundRect.origin.y ,
-                                       width: backgroundRect.width,
-                                       height: backgroundRect.height)
-                
                 ctx.beginTransparencyLayer(auxiliaryInfo: nil)
                 ctx.addPath(calloutPath.cgPath)
                 ctx.clip()
                 drawGlossy(context: ctx,
-                           rect: glossRect,
-                           startPoint: CGPoint(x: glossRect.minX, y: glossRect.minY),
-                           endPoint: CGPoint(x: glossRect.maxX, y: glossRect.maxY))
+                           rect: backgroundRect,
+                           startPoint: CGPoint(x: backgroundRect.minX, y: backgroundRect.minY),
+                           endPoint: CGPoint(x: backgroundRect.maxX, y: backgroundRect.maxY))
                 
                 
                 
                 ctx.addPath(calloutPath.cgPath)
-                ctx.clip(to: glossRect, mask: (gradientMask?.cgImage)!)
+                ctx.clip(to: backgroundRect, mask: (gradientMask?.cgImage)!)
                 drawGlossy(context: ctx,
-                           rect: glossRect,
-                           startPoint: CGPoint(x: glossRect.minX, y: glossRect.maxY),
-                           endPoint: CGPoint(x: glossRect.minX, y: glossRect.maxY))
+                           rect: backgroundRect,
+                           startPoint: CGPoint(x: backgroundRect.minX, y: backgroundRect.maxY),
+                           endPoint: CGPoint(x: backgroundRect.minX, y: backgroundRect.maxY))
                 ctx.endTransparencyLayer()
                 
                 
             } else {
-                //                fillColor.withAlphaComponent(0.5).setFill()
-                //                calloutPath.fill()
                 strokeColor.setStroke()
                 calloutPath.lineWidth = lineWidth
                 calloutPath.stroke()
@@ -293,13 +294,12 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         }
     }
     @IBInspectable var boundInOneLine: Bool = false {
-           didSet {
-               sizeToFit()
-               setNeedsDisplay()
-           }
-       }
+        didSet {
+            sizeToFit()
+            setNeedsDisplay()
+        }
+    }
     private var boundingSize: CGSize = .zero
-    
     /// Called when a designable object is created in Interface Builder.
     override func prepareForInterfaceBuilder() {
         super.prepareForInterfaceBuilder()
@@ -312,8 +312,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         
         """
     }
-    
-    var attributtedString: NSAttributedString? {
+    private var attributtedString: NSAttributedString? {
         if let text = string {
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.alignment = textAlignment
@@ -326,12 +325,15 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         }
         return nil
     }
+    // Summary
+    //
+    // Asks the view to calculate and return the size that best fits the specified size.
     override func sizeThatFits( _ size: CGSize) -> CGSize {
         var result = super.sizeThatFits(size)
         if let attributtedString = attributtedString {
             
             let forceTextInOneLine = boundInOneLine ?
-            CGSize(width: CGFloat.greatestFiniteMagnitude, height: font.lineHeight) :
+                CGSize(width: CGFloat.greatestFiniteMagnitude, height: font.lineHeight) :
                 CGSize(width: size.width, height: CGFloat.greatestFiniteMagnitude)
             
             let boundingRect = attributtedString.boundingRect(with: forceTextInOneLine,
@@ -354,7 +356,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
     ///   - rect: CGRect
     ///   - inRect: CGRect
     /// - Returns: CGPoint
-    func rectViewOutsideOfSuperviewRect(rect: CGRect, inRect: CGRect) -> CGPoint {
+    private func rectViewOutsideOfSuperviewRect(rect: CGRect, inRect: CGRect) -> CGPoint {
         var offset = CGPoint.zero
         if inRect.contains(rect) {
             return .zero
@@ -376,7 +378,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         return offset
     }
     // Show the view at the position animating it
-    func displayTooltip(_ position: CGPoint, duration: TimeInterval = 0.5) {
+    public func displayTooltip(_ position: CGPoint, duration: TimeInterval = 0.5) {
         UIView.animate(withDuration: duration,
                        delay: 0.1,
                        options: [.curveEaseOut], animations: {
@@ -386,7 +388,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         })
     }
     // Moving the tooltip fixing the superview intersections allowing to the user read the messaje.
-    func moveTooltip(_ position: CGPoint, duration: TimeInterval = 0.2) {
+    public func moveTooltip(_ position: CGPoint, duration: TimeInterval = 0.2) {
         var yCorrection: CGFloat = 0
         var xCorrection: CGFloat = 0
         var newPosition: CGPoint = .zero
@@ -394,7 +396,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
             newPosition = CGPoint(x: position.x, y: position.y)
             let afterSetTheFrame = CGRect(origin: newPosition, size: self.frame.size)
             let resultAfterSet   = rectViewOutsideOfSuperviewRect(rect: afterSetTheFrame,
-                                                         inRect: superview.frame)
+                                                                  inRect: superview.frame)
             // Correct the frame if it is out of a bounds of it superview
             if resultAfterSet.x > 0 || resultAfterSet.y > 0 {
                 let yPosition = ((superview.frame.minY - frame.maxY) + bounds.height)
@@ -429,40 +431,8 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
         }, completion: { finished in
         })
     }
-    
-    
-    func hideTooltip(_ location: CGPoint, duration: TimeInterval = 4.0) {
-        UIView.animate(withDuration: duration, delay: 0.1, options: [.curveEaseIn], animations: {
-            self.alpha = 0
-        }, completion: { finished in
-        })
-    }
-    override func draw(_ rect: CGRect) {
-        super.draw(rect)
-        if let ctx = UIGraphicsGetCurrentContext() {
-            UIGraphicsPushContext(ctx)
-            ctx.setAllowsFontSmoothing(true)
-            ctx.setAllowsAntialiasing(false)
-            ctx.beginTransparencyLayer(in: rect, auxiliaryInfo: nil)
-            ctx.saveGState()
-            defer { ctx.restoreGState() }
-            if isFlipped {
-                attributtedString?.draw(in: CGRect(origin: CGPoint(x: 0, y: 5), size: boundingSize))
-            } else {
-                let inRect = CGRect(origin: .zero, size: boundingSize)
-                let originX = rect.origin.x + ((rect.size.width - inRect.size.width) * 0.5)
-                let originY = rect.origin.y + ((rect.size.height - inRect.size.height) * 0.5)
-                let drawRect = CGRect(x: originX, y: originY, width: inRect.size.width, height: inRect.size.height).integral;
-                attributtedString?.draw(in: drawRect)
-            }
-            ctx.endTransparencyLayer()
-            UIGraphicsPopContext()
-        }
-    }
-}
-
-extension UIView {
-    func animateRotationAndPerspective( layer: CALayer, stepAngle: Double = 5.0) {
+    private func animateRotationAndPerspective( layer: CALayer,
+                                                stepAngle: Double = 5.0) {
         var caTransform3DArray = [CATransform3D]()
         for rotationAngleIndex in 0..<4 {
             let rotationAngle = Double(rotationAngleIndex) * stepAngle * .pi / 180.0
@@ -493,15 +463,51 @@ extension UIView {
         layer.add(prespectiveShakeAnimation, forKey: nil)
     }
     
+    public func hideTooltip(_ location: CGPoint, duration: TimeInterval = 4.0) {
+        UIView.animate(withDuration: duration,
+                       delay: 0.1,
+                       options: [.curveEaseIn],
+                       animations: {
+                        self.alpha = 0
+        }, completion: { finished in
+        })
+        animateRotationAndPerspective(layer: self.layer)
+    }
     
-    
+    override func draw(_ rect: CGRect) {
+        super.draw(rect)
+        if let ctx = UIGraphicsGetCurrentContext() {
+            UIGraphicsPushContext(ctx)
+            ctx.setAllowsFontSmoothing(true)
+            ctx.setAllowsAntialiasing(false)
+            ctx.beginTransparencyLayer(in: rect, auxiliaryInfo: nil)
+            ctx.saveGState()
+            defer { ctx.restoreGState() }
+            if isFlipped {
+                attributtedString?.draw(in: CGRect(origin: CGPoint(x: 0, y: 5), size: boundingSize))
+            } else {
+                let inRect = CGRect(origin: .zero, size: boundingSize)
+                let originX = rect.origin.x + ((rect.size.width - inRect.size.width) * 0.5)
+                let originY = rect.origin.y + ((rect.size.height - inRect.size.height) * 0.5)
+                let drawRect = CGRect(x: originX, y: originY, width: inRect.size.width, height: inRect.size.height).integral
+                attributtedString?.draw(in: drawRect)
+            }
+            ctx.endTransparencyLayer()
+            UIGraphicsPopContext()
+        }
+    }
+}
+
+
+extension UIView {
     func keyFrameGrowAnimation(duration: CFTimeInterval) -> CAKeyframeAnimation {
         let boundsOvershootAnimation = CAKeyframeAnimation(keyPath: "transform")
         
-        let startingScale = CATransform3DScale(layer.transform, 0, 0, 0)
-        let overshootScale = CATransform3DScale(layer.transform, 1.2, 1.2, 1.0)
+        let startingScale   = CATransform3DScale(layer.transform, 0, 0, 0)
+        let overshootScale  = CATransform3DScale(layer.transform, 1.2, 1.2, 1.0)
         let undershootScale = CATransform3DScale(layer.transform, 0.9, 0.9, 1.0)
-        let endingScale = layer.transform
+        let endingScale     = layer.transform
+        
         boundsOvershootAnimation.duration = duration
         
         boundsOvershootAnimation.values = [NSValue(caTransform3D: startingScale),
@@ -509,7 +515,7 @@ extension UIView {
                                            NSValue(caTransform3D: undershootScale),
                                            NSValue(caTransform3D: endingScale)]
         
-        boundsOvershootAnimation.keyTimes = [0.0, 0.5, 0.9, 1.0].map { NSNumber(value: $0) }
+        boundsOvershootAnimation.keyTimes = [0.0, 0.5, 0.9, 1.0].map{ NSNumber(value: $0) }
         
         boundsOvershootAnimation.timingFunctions = [
             CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut),
@@ -526,8 +532,7 @@ extension UIView {
         self.layer.add(keyFrameGrowAnimation(duration: duration),
                        forKey: "keyFrameGrowAnimation")
     }
-    
-    func shakeGrow(duration: CFTimeInterval) {
+    public func shakeGrow(duration: CFTimeInterval) {
         let translation = CAKeyframeAnimation(keyPath: "transform.translation.x")
         translation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)
         translation.values = [-5, 5, -5, 5, -3, 3, -2, 2, 0]
@@ -547,5 +552,4 @@ extension UIView {
         shakeGroup.duration = duration
         self.layer.add(shakeGroup, forKey: "shakeIt")
     }
-    
 }

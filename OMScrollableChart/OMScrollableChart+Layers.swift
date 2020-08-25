@@ -1,5 +1,19 @@
+// Copyright 2018 Jorge Ouahbi
 //
-//  File.swift
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+//
+//  OMScrollableChart+Layers
 //  CanalesDigitalesGCiOS
 //
 //  Created by Jorge Ouahbi on 16/08/2020.
@@ -9,6 +23,7 @@
 import UIKit
 
 typealias GradientColors = (UIColor, UIColor)
+
 
 // Layer with clip path
 class OMShapeLayerClipPath: CAShapeLayer {
@@ -31,21 +46,21 @@ class OMShapeLayerClipPath: CAShapeLayer {
 class OMGradientShapeClipLayer: OMShapeLayerClipPath {
     // Some predefined Gradients (from WebKit)
     
-    var gardientColor: UIColor = .red
-    public lazy var insetGradient:GradientColors =  {
+    var gardientColor: UIColor = .clear
+    public lazy var insetGradient: GradientColors =  {
         return  (UIColor(red:0 / 255.0, green:0 / 255.0,blue: 0 / 255.0,alpha: 0 ),
                  UIColor(red: 0 / 255.0, green:0 / 255.0,blue: 0 / 255.0,alpha: 0.2 ))
         
     }()
     
-    public lazy var shineGradient:GradientColors =  {
+    public lazy var shineGradient: GradientColors =  {
         return  (UIColor(red:1, green:1,blue: 1,alpha: 0 ),
                  UIColor(red: 1, green:1,blue:1,alpha: 0.8 ))
         
     }()
     
     
-    public lazy var shadeGradient:GradientColors =  {
+    public lazy var shadeGradient: GradientColors =  {
         return  (UIColor(red: 252 / 255.0, green: 252 / 255.0,blue: 252 / 255.0,alpha: 0.65 ),
                  UIColor(red:  178 / 255.0, green:178 / 255.0,blue: 178 / 255.0,alpha: 0.65 ))
         
@@ -66,16 +81,15 @@ class OMGradientShapeClipLayer: OMShapeLayerClipPath {
     }()
     
 }
-
+// MARK: - OMShapeLayerLinearGradientClipPath -
 class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
     
     var start: CGPoint = CGPoint(x: 0.0, y: 0.5)
     var end: CGPoint = CGPoint(x: 1.0, y: 0.5)
-    var locations: [CGFloat] =  [0.0, 0.1, 0.9, 1.0]
+    var locations: [CGFloat]? =  [0.0, 0.1]
+    var gradientColor: UIColor = .clear
     var cgColors: [CGColor] {
-        let color1 = gardientColor.withAlphaComponent(0.5)
-        let color2 = gardientColor.withAlphaComponent(1.0)
-        return [color1, color2, color2, color1].map({ (color) -> CGColor in
+        return gradientColor.makeGradient().map({ (color) -> CGColor in
             return color.cgColor
         })
     }
@@ -110,7 +124,9 @@ class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
         super.draw(in: ctx)
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
-        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: cgColors as CFArray, locations: locations) else {
+        guard let gradient = CGGradient(colorsSpace: colorSpace,
+                                        colors: cgColors as CFArray,
+                                        locations: locations) else {
             return
         }
         ctx.saveGState()
@@ -118,8 +134,10 @@ class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
         ctx.restoreGState()
     }
 }
+
+// MARK: - OMShapeLayerRadialGradientClipPath -
 class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
-   
+    
     override init() {
         super.init()
         
@@ -147,24 +165,19 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
         defaultInitializer()
     }
     
-    
     var center: CGPoint {
         return CGPoint(x: bounds.width/2, y: bounds.height/2)
     }
     
-    var radius: CGFloat {
-        return (bounds.width + bounds.height)/2
-    }
-    
-    var locations: [CGFloat] =  [0.0, 0.1, 0.9, 1.0]
-    var gradientColor: UIColor = .red
+    var startRadius: CGFloat?
+    var endRadius: CGFloat?
+    var locations: [CGFloat]? = [0, 1.0]
+    var gradientColor: UIColor = .clear
     var cgColors: [CGColor] {
-        
-        let color1 = gradientColor.withAlphaComponent(0.5)
-        let color2 = gradientColor.withAlphaComponent(1.0)
-        return [color1, color2, color2, color1].map({ (color) -> CGColor in
+        return gradientColor.makeGradient().map({ (color) -> CGColor in
             return color.cgColor
         })
+        
     }
     
     override func draw(in ctx: CGContext) {
@@ -172,48 +185,58 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()
         
-        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: cgColors as CFArray, locations: locations) else {
-            return
+        guard let gradient = CGGradient(colorsSpace: colorSpace,
+                                        colors: cgColors as CFArray,
+                                        locations: locations) else {
+                                            return
         }
-        let endRadius = sqrt(pow(frame.width/2, 2) + pow(frame.height/2, 2))
+        let startRadius = self.startRadius ?? (bounds.width + bounds.height)/2
+        let endRadius   = self.endRadius ?? sqrt(pow(startRadius, 2) + pow(startRadius, 2))
         ctx.saveGState()
-        ctx.drawRadialGradient(gradient, startCenter: center, startRadius: 0.0, endCenter: center, endRadius: endRadius, options: CGGradientDrawingOptions(rawValue: 0))
+        ctx.drawRadialGradient(gradient,
+                               startCenter: center,
+                               startRadius: 0,
+                               endCenter: center,
+                               endRadius: endRadius,
+                               options: [.drawsAfterEndLocation])
         ctx.restoreGState()
     }
 }
 
-var kUpY: CGFloat = 115
-var kDownY: CGFloat = 310
+//var kUpY: CGFloat = 115
+//var kDownY: CGFloat = 310
 
 extension OMScrollableChart {
     
-    func touchDown() {
-        animateTouchLayer(layer: self.layer, toY:kDownY, baseY:kUpY)
-    }
-
-   func touchUp(){
-    animateTouchLayer(layer: self.layer, toY:kUpY, baseY:kDownY)
-    }
-    
-    func animateTouchLayer(layer: CALayer, toY: CGFloat, baseY: CGFloat)  {
-        let fromValue = layer.presentation()?.position ?? .zero
-        let toValue = CGPoint(x:fromValue.x,y:toY)
-        
-        layer.position = toValue
-        
-        let animation = CABasicAnimation()
-        animation.fromValue = NSValue(cgPoint: fromValue)
-        animation.toValue = NSValue(cgPoint: toValue)
-        animation.duration = CFTimeInterval(2.0 * (toValue.y - fromValue.y) / (toY - baseY))
-        layer.add(animation, forKey:animation.keyPath)
-        
-    }
+//    func touchDown() {
+//        animateTouchLayer(layer: self.layer, toY:kDownY, baseY:kUpY)
+//    }
+//
+//    func touchUp(){
+//        animateTouchLayer(layer: self.layer, toY:kUpY, baseY:kDownY)
+//    }
+//
+//    func animateTouchLayer(layer: CALayer, toY: CGFloat, baseY: CGFloat)  {
+//        let fromValue = layer.presentation()?.position ?? .zero
+//        let toValue = CGPoint(x:fromValue.x,y:toY)
+//
+//        layer.position = toValue
+//
+//        let animation = CABasicAnimation()
+//        animation.fromValue = NSValue(cgPoint: fromValue)
+//        animation.toValue = NSValue(cgPoint: toValue)
+//        animation.duration = CFTimeInterval(2.0 * (toValue.y - fromValue.y) / (toY - baseY))
+//        layer.add(animation, forKey:animation.keyPath)
+//
+//    }
     /// animatePoints
     /// - Parameters:
     ///   - layers: CAShapeLayer
     ///   - delay: TimeInterval delay [0.1]
     ///   - duration: TimeInterval duration [ 2.0]
-    func animatePoints(_ layers: [OMGradientShapeClipLayer], delay: TimeInterval = 0.1, duration: TimeInterval = 2.0) {
+    func animatePoints(_ layers: [OMGradientShapeClipLayer],
+                       delay: TimeInterval = 0.1,
+                       duration: TimeInterval = 2.0) {
         var currentDelay = delay
         for point in layers {
             point.opacity = 1
@@ -229,24 +252,28 @@ extension OMScrollableChart {
         }
     }
     
-    func animateLayerOpacy( _ layer: CALayer,
-                            fromValue: CGFloat,
-                            toValue: CGFloat,
-                            duration: TimeInterval = 1.0) {
-        //layer.removeAllAnimations()
-        //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
-        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
-        fadeAnimation.toValue = toValue
-        fadeAnimation.fromValue = fromValue
-        fadeAnimation.beginTime = CACurrentMediaTime() + 0.5
-        fadeAnimation.duration = duration
-        fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-        fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
-        fadeAnimation.isRemovedOnCompletion = true
-        layer.add(fadeAnimation, forKey: nil)
-    }
+//    func animateLayerOpacy( _ layer: CALayer,
+//                            fromValue: CGFloat,
+//                            toValue: CGFloat,
+//                            duration: TimeInterval = 1.0) {
+//        //layer.removeAllAnimations()
+//        //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
+//        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+//        fadeAnimation.toValue = toValue
+//        fadeAnimation.fromValue = fromValue
+//        fadeAnimation.beginTime = CACurrentMediaTime() + 0.5
+//        fadeAnimation.duration = duration
+//        fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+//        fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
+//        fadeAnimation.isRemovedOnCompletion = true
+//        layer.add(fadeAnimation, forKey: nil)
+//    }
     
-    
+    /// animateOnRenderLayerSelection
+    /// - Parameters:
+    ///   - selectedLayer: OMGradientShapeClipLayer
+    ///   - renderIndex: render index
+    ///   - duration: TimeInterval [2.0]
     func animateOnRenderLayerSelection(_ selectedLayer: OMGradientShapeClipLayer?,
                                        renderIndex:Int,
                                        duration: TimeInterval = 2.0) {
@@ -265,21 +292,7 @@ extension OMScrollableChart {
         animatePoints(pointEnd, duration: duration)
         
     }
-    
-    func animateLineSelection(_ layer: OMGradientShapeClipLayer,_ newPath: CGPath, _ duration: TimeInterval = 1) {
-        // the new origin of the CAShapeLayer within its view
-        
-        let animation = CABasicAnimation(keyPath: "path")
-        animation.fromValue =  layer.path           // animate from current position ...
-        animation.toValue = newPath                        // ... to whereever the new position is
-        animation.duration = duration
-        animation.isAdditive = true
-        animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
-        animation.fillMode = CAMediaTimingFillMode.forwards
-        animation.isRemovedOnCompletion = false
-        // set the shape's final position to be the new position so when the animation is done, it's at its new "home"
-        layer.add(animation, forKey: nil)
-    }
+
     
     func animateDashLinesPhase() {
         for layer in dashLineLayers {
@@ -291,31 +304,8 @@ extension OMScrollableChart {
             layer.add(animation, forKey: "line")
         }
     }
+    //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
+     // self.contentOffset.x / self.contentSize.width
     
-    func animateLineOnSelectionPoint() {
-       let fromValue = self.contentOffset.x / self.contentSize.width
-       let growAnimation = CABasicAnimation(keyPath: "strokeEnd")
-       //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
-       growAnimation.fromValue = fromValue
-       growAnimation.toValue = 1
-       growAnimation.beginTime = CACurrentMediaTime() + 0.5
-       growAnimation.duration = 1.5
-       growAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
-       growAnimation.fillMode = CAMediaTimingFillMode.forwards
-       growAnimation.isRemovedOnCompletion = false
-       self.polylineLayer.add(growAnimation, forKey: "StrokeAnimation")
-        
-        //        let startAnimation = CABasicAnimation(keyPath: "strokeStart")
-        //        startAnimation.fromValue = 0
-        //        startAnimation.toValue = 0.8
-        //
-        //        let endAnimation = CABasicAnimation(keyPath: "strokeEnd")
-        //        endAnimation.fromValue = 0.2
-        //        endAnimation.toValue = 1.0
-        //
-        //        let animation = CAAnimationGroup()
-        //        animation.animations = [startAnimation, endAnimation]
-        //        animation.duration = 2
-        //        catmullRomLineLayer.add(animation, forKey: "MyAnimation")
-    }
+   
 }

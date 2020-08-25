@@ -1,6 +1,18 @@
+// Copyright 2018 Jorge Ouahbi
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 //
 //  UIColor+OMSC.swift
-//  Example
 //
 //  Created by Jorge Ouahbi on 22/08/2020.
 //  Copyright © 2020 dsp. All rights reserved.
@@ -16,15 +28,21 @@ extension UIColor {
         return UIColor(red: 89.0 / 255.0, green: 135.0 / 255.0, blue: 164.0 / 255.0, alpha: 1.0)
         
     }
+    @nonobjc class var darkGreyBlueTwo: UIColor {
+        return UIColor(red: 50.0 / 255.0, green: 81.0 / 255.0, blue: 108.0 / 255.0, alpha: 1.0)
+    }
 }
 
 extension UIColor {
     
     func isLight() -> Bool {
-        guard let components = cgColor.components,
-            components.count >= 3 else { return false }
-        let brightness = ((components[0] * 299) + (components[1] * 587) + (components[2] * 114)) / 1000
         return !(brightness < 0.5)
+    }
+    var brightness: CGFloat {
+        guard let components = cgColor.components,
+            components.count >= 3 else { return 0 }
+        let brightness = ((components[0] * 299) + (components[1] * 587) + (components[2] * 114)) / 1000
+        return brightness
     }
     
     public var complementaryColor: UIColor {

@@ -42,7 +42,7 @@ extension OMScrollableChart {
         guard let rule = rule else {
             return
         }
-        assert(rule.type == .root)
+        assert(rule.type == .leading)
         if rule.superview == nil {
             rule.translatesAutoresizingMaskIntoConstraints = false
             if let view = view  {
@@ -65,7 +65,8 @@ extension OMScrollableChart {
     /// - Parameters:
     ///   - rule: ruleFooter description
     ///   - view: UIView
-    func addFooterRuleIfNeeded(_  rule: ChartRuleProtocol? = nil, view: UIView? = nil) {
+    func addFooterRuleIfNeeded(_ rule: ChartRuleProtocol? = nil,
+                               view: UIView? = nil) {
         guard let rule = rule else {
             return
         }
@@ -111,14 +112,27 @@ extension OMScrollableChart {
     
     // Calculate the rules marks positions
     func internalCalcRules() {
-        // + 2 is the limit up and down
+        let generator  = scaledPointsGenerator[Renders.polyline.rawValue] 
+        // + 2 is the limit up and the limit down
         let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2
-        let roundedStep = range / Float(numberOfAllRuleMarks)
+        let roundedStep = generator.range / Float(numberOfAllRuleMarks)
         for ruleMarkIndex in 0..<numberOfAllRuleMarks {
-            let value = minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-            internalRulesMarks.append(value.roundToNearestValue(value: roundMarkValueTo))
+            let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
+            if value > 10000 {
+                let roundToNearest = round(value / 10000) * 10000
+                internalRulesMarks.append(roundToNearest)
+            } else if value > 1000 {
+                let roundToNearest = round(value / 1000) * 1000
+                internalRulesMarks.append(roundToNearest)
+            } else if value > 100 {
+                let roundToNearest = round(value / 100) * 100
+                internalRulesMarks.append(roundToNearest)
+            } else if value > 10 {
+                let roundToNearest = round(value / 10) * 10
+                internalRulesMarks.append(roundToNearest)
+            }
         }
-        internalRulesMarks.append(maximumValue)
+        internalRulesMarks.append(generator.maximumValue)
     }
     // Create and add
     func createSuplementaryRules() {
@@ -131,27 +145,26 @@ extension OMScrollableChart {
         footerRule.chart = self
         footerRule.font  = ruleFont
         footerRule.fontColor = fontFooterRuleColor
-        //        self.addSubview(footerRule)
-        //        self.addSubview(newRule)
         self.rootRule = rootRule
         self.footerRule = footerRule
         self.rules.append(rootRule)
         self.rules.append(footerRule)
-        
+       // self.rules.append(topRule)
         
         
         //        if let topRule = topRule {
-        //            addTopRuleIfNeeded(topRule)
+        //
         //        }
     }
-    func calcRulesPoints() -> Bool {
-        guard numberOfRuleMarks > 0 && (range != 0)  else {
+    func makeRulesPoints() -> Bool {
+     let generator  = scaledPointsGenerator[Renders.polyline.rawValue] 
+        guard numberOfRuleMarks > 0 && (generator.range != 0)  else {
             return false
         }
         internalRulesMarks.removeAll()
         internalCalcRules()
-        
-        rulesPoints = makePoints(data: rulesMarks, size: contentSize)
+   
+        rulesPoints = generator.makePoints(data: rulesMarks, size: contentSize)
         
         return true
     }
@@ -164,7 +177,7 @@ extension OMScrollableChart {
             return
         }
         
-        guard calcRulesPoints() else {
+        guard makeRulesPoints() else {
             return
         }
         
@@ -180,29 +193,14 @@ extension OMScrollableChart {
         let width = contentView.frame.width
         rulesPoints.enumerated().forEach { (offset: Int, item: CGPoint) in
             
-            //            if showZeroMark == false || zeroMarkIndex != offset {
-            
-            let markPointLeft = CGPoint(x: padding, y: item.y)
+            let markPointLeft  = CGPoint(x: padding, y: item.y)
             let markPointRight = CGPoint(x: width, y: item.y)
             addDashLineLayerFromRuleMark(point: markPointLeft,
                                          endPoint: markPointRight)
-            //            } else {
-            //                if zeroMarkIndex == offset {
-            //                    addDashLineLayer(point: CGPoint(x: padding, y: item.y),
-            //                                     endPoint: CGPoint(x: width, y: item.y),
-            //                                     stroke: UIColor.blue.withAlphaComponent(0.3),
-            //                                     lineWidth: 2,
-            //                                     pattern: [8, 6])
-            //                }
-            //            }
         }
         // Mark for display the rule.
         rules.forEach {
-            if $0.isPointsNeeded {
-                $0.isPointsNeeded = $0.createLayout()
-            } else {
-                $0.setNeedsLayout()
-            }
+            $0.setNeedsLayout()
         }
     }
 }

@@ -14,7 +14,6 @@
 import UIKit
 // MARK: - CGPath -
 extension CGPath {
-
     func isClosed() -> Bool {
         var isClosed = false
         forEach { element in

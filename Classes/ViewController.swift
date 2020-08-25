@@ -14,27 +14,67 @@
 import UIKit
 
 
-let chartPoints: [Float] =   [1510, 100, 3000, 100, 1200, 13000,
-             15000, -1500, 800, 1000, 6000, 1300]
+let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
+                              150, -150, 80, -40, 60, 10]
 //             1510, 100, 3000, 100, 1200, 13000,
 //15000, -1500, 800, 1000, 6000, 1300]
 
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
-   
-
-   
+    var numberOfRenders: Int {
+        return 5
+    }
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] {
         return chartPoints
     }
- func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
-          return []
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+        switch renderIndex {
+        case 0:
+            let layers = chart.updatePolylineLayer(lineWidth: 4,
+                                                   color: .greyishBlue)
+            layers.forEach({$0.name = "polyline"})
+            return layers
+        case 1:
+            let layers = chart.createPointsLayers(points,
+                                                  size: CGSize(width: 8, height: 8),
+                                                  color: .greyishBlue)
+            layers.forEach({$0.name = "point"})
+            return layers
+        case 2:
+            let layers =  chart.createRectangleLayers(points, columnIndex: 1, count: 6,
+                                                      color: .black)
+            layers.forEach({$0.name = "bar income"})
+            self.pathsToAnimate.insert(
+                chart.createInverseRectanglePaths(points, columnIndex: 1, count: 6),
+                at: 0)
+            return layers
+        case 3:
+            
+            let layers =  chart.createRectangleLayers(points, columnIndex: 4, count: 6,
+                                                      color: .green)
+            layers.forEach({$0.name = "bar outcome"})
+            self.pathsToAnimate.insert(
+                chart.createInverseRectanglePaths(points, columnIndex: 4, count: 6),
+                at: 1)
+            return layers
+        case 4:
+            if let point = points.first {
+                let layer = chart.createPointLayer(point,
+                                                   size: CGSize(width: 12, height: 12),
+                                                   color: .orange)
+                layer.name = "selectedPoint"
+                return [layer]
+            }
+            return []
+        default:
+            return []
+        }
     }
     
+    var pathsToAnimate = [[UIBezierPath]]()
     func footerSectionsText(chart: OMScrollableChart) -> [String]? {
         return nil
     }
-    
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? {
         return nil
     }
@@ -46,45 +86,84 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? {
         return nil
     }
-    
-    func isRenderLayersVisible(chart: OMScrollableChart, renderIndex: Int) -> Bool {
-        return true
+    func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
+        return curOpacityTable[renderIndex]
     }
-    
-    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: CAShapeLayer) {
-        
+    func animateLayers(chart: OMScrollableChart,
+                       renderIndex: Int,
+                       layerIndex: Int,
+                       layer: CAShapeLayer) -> CAAnimation? {
+        switch renderIndex {
+        case 0, 1:
+            return nil
+        case 2:
+            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!))
+        case 3:
+            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!) )
+        case 4:
+            return chart.animateFollowingPath(layer,
+                                              chart.polylinePath)
+        default:
+            return nil
+        }
     }
     func numberOfPages(chart: OMScrollableChart) -> CGFloat {
         return 2
     }
-    
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
         return 6
     }
-    
+    var opacityTableLine: [CGFloat] = [1,1,0,0,1]
+    var opacityTableBar: [CGFloat] =  [0,0,1,1,0]
+    var curOpacityTable: [CGFloat] = []
+    var counter: Int = 1
+    @objc func tapped (sender :UITapGestureRecognizer) {
+        counter = (counter + 1) % 2
+        curOpacityTable = counter == 0 ? opacityTableLine : opacityTableBar
+        _ = chart.setNeedsLayout()
+    }
+    var gesture: UITapGestureRecognizer?
     @IBOutlet var slider: UISlider!
     @IBOutlet var sliderLimit: UISlider!
     @IBOutlet var chart: OMScrollableChart!
     @IBOutlet var segmentInterpolation: UISegmentedControl!
     @IBOutlet var sliderAverage: UISlider!
+    
+    deinit {
+        if let gesture = gesture {
+            self.view.removeGestureRecognizer(gesture)
+        }
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         chart.bounces = false
         chart.dataSource = self
-                chart.renderSource = self
+        chart.renderSource = self
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
-        
+        curOpacityTable = opacityTableLine
+        gesture = UITapGestureRecognizer(target: self, action: #selector(tapped(sender:)));
+        gesture?.numberOfTapsRequired = 1
+        self.view.isUserInteractionEnabled = true
+        if let gesture = gesture {
+            self.view.addGestureRecognizer(gesture)
+        }
         
         segmentInterpolation.removeAllSegments()
-           segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
-           segmentInterpolation.insertSegment(withTitle: "smoothed", at: 1, animated: false)
-           segmentInterpolation.insertSegment(withTitle: "cubicCurve", at: 2, animated: false)
-           segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
-           segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
-           segmentInterpolation.selectedSegmentIndex = 1
+        segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
+        segmentInterpolation.insertSegment(withTitle: "smoothed", at: 1, animated: false)
+        segmentInterpolation.insertSegment(withTitle: "cubicCurve", at: 2, animated: false)
+        segmentInterpolation.insertSegment(withTitle: "hermite", at: 3, animated: false)
+        segmentInterpolation.insertSegment(withTitle: "catmullRom", at: 4, animated: false)
+        segmentInterpolation.selectedSegmentIndex = 4 // catmullRom
         
-   
+        
         slider.maximumValue  = 20
         slider.minimumValue  = 1
         slider.value = Float(self.chart.approximationTolerance)
@@ -94,13 +173,17 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         
         _ = chart.updateDataSourceData()
         
-        sliderLimit.maximumValue  = chart.maximumValue
-        sliderLimit.minimumValue  = chart.minimumValue
+        let scaledPointsGenerator = chart.scaledPointsGenerator[0]
+        
+        sliderLimit.maximumValue  = scaledPointsGenerator.maximumValue
+        sliderLimit.minimumValue  = scaledPointsGenerator.minimumValue
+        
     }
     @IBAction  func limitsSliderChange( _ sender: UISlider)  {
         if sender == sliderLimit {
-            chart.minimum =  Float(CGFloat(sliderLimit.value))
-        _ = chart.updateDataSourceData()
+            var generator = chart.scaledPointsGenerator[0]
+            generator.minimum =  Float(CGFloat(sliderLimit.value))
+            _ = chart.updateDataSourceData()
         }
     }
     @IBAction  func simplifySliderChange( _ sender: UISlider)  {
@@ -114,14 +197,14 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         switch segmentInterpolation.selectedSegmentIndex  {
         case 0:
             chart.polylineInterpolation = .none
-            case 1:
-                chart.polylineInterpolation = .smoothed
-            case 2:
-                chart.polylineInterpolation = .cubicCurve
-            case 3:
-                chart.polylineInterpolation = .hermite(0.5)
-            case 4:
-                chart.polylineInterpolation = .catmullRom(0.5)
+        case 1:
+            chart.polylineInterpolation = .smoothed
+        case 2:
+            chart.polylineInterpolation = .cubicCurve
+        case 3:
+            chart.polylineInterpolation = .hermite(0.5)
+        case 4:
+            chart.polylineInterpolation = .catmullRom(0.5)
         default:
             assert(false)
         }
