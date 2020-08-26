@@ -21,6 +21,53 @@ let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
 
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
+    
+    var animationTimingTable: [AnimationTiming] = [
+        .noAnimation,
+        .noAnimation,
+        .noAnimation,
+        .noAnimation,
+        .oneShotAnimation
+    ]
+    
+    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
+        return animationTimingTable[renderIndex]
+    }
+    
+    var numberOfTimesExecuted: Int = 1
+    func animateLayers(chart: OMScrollableChart,
+                       renderIndex: Int,
+                       layerIndex: Int,
+                       layer: OMGradientShapeClipLayer) -> CAAnimation? {
+        switch renderIndex {
+        case 0, 1:
+            return nil
+        case 2:
+            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!))
+        case 3:
+            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!) )
+        case 4:
+            guard let polylinePath = chart.polylinePath else {
+                return nil
+            }
+            if let point = chart.maxPoint(renderIndex: renderIndex) {
+                guard let pointIndex = chart.pointsRender[renderIndex].firstIndex(of: point) else { return nil }
+                return chart.animateLayerPathRide( polylinePath,
+                                                   layerToRide: layer,
+                                                   pointIndex: pointIndex,
+                                                   duration: 10)
+            }
+        default:
+            return nil
+        }
+        return nil
+    }
     var numberOfRenders: Int {
         return 5
     }
@@ -58,7 +105,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 at: 1)
             return layers
         case 4:
-            if let point = points.first {
+            if let point = chart.maxPoint(renderIndex: renderIndex) {
                 let layer = chart.createPointLayer(point,
                                                    size: CGSize(width: 12, height: 12),
                                                    color: .orange)
@@ -89,41 +136,18 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
         return curOpacityTable[renderIndex]
     }
-    func animateLayers(chart: OMScrollableChart,
-                       renderIndex: Int,
-                       layerIndex: Int,
-                       layer: CAShapeLayer) -> CAAnimation? {
-        switch renderIndex {
-        case 0, 1:
-            return nil
-        case 2:
-            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
-            return chart.animateLayerPath( layer,
-                                           pathStart: pathStart,
-                                           pathEnd: UIBezierPath( cgPath: layer.path!))
-        case 3:
-            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
-            return chart.animateLayerPath( layer,
-                                           pathStart: pathStart,
-                                           pathEnd: UIBezierPath( cgPath: layer.path!) )
-        case 4:
-            return chart.animateFollowingPath(layer,
-                                              chart.polylinePath)
-        default:
-            return nil
-        }
-    }
     func numberOfPages(chart: OMScrollableChart) -> CGFloat {
         return 2
     }
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
         return 6
     }
+
     var opacityTableLine: [CGFloat] = [1,1,0,0,1]
     var opacityTableBar: [CGFloat] =  [0,0,1,1,0]
     var curOpacityTable: [CGFloat] = []
     var counter: Int = 1
-    @objc func tapped (sender :UITapGestureRecognizer) {
+    @objc func tapped (sender: UITapGestureRecognizer) {
         counter = (counter + 1) % 2
         curOpacityTable = counter == 0 ? opacityTableLine : opacityTableBar
         _ = chart.setNeedsLayout()
@@ -210,4 +234,3 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         }
     }
 }
-

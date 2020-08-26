@@ -56,9 +56,6 @@ extension OMScrollableChart {
         animGroup.start = {
             animGroup.animations?.forEach({$0.start?()})
         }
-        animGroup.animating = { progress in
-            animGroup.animations?.forEach({$0.animating?(progress)})
-        }
         animGroup.completion = { finished in
             animGroup.animations?.forEach({$0.completion?(finished)})
         }
@@ -73,7 +70,8 @@ extension OMScrollableChart {
         animation.fromValue     = pathStart.cgPath
         animation.toValue       = pathEnd.cgPath
         animation.duration      = duration
-        animation.autoreverses  = true
+        animation.isRemovedOnCompletion  = false
+        animation.fillMode = .forwards
         animation.delegate      = self
         animation.completion = {  finished in
             CATransaction.withDisabledActions({
@@ -83,25 +81,46 @@ extension OMScrollableChart {
         return animation
     }
     
-    func animateFollowingPath(_ shapeLayer: CAShapeLayer,
+    func animateFollowingPath(_ shapeLayer: CALayer,
                               _ path: UIBezierPath?,
-                              _ duration: TimeInterval = 5.0) -> CAAnimation {
+                              _ duration: TimeInterval = 10.0) -> CAAnimation {
         let animation = CAKeyframeAnimation(keyPath: "position")
         animation.duration    = duration
         animation.path        = path?.cgPath
         animation.calculationMode = .paced
         animation.rotationMode = .rotateAuto
-        animation.autoreverses  = true
         animation.delegate      = self
-        animation.completion = {  finished in
-            guard let lastPoint = self.renderLayers[Renders.points.rawValue].last else {
-                return
-            }
-            CATransaction.withDisabledActions({
-                shapeLayer.position = lastPoint.position
-                shapeLayer.opacity  = 1.0
-            })
-        }
+        animation.isRemovedOnCompletion  = false
+        animation.fillMode = .forwards
+           
+      animation.completion = {  finished in
+          if finished {
+            let lastPoint = self.renderLayers.flatMap({$0}).max(by: { $0.frame.origin.x <= $1.frame.origin.x})
+            let position = lastPoint?.position ?? CGPoint.zero
+              CATransaction.withDisabledActions({
+                  shapeLayer.position = position
+                  shapeLayer.opacity  = 1.0
+              })
+          }
+     }
+
+//
+//       animation.start = {
+////           let spring = CASpringAnimation(keyPath: "position.x")
+////           spring.damping = 5
+////           spring.fromValue = self.contentOffset.x
+////           spring.toValue  = position.x
+////           spring.duration = spring.settlingDuration
+////           shapeLayer.add(spring, forKey: nil)
+//            self.isAnimatingLayers += 1
+//       }
+////
+////        let animator = UIViewPropertyAnimator(duration: 1, curve: .linear) {
+////            shapeLayer.position = position
+////        }
+////        animator.fractionComplete = 1.0;
+//
+        
         return animation
     }
     
@@ -114,8 +133,9 @@ extension OMScrollableChart {
         animation.toValue = newPath
         animation.duration = duration
         animation.isAdditive = true
+        animation.delegate = self
         animation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
-        animation.fillMode = CAMediaTimingFillMode.forwards
+        animation.fillMode = .forwards
         animation.isRemovedOnCompletion = false
         animation.completion = { finished in
             CATransaction.withDisabledActions({
@@ -124,7 +144,6 @@ extension OMScrollableChart {
         }
         return animation
     }
-    
     func animationWithFadeGroup(_ layer: CALayer,
                                 fromValue: CGFloat = 0,
                                 toValue: CGFloat = 1.0,
@@ -134,7 +153,7 @@ extension OMScrollableChart {
         fadeAnimation.toValue  = toValue
         fadeAnimation.fromValue  = fromValue
         fadeAnimation.fillMode = .forwards
-        fadeAnimation.autoreverses = true
+        fadeAnimation.delegate = self
         fadeAnimation.isRemovedOnCompletion = false
         fadeAnimation.completion = { finished in
             CATransaction.withDisabledActions({
@@ -149,9 +168,6 @@ extension OMScrollableChart {
         animGroup.start = {
             animGroup.animations?.forEach({$0.start?()})
         }
-        animGroup.animating = { progress in
-            animGroup.animations?.forEach({$0.animating?(progress)})
-        }
         animGroup.completion = { finished in
             animGroup.animations?.forEach({$0.completion?(finished)})
         }
@@ -165,8 +181,8 @@ extension OMScrollableChart {
         fadeAnimation.toValue  = toValue
         fadeAnimation.fromValue  = fromValue
         fadeAnimation.fillMode = .forwards
-        fadeAnimation.autoreverses = true
         fadeAnimation.duration = duration
+        fadeAnimation.delegate = self
         fadeAnimation.isRemovedOnCompletion = false
         fadeAnimation.completion = { finished in
             CATransaction.withDisabledActions({
@@ -175,4 +191,61 @@ extension OMScrollableChart {
         }
         return fadeAnimation
     }
+    
+    func pathRideToPointAnimation( cgPath: CGPath,
+                                  pointIndex: Int, duration: TimeInterval) -> CAAnimation? {
+           let percent: CFloat =  CFloat(1 / Int(Double(self.numberOfSections)) * pointIndex)
+           return pathRideAnimation(cgPath: cgPath, percent: percent, duration: duration)
+       }
+       func pathRideAnimation( cgPath: CGPath, percent: CFloat = 1, duration: TimeInterval) -> CAAnimation? {
+           let timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+           
+           ridePath = Path(withTimingFunction: timingFunction)
+           let timesForFourthOfAnimation: Double
+           if let curveLengthPercentagesForFourthOfAnimation = ridePath?.percentagesWhereYIs(y: Double(percent)) {
+               if curveLengthPercentagesForFourthOfAnimation.count > 0 {
+                   if let x = ridePath.pointForPercentage(t: curveLengthPercentagesForFourthOfAnimation[0])?.x {
+                       timesForFourthOfAnimation = Double(x)
+                   } else {
+                       timesForFourthOfAnimation = 1
+                   }
+               } else {
+                   timesForFourthOfAnimation = 1
+               }
+               
+               let anim = CAKeyframeAnimation(keyPath: "position")
+               anim.path = cgPath
+               anim.rotationMode = CAAnimationRotationMode.rotateAuto
+               anim.fillMode = CAMediaTimingFillMode.forwards
+               anim.duration = duration
+               anim.timingFunction = timingFunction
+               anim.isRemovedOnCompletion = false
+               anim.delegate = self
+               
+               anim.repeatCount = Float(timesForFourthOfAnimation)
+               return anim
+           }
+           return nil
+    
+       }
+    
+       func animateLayerPathRide(_ path: UIBezierPath,
+                                 layerToRide: CALayer,
+                                 pointIndex: Int,
+                                 duration: TimeInterval = 10.0) -> CAAnimation {
+           
+           self.layerToRide = layerToRide
+           self.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath, pointIndex: pointIndex ,duration: duration)
+           
+           let anim = CABasicAnimation(keyPath: "rideProgress")
+           anim.fromValue = NSNumber(value: 0)
+           anim.toValue = NSNumber(value: 1.0)
+           anim.fillMode = .forwards
+           anim.duration = duration
+           anim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+           anim.isRemovedOnCompletion = false
+           anim.delegate = self
+           
+           return anim
+       }
 }

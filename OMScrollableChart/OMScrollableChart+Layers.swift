@@ -80,6 +80,12 @@ class OMGradientShapeClipLayer: OMShapeLayerClipPath {
         
     }()
     
+//    override var position: CGPoint {
+//        didSet {
+//            print(name, position)
+//        }
+//    }
+    
 }
 // MARK: - OMShapeLayerLinearGradientClipPath -
 class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
@@ -98,7 +104,12 @@ class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
         
         defaultInitializer()
     }
-    
+//    override var position: CGPoint {
+//        didSet {
+//            print(name, position)
+//        }
+//    }
+//
     override init(layer: Any) {
         super.init(layer: layer)
         
@@ -149,7 +160,11 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
         
         defaultInitializer()
     }
-    
+//    override var position: CGPoint {
+//        didSet {
+//            print(name, position)
+//        }
+//    }
     func defaultInitializer() {
         let scale =  UIScreen.main.scale
         contentsScale = scale

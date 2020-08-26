@@ -30,7 +30,6 @@
 		D15AC82224F19CFA00F9192E /* Path.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15AC81E24F19CFA00F9192E /* Path.swift */; };
 		D15AC82324F19CFA00F9192E /* PathElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15AC81F24F19CFA00F9192E /* PathElement.swift */; };
 		D15AC82424F19CFA00F9192E /* SolvePoly.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15AC82024F19CFA00F9192E /* SolvePoly.swift */; };
-		D15AC82524F19CFA00F9192E /* OMLayerPathRide.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15AC82124F19CFA00F9192E /* OMLayerPathRide.swift */; };
 		D15C5CEE24F12D3600A2D00D /* UIColor+OMSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */; };
 		D15C5CF224F135EA00A2D00D /* CGPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15C5CF124F135EA00A2D00D /* CGPath+Extension.swift */; };
 		D176A57524F1C269006BEA41 /* OScrollableChart+Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D176A57324F1C269006BEA41 /* OScrollableChart+Tooltip.swift */; };
@@ -76,7 +75,6 @@
 		D15AC81E24F19CFA00F9192E /* Path.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Path.swift; sourceTree = "<group>"; };
 		D15AC81F24F19CFA00F9192E /* PathElement.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PathElement.swift; sourceTree = "<group>"; };
 		D15AC82024F19CFA00F9192E /* SolvePoly.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SolvePoly.swift; sourceTree = "<group>"; };
-		D15AC82124F19CFA00F9192E /* OMLayerPathRide.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OMLayerPathRide.swift; sourceTree = "<group>"; };
 		D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+OMSC.swift"; sourceTree = "<group>"; };
 		D15C5CF124F135EA00A2D00D /* CGPath+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CGPath+Extension.swift"; sourceTree = "<group>"; };
 		D176A57324F1C269006BEA41 /* OScrollableChart+Tooltip.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OScrollableChart+Tooltip.swift"; sourceTree = "<group>"; };
@@ -147,7 +145,7 @@
 				D1128BFA24F4B24E00F5E0DE /* CAAnimation+Closure.swift */,
 				D176A57424F1C269006BEA41 /* DiscreteScaledPointsGenerator.swift */,
 				D176A57324F1C269006BEA41 /* OScrollableChart+Tooltip.swift */,
-				D15AC81D24F19CFA00F9192E /* OMLayerPathRide */,
+				D15AC81D24F19CFA00F9192E /* Path */,
 				D15AC77B24F15B3100F9192E /* Example-Bridging-Header.h */,
 				D15C5CF124F135EA00A2D00D /* CGPath+Extension.swift */,
 				D15C5CED24F12D3600A2D00D /* UIColor+OMSC.swift */,
@@ -175,15 +173,14 @@
 			path = OMBubbleTextView;
 			sourceTree = "<group>";
 		};
-		D15AC81D24F19CFA00F9192E /* OMLayerPathRide */ = {
+		D15AC81D24F19CFA00F9192E /* Path */ = {
 			isa = PBXGroup;
 			children = (
 				D15AC81E24F19CFA00F9192E /* Path.swift */,
 				D15AC81F24F19CFA00F9192E /* PathElement.swift */,
 				D15AC82024F19CFA00F9192E /* SolvePoly.swift */,
-				D15AC82124F19CFA00F9192E /* OMLayerPathRide.swift */,
 			);
-			path = OMLayerPathRide;
+			path = Path;
 			sourceTree = "<group>";
 		};
 		D15C5CEF24F1359000A2D00D /* PolylineSimplyfication */ = {
@@ -323,7 +320,6 @@
 				D12CBEFF24F0078D001ADC2C /* OMScrollableChartRule.swift in Sources */,
 				D12CBF0A24F0078D001ADC2C /* OMScrollableChart.swift in Sources */,
 				D12CBF0024F0078D001ADC2C /* OMScrollableChart+Layers.swift in Sources */,
-				D15AC82524F19CFA00F9192E /* OMLayerPathRide.swift in Sources */,
 				D12CBF0524F0078D001ADC2C /* OMSimplify.swift in Sources */,
 				D12CBF0724F0078D001ADC2C /* CubicCurveAlgorithm.swift in Sources */,
 				D12CBF0924F0078D001ADC2C /* Geometry+Utilities.swift in Sources */,

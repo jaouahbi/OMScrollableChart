@@ -456,7 +456,7 @@ class OMBubbleTextView: OMBubbleShapeView, TooltipleableView {
             CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut),
             CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
         ]
-        prespectiveShakeAnimation.fillMode = CAMediaTimingFillMode.forwards
+        prespectiveShakeAnimation.fillMode = .forwards
         prespectiveShakeAnimation.isRemovedOnCompletion = false
         prespectiveShakeAnimation.autoreverses  = true
         
@@ -523,7 +523,7 @@ extension UIView {
             CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
         ]
         
-        boundsOvershootAnimation.fillMode = CAMediaTimingFillMode.forwards
+        boundsOvershootAnimation.fillMode = .forwards
         boundsOvershootAnimation.isRemovedOnCompletion = false
         return boundsOvershootAnimation
         
