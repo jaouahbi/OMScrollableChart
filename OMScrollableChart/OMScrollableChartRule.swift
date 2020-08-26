@@ -203,6 +203,9 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     /// create rule layout
     /// - Returns: Bool
     func createLayout() -> Bool {
+        guard !self.frame.isEmpty else {
+            return false
+        }
         self.removeSubviewsFromSuperview()
         let width  = chart.sectionWidth
         let height = ruleSize.height

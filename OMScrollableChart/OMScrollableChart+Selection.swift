@@ -66,7 +66,7 @@ extension OMScrollableChart {
         }
         return nil
     }
-    func didSelectedRenderLayerIndex(_ dataIndex: Int) {
+    func didSelectedRenderLayerIndex(layer: CALayer, renderIndex: Int, dataIndex: Int) {
         if let footer = footerRule as? OMScrollableChartRuleFooter,
             let views = footer.views {
             if dataIndex < views.count {
@@ -75,6 +75,12 @@ extension OMScrollableChart {
                 print("section out of bounds")
             }
         }
+        
+        
+        renderDelegate?.didSelectDataIndex(chart: self,
+                                           renderIndex: renderIndex,
+                                           dataIndex: dataIndex,
+                                           layer: layer)
     }
     /// selectRenderLayerWithAnimation
     /// - Parameters:
@@ -101,7 +107,7 @@ extension OMScrollableChart {
         if let dataIndex = dataIndexFromPoint(layerPoint.position,
                                               renderIndex: renderIndex) {
             // notify the selection
-            didSelectedRenderLayerIndex(dataIndex)
+            didSelectedRenderLayerIndex(layer: layerPoint, renderIndex: renderIndex, dataIndex: dataIndex)
             // grab the tool tip text
             let tooltipText = dataSource?.dataPointTootipText(chart: self,
                                                               renderIndex: renderIndex,

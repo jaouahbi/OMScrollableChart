@@ -42,9 +42,18 @@ extension OMScrollableChart {
                                             color: .greyishBlue)
             layers.forEach({$0.name = "point"})
             return layers
+        case OMScrollableChart.Renders.selectedPoint.rawValue:
+            if let point = maxPoint(renderIndex: renderIndex) {
+                let layer = createPointLayer(point,
+                                                   size: CGSize(width: 12, height: 12),
+                                                   color: .purple)
+                layer.name = "selectedPoint"
+                return [layer]
+            }
         default:
             return []
         }
+        return []
     }
     var polylinePath: UIBezierPath? {
         guard  let polylinePoints =  polylinePoints,

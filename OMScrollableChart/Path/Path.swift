@@ -85,9 +85,9 @@ struct Path {
         return answer
     }
     
-    func pointForPercentage(t: Double) -> CGPoint? {
+    func pointForPercentage(pathPercent: Double, startPoint: CGPoint? = nil) -> CGPoint? {
         var subpathStart: CGPoint? = nil
-        var recentPoint: CGPoint? = nil
+        var recentPoint: CGPoint? = startPoint
         var totalPercentage: Double = 0
 
         let elementCount = self.elements.count
@@ -96,13 +96,13 @@ struct Path {
             
             let elementPercentage = self.percentages[i]
             let nextTotalPercentage = totalPercentage + elementPercentage
-            if nextTotalPercentage > t {
-                let percentageLeft = t - totalPercentage
+            if nextTotalPercentage > pathPercent {
+                let percentageLeft = pathPercent - totalPercentage
                 if (percentageLeft < 0) || (percentageLeft > elementPercentage) || (elementPercentage == 0) {
                     return nil
                 } else {
                     let inElementPercentage = percentageLeft / elementPercentage
-                    return element.pointForPercentage(t: inElementPercentage, ifStartedFrom: recentPoint, subpathStartedFrom: subpathStart)
+                    return element.pointForPercentage(pathPercent: inElementPercentage, ifStartedFrom: recentPoint, subpathStartedFrom: subpathStart)
                 }
             }
 

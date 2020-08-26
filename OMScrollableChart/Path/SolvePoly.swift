@@ -10,7 +10,7 @@ func SolveQuad(a a: Double, b: Double, c: Double) -> [Double] {
     }
 }
 
-func SolveCubic(a a: Double, b: Double, c: Double, d: Double) -> [Double] {
+func SolveCubic( a: Double, b: Double, c: Double, d: Double) -> [Double] {
     // http://www.1728.org/cubic2.htm
 
     let aP2 = a * a

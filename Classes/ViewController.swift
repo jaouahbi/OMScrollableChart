@@ -20,21 +20,38 @@ let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
 //15000, -1500, 800, 1000, 6000, 1300]
 
 
-class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
+class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol, OMScrollableChartRenderableDelegateProtocol {
     
     var animationTimingTable: [AnimationTiming] = [
         .noAnimation,
         .noAnimation,
+        .oneShotAnimation,
         .noAnimation,
-        .noAnimation,
-        .oneShotAnimation
+        .noAnimation
     ]
-    
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
         return animationTimingTable[renderIndex]
     }
-    
-    var numberOfTimesExecuted: Int = 1
+    func didSelectDataIndex(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, layer: CALayer) {
+        switch renderIndex {
+        case 0:break
+        case 1: chart.renderSelectedPointsLayer?.position =  layer.position
+        case 2:break
+        case 3:break
+        case 4:break
+        default: break
+        }
+    }
+    func animationDidEnded(chart: OMScrollableChart, renderIndex: Int, animation: CAAnimation) {
+        switch renderIndex {
+        case 0: break
+        case 1: break
+        case 2: animationTimingTable[renderIndex].repeatCount = 0
+        case 3: break
+        case 4: break
+        default: break
+        }
+    }
     func animateLayers(chart: OMScrollableChart,
                        renderIndex: Int,
                        layerIndex: Int,
@@ -43,30 +60,28 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         case 0, 1:
             return nil
         case 2:
-            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
-            return chart.animateLayerPath( layer,
-                                           pathStart: pathStart,
-                                           pathEnd: UIBezierPath( cgPath: layer.path!))
-        case 3:
-            let pathStart = pathsToAnimate[renderIndex - 2][layerIndex]
-            return chart.animateLayerPath( layer,
-                                           pathStart: pathStart,
-                                           pathEnd: UIBezierPath( cgPath: layer.path!) )
-        case 4:
             guard let polylinePath = chart.polylinePath else {
                 return nil
             }
-            if let point = chart.maxPoint(renderIndex: renderIndex) {
-                guard let pointIndex = chart.pointsRender[renderIndex].firstIndex(of: point) else { return nil }
-                return chart.animateLayerPathRide( polylinePath,
-                                                   layerToRide: layer,
-                                                   pointIndex: pointIndex,
-                                                   duration: 10)
-            }
+            return chart.animateLayerPathRideToPoint( polylinePath,
+                                                      layerToRide: layer,
+                                                      pointIndex: chart.numberOfSections,
+                                                      duration: 10)
+            
+        case 3:
+            let pathStart = pathsToAnimate[renderIndex - 3][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!))
+        case 4:
+            let pathStart = pathsToAnimate[renderIndex - 3][layerIndex]
+            return chart.animateLayerPath( layer,
+                                           pathStart: pathStart,
+                                           pathEnd: UIBezierPath( cgPath: layer.path!) )
+            
         default:
             return nil
         }
-        return nil
     }
     var numberOfRenders: Int {
         return 5
@@ -88,23 +103,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             layers.forEach({$0.name = "point"})
             return layers
         case 2:
-            let layers =  chart.createRectangleLayers(points, columnIndex: 1, count: 6,
-                                                      color: .black)
-            layers.forEach({$0.name = "bar income"})
-            self.pathsToAnimate.insert(
-                chart.createInverseRectanglePaths(points, columnIndex: 1, count: 6),
-                at: 0)
-            return layers
-        case 3:
-            
-            let layers =  chart.createRectangleLayers(points, columnIndex: 4, count: 6,
-                                                      color: .green)
-            layers.forEach({$0.name = "bar outcome"})
-            self.pathsToAnimate.insert(
-                chart.createInverseRectanglePaths(points, columnIndex: 4, count: 6),
-                at: 1)
-            return layers
-        case 4:
             if let point = chart.maxPoint(renderIndex: renderIndex) {
                 let layer = chart.createPointLayer(point,
                                                    size: CGSize(width: 12, height: 12),
@@ -113,11 +111,28 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 return [layer]
             }
             return []
+        case 3:
+            let layers =  chart.createRectangleLayers(points, columnIndex: 1, count: 6,
+                                                      color: .black)
+            layers.forEach({$0.name = "bar income"})
+            self.pathsToAnimate.insert(
+                chart.createInverseRectanglePaths(points, columnIndex: 1, count: 6),
+                at: 0)
+            return layers
+        case 4:
+            
+            let layers =  chart.createRectangleLayers(points, columnIndex: 4, count: 6,
+                                                      color: .green)
+            layers.forEach({$0.name = "bar outcome"})
+            self.pathsToAnimate.insert(
+                chart.createInverseRectanglePaths(points, columnIndex: 4, count: 6),
+                at: 1)
+            return layers
+            
         default:
             return []
         }
     }
-    
     var pathsToAnimate = [[UIBezierPath]]()
     func footerSectionsText(chart: OMScrollableChart) -> [String]? {
         return nil
@@ -125,11 +140,9 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? {
         return nil
     }
-    
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderData {
         return .discrete
     }
-    
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? {
         return nil
     }
@@ -142,9 +155,8 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
         return 6
     }
-
-    var opacityTableLine: [CGFloat] = [1,1,0,0,1]
-    var opacityTableBar: [CGFloat] =  [0,0,1,1,0]
+    var opacityTableLine: [CGFloat] = [1,1,1,0,0]
+    var opacityTableBar: [CGFloat] =  [0,0,0,1,1]
     var curOpacityTable: [CGFloat] = []
     var counter: Int = 1
     @objc func tapped (sender: UITapGestureRecognizer) {
@@ -169,15 +181,16 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         chart.bounces = false
         chart.dataSource = self
         chart.renderSource = self
+        chart.renderDelegate  = self
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
         curOpacityTable = opacityTableLine
-        gesture = UITapGestureRecognizer(target: self, action: #selector(tapped(sender:)));
-        gesture?.numberOfTapsRequired = 1
-        self.view.isUserInteractionEnabled = true
-        if let gesture = gesture {
-            self.view.addGestureRecognizer(gesture)
-        }
+        //        gesture = UITapGestureRecognizer(target: self, action: #selector(tapped(sender:)));
+        //        gesture?.numberOfTapsRequired = 1
+        //        self.view.isUserInteractionEnabled = true
+        //        if let gesture = gesture {
+        //            self.view.addGestureRecognizer(gesture)
+        //        }
         
         segmentInterpolation.removeAllSegments()
         segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)

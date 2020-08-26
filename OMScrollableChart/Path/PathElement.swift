@@ -211,7 +211,7 @@ extension Path {
             }
         }
         
-        func pointForPercentage(t: Double, ifStartedFrom from: CGPoint?, subpathStartedFrom subpathFrom: CGPoint?) -> CGPoint? {
+        func pointForPercentage(pathPercent: Double, ifStartedFrom from: CGPoint?, subpathStartedFrom subpathFrom: CGPoint?) -> CGPoint? {
             switch self {
             case .MoveToPoint:
                 return nil
@@ -219,24 +219,24 @@ extension Path {
                 if let haveFrom = from {
                     let startX = Double(haveFrom.x)
                     let xFullDistance = Double(point.x) - startX
-                    let xCutDistance = xFullDistance * t
+                    let xCutDistance = xFullDistance * pathPercent
                     let startY = Double(haveFrom.y)
                     let yFullDistance = Double(point.y) - startY
-                    let yCutDistance = yFullDistance * t
+                    let yCutDistance = yFullDistance * pathPercent
                     return CGPoint(x: CGFloat(startX + xCutDistance), y: CGFloat(startY + yCutDistance))
                 } else {
                     return nil
                 }
             case let .AddQuadCurveToPoint(destination, control):
                 if let haveFrom = from {
-                    let point = Path.pointOfQuad(t: t, from: haveFrom, to: destination, c: control)
+                    let point = Path.pointOfQuad(t: pathPercent, from: haveFrom, to: destination, c: control)
                     return point
                 } else {
                     return nil
                 }
             case let .AddCurveToPoint(destination, control1, control2):
                 if let haveFrom = from {
-                    let point = Path.pointOfCubic(t: t, from: haveFrom, to: destination, c1: control1, c2: control2)
+                    let point = Path.pointOfCubic(t: pathPercent, from: haveFrom, to: destination, c1: control1, c2: control2)
                     return point
                 } else {
                     return nil
@@ -248,10 +248,10 @@ extension Path {
 
                     let startX = Double(haveFrom.x)
                     let xFullDistance = Double(haveTo.x) - startX
-                    let xCutDistance = xFullDistance * t
+                    let xCutDistance = xFullDistance * pathPercent
                     let startY = Double(haveFrom.y)
                     let yFullDistance = Double(haveTo.y) - startY
-                    let yCutDistance = yFullDistance * t
+                    let yCutDistance = yFullDistance * pathPercent
                     return CGPoint(x: CGFloat(startX + xCutDistance), y: CGFloat(startY + yCutDistance))
                 } else {
                     return nil
