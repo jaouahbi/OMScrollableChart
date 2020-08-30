@@ -106,7 +106,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             if let point = chart.maxPoint(renderIndex: renderIndex) {
                 let layer = chart.createPointLayer(point,
                                                    size: CGSize(width: 12, height: 12),
-                                                   color: .orange)
+                                                   color: .darkGreyBlueTwo)
                 layer.name = "selectedPoint"
                 return [layer]
             }
@@ -159,12 +159,12 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     var opacityTableBar: [CGFloat] =  [0,0,0,1,1]
     var curOpacityTable: [CGFloat] = []
     var counter: Int = 1
-    @objc func tapped (sender: UITapGestureRecognizer) {
+    @objc func longTapPressed (sender: UITapGestureRecognizer) {
         counter = (counter + 1) % 2
         curOpacityTable = counter == 0 ? opacityTableLine : opacityTableBar
         _ = chart.setNeedsLayout()
     }
-    var gesture: UITapGestureRecognizer?
+    var gesture: UILongPressGestureRecognizer?
     @IBOutlet var slider: UISlider!
     @IBOutlet var sliderLimit: UISlider!
     @IBOutlet var chart: OMScrollableChart!
@@ -185,12 +185,11 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
         curOpacityTable = opacityTableLine
-        //        gesture = UITapGestureRecognizer(target: self, action: #selector(tapped(sender:)));
-        //        gesture?.numberOfTapsRequired = 1
-        //        self.view.isUserInteractionEnabled = true
-        //        if let gesture = gesture {
-        //            self.view.addGestureRecognizer(gesture)
-        //        }
+              gesture = UILongPressGestureRecognizer(target: self, action: #selector(longTapPressed(sender:)));
+              gesture?.cancelsTouchesInView = false
+              if let gesture = gesture {
+                  self.view.addGestureRecognizer(gesture)
+              }
         
         segmentInterpolation.removeAllSegments()
         segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)

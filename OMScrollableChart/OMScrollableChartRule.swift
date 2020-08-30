@@ -36,11 +36,6 @@ protocol ChartRuleProtocol: UIView {
 }
 
 
-extension UIView {
-    func removeSubviewsFromSuperview() {
-        self.subviews.forEach({ $0.removeFromSuperview()})
-    }
-}
 
 // Swift 3.0
 extension UIView {
@@ -206,7 +201,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         guard !self.frame.isEmpty else {
             return false
         }
-        self.removeSubviewsFromSuperview()
+        self.subviews.forEach({ $0.removeFromSuperview()})
         let width  = chart.sectionWidth
         let height = ruleSize.height
         let numOfSections = Int(chart.numberOfSections)
@@ -225,9 +220,15 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 label.backgroundColor = UIColor.white
                 label.textColor = fontColor
                 self.addArrangedSubview(label)
-                label.widthAnchor.constraint(equalToConstant: width).isActive = true
-                label.heightAnchor.constraint(equalToConstant: height).isActive = true
-                label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
+                
+                let width = chart.sectionWidth
+                let labelWidthAnchor = label.widthAnchor.constraint(equalToConstant: width)
+                labelWidthAnchor.priority =  UILayoutPriority(rawValue: 750)
+                labelWidthAnchor.isActive = true
+                label.heightAnchor.constraint(equalToConstant: ruleSize.height).isActive = true
+                label.setBorder(border: .right,
+                                weight: borderDecorationWidth,
+                                color: decorationColor)
             }
        // }
         self.setBorder(border: .top,

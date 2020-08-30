@@ -1,6 +1,6 @@
 import Foundation
 
-func SolveQuad(a a: Double, b: Double, c: Double) -> [Double] {
+func SolveQuad( a: Double, b: Double, c: Double) -> [Double] {
     let d = b * b - 4 * a * c
     if d >= 0
     {

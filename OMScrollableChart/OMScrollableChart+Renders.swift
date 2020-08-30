@@ -57,7 +57,7 @@ extension OMScrollableChart {
     }
     var polylinePath: UIBezierPath? {
         guard  let polylinePoints =  polylinePoints,
-            let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
+            let polylinePath = polylineInterpolation.asPath(points: polylinePoints, bounds: contentView.bounds) else {
                 return nil
         }
         return polylinePath
@@ -118,9 +118,6 @@ extension OMScrollableChart {
     }
     
     fileprivate func makeDiscrete(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        //                      let linregressData = makeLinregressPoints(data: discreteData,
-        //                                                                size: contentSize,
-        //                                                                numberOfElements: 1)
         if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
             self.discreteData.insert(discreteData, at: renderIndex)
             self.pointsRender.insert(discreteData.0, at: renderIndex)
@@ -274,5 +271,4 @@ extension OMScrollableChart {
         }
         return layers
     }
-    
 }

@@ -118,17 +118,20 @@ extension OMScrollableChart {
         let roundedStep = generator.range / Float(numberOfAllRuleMarks)
         for ruleMarkIndex in 0..<numberOfAllRuleMarks {
             let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-            if value > 10000 {
-                let roundToNearest = round(value / 10000) * 10000
+            if value > 100000 {
+                let roundToNearest = floor(value / 10000) * 10000
+                internalRulesMarks.append(roundToNearest)
+            } else if value > 10000 {
+                let roundToNearest = floor(value / 1000) * 1000
                 internalRulesMarks.append(roundToNearest)
             } else if value > 1000 {
-                let roundToNearest = round(value / 1000) * 1000
+                let roundToNearest = floor(value / 100) * 100
                 internalRulesMarks.append(roundToNearest)
             } else if value > 100 {
-                let roundToNearest = round(value / 100) * 100
+                let roundToNearest = floor(value / 10) * 10
                 internalRulesMarks.append(roundToNearest)
-            } else if value > 10 {
-                let roundToNearest = round(value / 10) * 10
+            } else {
+                let roundToNearest = floor(value)
                 internalRulesMarks.append(roundToNearest)
             }
         }

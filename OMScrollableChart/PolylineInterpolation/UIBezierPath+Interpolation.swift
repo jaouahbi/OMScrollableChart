@@ -366,7 +366,7 @@ extension UIBezierPath {
         return { argument in intercept + slope * argument }
     }
     var linearRegression: (Double) -> Double {
-        let points = self.cgPath.getPathElementsPoints()
+        let points = self.cgPath.points()
         let xs = points.map({Double($0.x)})
         let ys = points.map({Double($0.y)})
         let regression = linearRegression(xs, ys)
