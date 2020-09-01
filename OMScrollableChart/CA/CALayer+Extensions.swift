@@ -7,52 +7,6 @@
 
 import UIKit
 
-public extension CALayer {
-    static var numberOfRunningAnimations: Int = 0
-    func add(_ anim: CAAnimation,
-             forKey key: String?,
-             withCompletion completion: ((Bool) -> Void)?) {
-        CALayer.numberOfRunningAnimations += 1
-        anim.completion = {  complete in
-            completion?(complete)
-            if complete {
-                CALayer.numberOfRunningAnimations -= 1
-            }
-        }
-        add(anim, forKey: key)
-    }
-//    func addSublayer(_ layer: CALayer, delegate: CALayerDelegate? = nil) {
-//        if let delegate = delegate {
-//            layer.delegate = delegate
-//        }
-//        addSublayer(layer)
-//    }
-//     func insertSublayer(_ layer: CALayer, at idx: UInt32, delegate: CALayerDelegate? = nil) {
-//        if let delegate = delegate {
-//            layer.delegate = delegate
-//        }
-//        insertSublayer(layer, at: idx)
-//    }
-//    func insertSublayer(_ layer: CALayer, below sibling: CALayer?, delegate: CALayerDelegate? = nil){
-//        if let delegate = delegate {
-//            layer.delegate = delegate
-//        }
-//        insertSublayer(layer, below: sibling)
-//    }
-//    func insertSublayer(_ layer: CALayer, above sibling: CALayer?, delegate: CALayerDelegate? = nil){
-//        if let delegate = delegate {
-//            layer.delegate = delegate
-//        }
-//        insertSublayer(layer, above: sibling)
-//    }
-//    func replaceSublayer(_ oldLayer: CALayer, with newLayer: CALayer, delegate: CALayerDelegate? = nil) {
-//        if let delegate = delegate {
-//            newLayer.delegate = delegate
-//        }
-//        //remplazcd the delagte?
-//        replaceSublayer(oldLayer, with: newLayer)
-//    }
-}
 
 public extension CALayer {
     typealias LayerAnimation = (CALayer) -> CAAnimation

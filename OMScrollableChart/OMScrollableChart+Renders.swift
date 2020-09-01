@@ -27,6 +27,7 @@ extension OMScrollableChart {
     // Render the internal layers:
     // 0 - Polyline
     // 1 - Discrete points
+    // 2 - Selected points
     private func renderDefaultLayers(_ renderIndex: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
         switch renderIndex {
         case OMScrollableChart.Renders.polyline.rawValue:
@@ -57,7 +58,7 @@ extension OMScrollableChart {
     }
     var polylinePath: UIBezierPath? {
         guard  let polylinePoints =  polylinePoints,
-            let polylinePath = polylineInterpolation.asPath(points: polylinePoints, bounds: contentView.bounds) else {
+            let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
                 return nil
         }
         return polylinePath
@@ -83,65 +84,91 @@ extension OMScrollableChart {
         
         return [polylineLayer]
     }
-    fileprivate func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
-            if let approximationData = makeApproximationPoints( data: discreteData, size: contentSize) {
-                self.approximationData.insert(approximationData, at: renderIndex)
-                self.pointsRender.insert(approximationData.0, at: renderIndex)
-                var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: approximationData.0)
-                // accumulate layers
-                if layers.isEmpty {
-                    layers = renderDefaultLayers(renderIndex,
-                                                 points: approximationData.0)
+    func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+        let discretePoints = makeRawPoints(data, size: drawableFrame.size)
+        
+        if discretePoints.count > 0 {
+            let chartData = (discretePoints, data)
+            if let approximationPoints =  makeApproximationPoints( points: discretePoints,
+                                                                   tolerance: approximationTolerance) {
+                if approximationPoints.count > 0 {
+                    self.approximationData.insert(chartData, at: renderIndex)
+                    self.pointsRender.insert(approximationPoints, at: renderIndex)
+                    var layers = dataSource.dataLayers(chart: self,
+                                                       renderIndex: renderIndex,
+                                                       section: 0, points: approximationPoints)
+                    // accumulate layers
+                    if layers.isEmpty {
+                        layers = renderDefaultLayers(renderIndex,
+                                                     points: approximationPoints)
+                    }
+                    
+                    self.renderLayers.insert(layers, at: renderIndex)
                 }
-                
-                self.renderLayers.insert(layers, at: renderIndex)
             }
         }
     }
     
-    fileprivate func makeAverage(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let averagedData = makeAveragedPoints(data: data, size: contentSize, renderIndex: renderIndex) {
-            self.averagedData.insert(averagedData, at: renderIndex)
-            self.pointsRender.insert(averagedData.0, at: renderIndex)
+    func makeAverage(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+        if let averagedPoints = makeAveragedPoints(data: data, size: drawableFrame.size, elementsToAverage: numberOfElementsToAverage) {
+            let chartData = (averagedPoints, data)
+            self.averagedData.insert(chartData, at: renderIndex)
+            self.pointsRender.insert(averagedPoints, at: renderIndex)
             var layers = dataSource.dataLayers(chart: self,
                                                renderIndex: renderIndex,
-                                               section: 0, points: averagedData.0)
+                                               section: 0, points: averagedPoints)
             // accumulate layers
             if layers.isEmpty {
                 layers = renderDefaultLayers(renderIndex,
-                                             points: averagedData.0)
+                                             points: averagedPoints)
             }
             // accumulate layers
             self.renderLayers.insert(layers, at: renderIndex)
         }
     }
     
-    fileprivate func makeDiscrete(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
-            self.discreteData.insert(discreteData, at: renderIndex)
-            self.pointsRender.insert(discreteData.0, at: renderIndex)
+    func makeDiscrete(_ data: [Float],
+                                  _ renderIndex: Int,
+                                  _ dataSource: OMScrollableChartDataSource) {
+        //                      let linregressData = makeLinregressPoints(data: discreteData,
+        //                                                                size: contentSize,
+        //                                                                numberOfElements: 1)
+        let discretePoints = makeRawPoints(data, size: drawableFrame.size)
+        if discretePoints.count > 0 {
+            let chartData = (discretePoints, data)
+            self.discreteData.insert(chartData, at: renderIndex)
+            self.pointsRender.insert(discretePoints, at: renderIndex)
             
             var layers = dataSource.dataLayers(chart: self,
                                                renderIndex: renderIndex,
                                                section: 0,
-                                               points: discreteData.0)
+                                               points: discretePoints)
             //  use the private
             if layers.isEmpty {
                 layers = renderDefaultLayers(renderIndex,
-                                             points: discreteData.0)
+                                             points: discretePoints)
             }
             // accumulate layers
             self.renderLayers.insert(layers, at: renderIndex)
         }
     }
     
-    fileprivate func makeLinregress(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let discreteData = makeRawPoints(data: data, size: contentSize, renderIndex: renderIndex) {
-            let linregressData = makeLinregressPoints(data: discreteData, size: contentSize,numberOfElements: discreteData.0.count + 1, renderIndex: renderIndex)
+    fileprivate func makeLinregress(_ data: [Float],
+                                    _ renderIndex: Int,
+                                    _ dataSource: OMScrollableChartDataSource) {
+        let discretePoints = makeRawPoints(data, size: drawableFrame.size)
+        if discretePoints.count > 0{
+            let chartData = (discretePoints, data)
+            let linregressData = makeLinregressPoints(data: chartData,
+                                                      size: drawableFrame.size,
+                                                      numberOfElements: discretePoints.count + 1,
+                                                      renderIndex: renderIndex)
             self.linregressData.insert(linregressData, at: renderIndex)
             self.pointsRender.insert(linregressData.0, at: renderIndex)
-            var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex,section: 0, points: linregressData.0)
+            var layers = dataSource.dataLayers(chart: self,
+                                               renderIndex: renderIndex,
+                                               section: 0,
+                                               points: linregressData.0)
             // accumulate layers
             if layers.isEmpty {
                 layers = renderDefaultLayers(renderIndex,
@@ -153,8 +180,11 @@ extension OMScrollableChart {
         }
     }
     
-    func renderLayers(_ renderIndex: Int,
-                      renderAs: OMScrollableChart.RenderData) {
+    /// renderLayers
+    /// - Parameters:
+    ///   - renderIndex: <#renderIndex description#>
+    ///   - renderAs: <#renderAs description#>
+    func renderLayers(_ renderIndex: Int, renderAs: OMScrollableChart.RenderData) {
         guard let dataSource = dataSource else {
             return
         }
@@ -169,7 +199,6 @@ extension OMScrollableChart {
         case .linregress:
             makeLinregress(data, renderIndex, dataSource)
         }
-        
         self.renderType.insert(renderAs, at: renderIndex)
         
     }
@@ -271,4 +300,5 @@ extension OMScrollableChart {
         }
         return layers
     }
+    
 }

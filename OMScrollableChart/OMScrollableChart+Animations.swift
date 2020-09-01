@@ -144,11 +144,31 @@ extension OMScrollableChart {
         }
         return animation
     }
+    
+    func animationOpacity(_ layer: CALayer,
+                           fromValue: CGFloat = 0,
+                           toValue: CGFloat = 1.0,
+                           duration: TimeInterval = 4.0) -> CAAnimation {
+        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+        fadeAnimation.toValue    = toValue
+        fadeAnimation.fromValue  = fromValue
+        fadeAnimation.fillMode   = .forwards
+        fadeAnimation.duration   = duration
+        fadeAnimation.isRemovedOnCompletion = false
+        fadeAnimation.completion = { finished in
+            CATransaction.withDisabledActions{
+                layer.opacity = Float(toValue)
+            }
+        }
+        return fadeAnimation
+    }
+        
     func animationWithFadeGroup(_ layer: CALayer,
                                 fromValue: CGFloat = 0,
                                 toValue: CGFloat = 1.0,
-                                animation: CAAnimation) -> CAAnimation {
-        let duration = animation.duration
+                                animations: [CAAnimation],
+                                duration: TimeInterval = 1.0) -> CAAnimation {
+        let duration = duration
         let fadeAnimation = CABasicAnimation(keyPath: "opacity")
         fadeAnimation.toValue  = toValue
         fadeAnimation.fromValue  = fromValue
@@ -161,7 +181,7 @@ extension OMScrollableChart {
             }
         }
         let animGroup = CAAnimationGroup()
-        animGroup.animations = [animation, fadeAnimation]
+        animGroup.animations = [fadeAnimation] + animations
         animGroup.duration = duration
         animGroup.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeIn)
         animGroup.delegate = self

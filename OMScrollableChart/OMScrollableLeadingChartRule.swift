@@ -36,6 +36,11 @@ protocol ChartRuleProtocol: UIView {
 }
 
 
+extension UIView {
+    func removeSubviewsFromSuperview() {
+        self.subviews.forEach({ $0.removeFromSuperview()})
+    }
+}
 
 // Swift 3.0
 extension UIView {
@@ -83,8 +88,8 @@ extension UIView {
   }
 }
 
-// MARK: - OMScrollableChartRule -
-class OMScrollableChartRule: UIView, ChartRuleProtocol {
+// MARK: - OMScrollableLeadingChartRule -
+class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
     private var labelViews = [UIView]()
     var views: [UIView]?  {
         return labelViews
@@ -118,16 +123,16 @@ class OMScrollableChartRule: UIView, ChartRuleProtocol {
         guard let chart = chart else {
             return false
         }
-
         labelViews.forEach({$0.removeFromSuperview()})
         labelViews.removeAll()
-        let fontSize: CGFloat = font.pointSize * 0.5
+        let fontSize: CGFloat = font.pointSize
   
         for (index, item) in chart.rulesPoints.enumerated() {
             if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                 let string = NSAttributedString(string: stepString,
                                                 attributes: [NSAttributedString.Key.font: self.font,
-                                                             NSAttributedString.Key.foregroundColor: self.fontColor])
+                                                             NSAttributedString.Key.foregroundColor: self.fontColor,
+                                                             NSAttributedString.Key.strokeColor: UIColor.lightGray])
                 let label = UILabel()
                 label.attributedText = string
                 label.sizeToFit()
@@ -201,7 +206,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         guard !self.frame.isEmpty else {
             return false
         }
-        self.subviews.forEach({ $0.removeFromSuperview()})
+        self.removeSubviewsFromSuperview()
         let width  = chart.sectionWidth
         let height = ruleSize.height
         let numOfSections = Int(chart.numberOfSections)
@@ -220,15 +225,9 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 label.backgroundColor = UIColor.white
                 label.textColor = fontColor
                 self.addArrangedSubview(label)
-                
-                let width = chart.sectionWidth
-                let labelWidthAnchor = label.widthAnchor.constraint(equalToConstant: width)
-                labelWidthAnchor.priority =  UILayoutPriority(rawValue: 750)
-                labelWidthAnchor.isActive = true
-                label.heightAnchor.constraint(equalToConstant: ruleSize.height).isActive = true
-                label.setBorder(border: .right,
-                                weight: borderDecorationWidth,
-                                color: decorationColor)
+                label.widthAnchor.constraint(equalToConstant: width).isActive = true
+                label.heightAnchor.constraint(equalToConstant: height).isActive = true
+                label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
             }
        // }
         self.setBorder(border: .top,

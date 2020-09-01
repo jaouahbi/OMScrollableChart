@@ -112,35 +112,36 @@ extension OMScrollableChart {
     
     // Calculate the rules marks positions
     func internalCalcRules() {
-        let generator  = scaledPointsGenerator[Renders.polyline.rawValue] 
-        // + 2 is the limit up and the limit down
-        let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2
-        let roundedStep = generator.range / Float(numberOfAllRuleMarks)
-        for ruleMarkIndex in 0..<numberOfAllRuleMarks {
-            let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-            if value > 100000 {
-                let roundToNearest = floor(value / 10000) * 10000
-                internalRulesMarks.append(roundToNearest)
-            } else if value > 10000 {
-                let roundToNearest = floor(value / 1000) * 1000
-                internalRulesMarks.append(roundToNearest)
-            } else if value > 1000 {
-                let roundToNearest = floor(value / 100) * 100
-                internalRulesMarks.append(roundToNearest)
-            } else if value > 100 {
-                let roundToNearest = floor(value / 10) * 10
-                internalRulesMarks.append(roundToNearest)
-            } else {
-                let roundToNearest = floor(value)
-                internalRulesMarks.append(roundToNearest)
+        // Get the polyline generator
+        if let generator  = coreGenerator {
+            // + 2 is the limit up and the limit down
+            let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2
+            let roundedStep = generator.range / Float(numberOfAllRuleMarks)
+            for ruleMarkIndex in 0..<numberOfAllRuleMarks {
+                let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
+                if value > 100000 {
+                    let roundToNearest = floor(value / 10000) * 10000
+                    internalRulesMarks.append(roundToNearest)
+                } else if value > 10000 {
+                    let roundToNearest = floor(value / 1000) * 1000
+                    internalRulesMarks.append(roundToNearest)
+                } else if value > 1000 {
+                    let roundToNearest = floor(value / 100) * 100
+                    internalRulesMarks.append(roundToNearest)
+                } else if value > 100 {
+                    let roundToNearest = floor(value / 10) * 10
+                    internalRulesMarks.append(roundToNearest)
+                } else {
+                    internalRulesMarks.append(floor(value))
+                }
             }
+            internalRulesMarks.append(generator.maximumValue)
         }
-        internalRulesMarks.append(generator.maximumValue)
     }
     // Create and add
     func createSuplementaryRules() {
         
-        let rootRule = OMScrollableChartRule(chart: self)
+        let rootRule = OMScrollableLeadingChartRule(chart: self)
         rootRule.chart = self
         rootRule.font  = ruleFont
         rootRule.fontColor = fontRootRuleColor
@@ -152,7 +153,7 @@ extension OMScrollableChart {
         self.footerRule = footerRule
         self.rules.append(rootRule)
         self.rules.append(footerRule)
-       // self.rules.append(topRule)
+        // self.rules.append(topRule)
         
         
         //        if let topRule = topRule {
@@ -160,16 +161,16 @@ extension OMScrollableChart {
         //        }
     }
     func makeRulesPoints() -> Bool {
-     let generator  = scaledPointsGenerator[Renders.polyline.rawValue] 
-        guard numberOfRuleMarks > 0 && (generator.range != 0)  else {
-            return false
+        if let generator  = coreGenerator {
+            guard numberOfRuleMarks > 0 && (generator.range != 0)  else {
+                return false
+            }
+            internalRulesMarks.removeAll()
+            internalCalcRules()
+            rulesPoints = generator.makePoints(data: rulesMarks, size: drawableFrame.size)
+            return true
         }
-        internalRulesMarks.removeAll()
-        internalCalcRules()
-   
-        rulesPoints = generator.makePoints(data: rulesMarks, size: contentSize)
-        
-        return true
+        return false
     }
     
     func layoutRules() {
@@ -191,16 +192,15 @@ extension OMScrollableChart {
         dashLineLayers.forEach({$0.removeFromSuperlayer()})
         dashLineLayers.removeAll()
         
-        //let zeroMarkIndex    = rulesMarks.firstIndex(of: 0)
         let padding: CGFloat = rule.ruleSize.width
         let width = contentView.frame.width
-        rulesPoints.enumerated().forEach { (offset: Int, item: CGPoint) in
-            
+        
+        for item in rulesPoints {
             let markPointLeft  = CGPoint(x: padding, y: item.y)
             let markPointRight = CGPoint(x: width, y: item.y)
-            addDashLineLayerFromRuleMark(point: markPointLeft,
-                                         endPoint: markPointRight)
+            addDashLineLayerFromRuleMark(point: markPointLeft, endPoint: markPointRight)
         }
+
         // Mark for display the rule.
         rules.forEach {
             $0.setNeedsLayout()

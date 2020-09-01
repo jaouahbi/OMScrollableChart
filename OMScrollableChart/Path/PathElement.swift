@@ -1,5 +1,10 @@
 import UIKit
 
+// swiftlint:disable identifier_name shorthand_operator
+// swiftlint:disable file_length
+// swiftlint:disable type_body_length
+// swiftlint:disable cyclomatic_complexity
+
 extension Path {
     enum Element {
         case MoveToPoint(point: CGPoint)
@@ -129,7 +134,9 @@ extension Path {
                     let c = P0 - y
                     
                     
-                    let roots: Array<Double> = SolveQuad(a: a, b: b, c: c)
+                    let roots: Array<Double> = Double.solveQuadraticEquation(solveA: a,
+                                                                             solveB: b,
+                                                                             solveC: c)
                     let rootsCount = roots.count
                     
                     var result: [Double] = []
@@ -156,7 +163,7 @@ extension Path {
                     let c = -3 * P0 + 3 * P1
                     let d = P0 - y
                     
-                    let roots = SolveCubic(a: a, b: b, c: c, d: d)
+                    let roots = Double.solveCubicEquation(a: a, b: b, c: c, d: d)
                     let rootsCount = roots.count
 
                     var result: [Double] = []
@@ -260,3 +267,9 @@ extension Path {
         }
     }
 }
+
+
+// swiftlint:enabled identifier_name shorthand_operator
+// swiftlint:enabled file_length
+// swiftlint:enabled type_body_length
+// swiftlint:enabled cyclomatic_complexity

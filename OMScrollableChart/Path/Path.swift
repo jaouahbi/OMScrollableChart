@@ -1,6 +1,11 @@
 import UIKit
 
 // TODO: calculate normals/tangents
+
+
+// swiftlint:disable identifier_name shorthand_operator
+// swiftlint:disable file_length
+// swiftlint:disable type_body_length//
 struct Path {
 
     // MARK: - Interface
@@ -340,3 +345,7 @@ extension Path {
             +                               t*t*t * P3
     }
 }
+
+// swiftlint:enabled identifier_name shorthand_operator
+// swiftlint:enabled file_length
+// swiftlint:enabled type_body_length

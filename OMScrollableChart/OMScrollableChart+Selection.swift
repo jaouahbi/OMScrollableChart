@@ -157,7 +157,7 @@ extension OMScrollableChart {
         return discreteData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
     }
     func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
-        if self.renderType[renderIndex] == .averaged {
+        if self.renderType[renderIndex].isAveraged {
             if let render = discreteData[renderIndex],
                 let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 let item: Double = Double(render.data[firstIndex])
@@ -177,7 +177,7 @@ extension OMScrollableChart {
         return nil
     }
     func dataFromPoint(_ point: CGPoint, renderIndex: Int) -> Float? {
-        if self.renderType[renderIndex] == .averaged {
+        if self.renderType[renderIndex].isAveraged {
             if let render = discreteData[renderIndex],
                 let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return Float(render.data[firstIndex])
@@ -191,7 +191,7 @@ extension OMScrollableChart {
         return nil
     }
     func dataIndexFromPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
-        if self.renderType[renderIndex] == .averaged {
+        if self.renderType[renderIndex].isAveraged {
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return firstIndex
             }
@@ -207,7 +207,7 @@ extension OMScrollableChart {
         return result
     }
     func dataIndexFromLayers(_ point: CGPoint, renderIndex: Int) -> Int? {
-        if self.renderType[renderIndex] == .averaged {
+        if self.renderType[renderIndex].isAveraged {
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return firstIndex
             }

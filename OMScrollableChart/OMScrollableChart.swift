@@ -213,18 +213,19 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     weak var renderSource: OMScrollableChartRenderableProtocol?
     weak var renderDelegate: OMScrollableChartRenderableDelegateProtocol?
     
+    var isAnimatePointsClearOpacity: Bool = true
+    var rideAnim: CAAnimation? = nil
+    var layerToRide: CALayer?
+    var ridePath: Path?
+    
+    
     // Content view
     lazy var contentView: UIView =  {
         let lazyContentView = UIView(frame: self.bounds)
         self.addSubview(lazyContentView)
         return lazyContentView
     }()
-    
-    var rideAnim: CAAnimation? = nil
-    var layerToRide: CALayer?
-    var ridePath: Path?
-    
-    
+
     // MARK: - Tooltip -
     var tooltip: OMBubbleTextView = OMBubbleTextView()
     // Scaled generator
@@ -271,76 +272,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             updateContentSize()
         }
     }
-    
-   static func smoothCurve(_ points: [CGPoint], bounds: CGRect, smooth: Bool = false) -> UIBezierPath? {
-
-        var smoothedCurve = UIBezierPath()
-  
-         let width = bounds.size.width
-      
-         var smoothedPoints: [CGPoint]
-         if smooth  {
-           (smoothedPoints, _) = smoothPointsInArray(points, granularity: 4)
-         }
-         else {
-           smoothedPoints = points
-         }
-        var fillColor : UIColor?
-         var firstPoint: Bool = false
-         if fillColor == nil {
-           firstPoint = true
-         }
-         else {
-           smoothedCurve.move(to: CGPoint(x: -1, y: bounds.height+1))
-         }
-         for aPoint in smoothedPoints {
-           if firstPoint {
-             smoothedCurve.move(to: aPoint)
-             firstPoint = false
-           }
-           else {
-             smoothedCurve.addLine(to: aPoint)
-           }
-         }
-         if fillColor != nil {
-           smoothedCurve.addLine(to: CGPoint(x: bounds.width+1, y: bounds.height+1))
-           smoothedCurve.addLine(to: CGPoint(x: -1, y: bounds.height+1))
-           smoothedCurve.close()
-         }
-
-         
-         //print("Loop in \(steps) steps")
-       
-       return smoothedCurve
-     }
-    
     // MARK: - Polyline -
-    public enum PolyLineInterpolation {
-        case none
-        case smoothed
-        case cubicCurve
-        case catmullRom(_ alpha: CGFloat)
-        case hermite(_ alpha: CGFloat)
-        // MARK: - UIBezierPaths -
-        func asPath( points: [CGPoint]?, bounds: CGRect) -> UIBezierPath? {
-            guard let polylinePoints = points else {
-                return nil
-            }
-            switch self {
-            case .none:
-                return UIBezierPath(points: polylinePoints, maxYPosition: 0)
-            case .smoothed:
-                return UIBezierPath(smoothedPoints: polylinePoints, maxYPosition: 0)
-            case .cubicCurve:
-                return  UIBezierPath(cubicCurvePoints: polylinePoints, maxYPosition: 0)
-            case .catmullRom(let alpha):
-                return UIBezierPath(catmullRomPoints: polylinePoints, alpha: alpha)!
-            case .hermite(_):
-                return UIBezierPath(hermitePoints: polylinePoints, maxYPosition: 0)
-            }
-        }
-    }
-    
     /// Polyline Interpolation
     var polylineInterpolation: PolyLineInterpolation = .catmullRom(0.5) {
         didSet {
@@ -452,7 +384,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var rulesPoints = [CGPoint]()
     var animatePolyLine = false
     var animateDashLines: Bool = false
-    var animatePointLayers: Bool = true
+    var animatePointLayers: Bool = false
     var animateLineSelection: Bool = false
     var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
     var selectedColor = UIColor.red
@@ -512,6 +444,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
         self.createSuplementaryRules()
         self.setupTooltip()
+        
         //        if isScreenLine {
         //            self.setupTouchScreenLineLayer()
         //        }
@@ -558,6 +491,10 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                                        height: self.contentSize.height - footerViewHeight)
         }
         self.updateLayout()
+    }
+    
+    var drawableFrame: CGRect {
+        return CGRect(origin: .zero, size: contentView.frame.size)
     }
     
     //
@@ -771,22 +708,97 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     
     public typealias ChartData = (points: [CGPoint], data: [Float])
+    
     enum RenderData {
         case discrete
-        case averaged
-        case approximation
-        case linregress
+        case averaged(Int)
+        case approximation(CGFloat)
+        case linregress(Int)
+        func makePoints( data: [Float], for size: CGSize, generator: ScaledPointsGenerator) -> [CGPoint] {
+            switch self {
+            case .discrete:
+                return generator.makePoints(data: data, size: size)
+            case .averaged(let elementsToAverage):
+                if elementsToAverage != 0 {
+                    var result: Float = 0
+                    let positives = data.map{$0>0 ? $0: abs($0)}
+                    //            let negatives = data.filter{$0<0}
+                    //
+                    //            for negative in negatives {
+                    //               let i = data.indexes(of: negatives)
+                    //            }
+                    
+                    let chunked = positives.chunked(into: elementsToAverage)
+                    let averagedData: [Float] = chunked.map {
+                        vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
+                        return result
+                    }
+                    //let averagedData = groupAverage(positives, numberOfElements: positives.count)
+                    return generator.makePoints(data: averagedData, size: size)
+                }
+            case .approximation(let tolerance):
+                let points = generator.makePoints(data: data, size: size)
+                guard tolerance != 0, points.count > 0 else {
+                    return []
+                }
+                return  OMSimplify.decimate(points, tolerance: CGFloat(tolerance))
+            case .linregress(let elements):
+                let points = generator.makePoints(data: data, size: size)
+                let originalDataIndex: [Float] = points.enumerated().map { Float($0.offset) }
+                //        let max = originalData.points.max(by: { $0.x < $1.x})!
+                //        let distance = mean(originalDataX.enumerated().compactMap{
+                //            if $0.offset > 0 {
+                //                return originalDataX[$0.offset-1].distance(to: $0.element)
+                //            }
+                //            return nil
+                //        })
+                
+                
+                // let results = originalDataX//.enumerated().map{ return originalDataX.prefix($0.offset+1).reduce(.zero, +)}
+                
+                let linFunction: (slope: Float, intercept: Float) = Stadistics.linregress(originalDataIndex, data)
+                
+                // var index = 0
+                let result: [Float] = [Float].init(repeating: 0, count: elements)
+                
+                let resulLinregress = result.enumerated().map{
+                    linFunction.slope * Float($0.offset) + linFunction.intercept }
+                //        for item in result  {
+                //            result[index] = dataForIndex(index:  Float(index))
+                //            index += 1
+                //        }
+                //
+                // add the new points
+                let newData = data + resulLinregress
+                return generator.makePoints(data: newData, size: size)
+            }
+            
+            return []
+        }
+        
+        var isAveraged: Bool {
+            switch self {
+            case .averaged(_):
+               return true
+            default:
+                return false
+            }
+        }
+        
     }
-    
+
     
     var linFunction: (slope: Float, intercept: Float)?
     
     // MARK: Default renders
     enum Renders: Int {
-        case polyline    = 0
-        case points      = 1
+        case polyline       = 0
+        case points         = 1
         case selectedPoint  = 2
         case base           = 3  //  public renders base index
+    }
+    var coreGenerator: ScaledPointsGenerator? {
+        return scaledPointsGenerator[Renders.polyline.rawValue]
     }
     // Polyline render index 0
     var polylinePoints: [CGPoint]?  {
@@ -822,50 +834,37 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     func maxPoint( renderIndex: Int) -> CGPoint? {
         return  pointsRender[renderIndex].max(by: {$0.x <= $1.x})
     }
-    
-    var allPointsRender: [CGPoint] { return  pointsRender.flatMap{$0}}
-    var allDataPointsRender: [Float] { return  dataPointsRender.flatMap{$0}}
-    var allRendersLayers: [CAShapeLayer]  {  return renderLayers.flatMap({$0}) }
-    
-    
-    func makeAveragedPoints( data: [Float], size: CGSize, renderIndex: Int) ->  ([CGPoint], [Float])? {
-        
-        let generator  = scaledPointsGenerator[renderIndex]
-        if numberOfElementsToAverage != 0 {
+    func makeAveragedPoints( data: [Float], size: CGSize, elementsToAverage: Int) -> [CGPoint]? {
+        let generator  = scaledPointsGenerator[0]
+        if elementsToAverage != 0 {
             var result: Float = 0
             let positives = data.map{$0>0 ? $0: abs($0)}
             //            let negatives = data.filter{$0<0}
             //
-            //            for ccc in negatives {
+            //            for negative in negatives {
             //               let i = data.indexes(of: negatives)
             //            }
             
-            let chunked = positives.chunked(into: numberOfElementsToAverage)
+            let chunked = positives.chunked(into: elementsToAverage)
             let averagedData: [Float] = chunked.map {
                 vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
                 return result
             }
             //let averagedData = groupAverage(positives, numberOfElements: positives.count)
-            let points = generator.makePoints(data: averagedData, size: size)
-            return (points, averagedData)
+            return generator.makePoints(data: averagedData, size: size)
         }
         return nil
     }
-    func makeRawPoints( data: [Float], size: CGSize, renderIndex: Int) ->  ([CGPoint], [Float])? {
-        let generator  = scaledPointsGenerator[renderIndex]
+    func makeRawPoints(_ data: [Float], size: CGSize) -> [CGPoint] {
+        let generator  = scaledPointsGenerator[0]
         generator.updateRangeLimits(data)
-        let points = generator.makePoints(data: data, size: size)
-        return (points, data)
+        return generator.makePoints(data: data, size: size)
     }
-    func makeApproximationPoints( data: ChartData, size: CGSize) ->  ([CGPoint], [Float])? {
-        guard approximationTolerance != 0,
-            data.data.count > 0,
-            data.points.count > 0 else {
-                return nil
+    func makeApproximationPoints( points: [CGPoint], tolerance: CGFloat) -> [CGPoint]? {
+        guard tolerance != 0, points.count > 0 else {
+            return nil
         }
-        let approximationPoints = OMSimplify.decimate(data.points,
-                                                      tolerance: CGFloat(approximationTolerance))
-        return (approximationPoints, data.data)
+        return  OMSimplify.decimate(points, tolerance: CGFloat(tolerance))
     }
     fileprivate func removeAllLayers() {
         self.renderLayers.forEach{$0.forEach{$0.removeFromSuperlayer()}}
@@ -891,7 +890,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             let anim = animationWithFadeGroup(layer,
                                               fromValue: CGFloat(layer.opacity),
                                               toValue: layerOpacity,
-                                              animation: animation)
+                                              animations: [animation])
             layer.add(anim, forKey: "renderPathAnimationGroup", withCompletion: nil)
         } else {
             
@@ -904,7 +903,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                                               layerOpacity: CGFloat) {
         let anima = animationWithFadeGroup(layer,
                                            toValue: layerOpacity,
-                                           animation: animation)
+                                           animations: [animation])
         if layer.opacity == 0 {
             layer.add(anima, forKey: "renderPositionAnimationGroup", withCompletion: nil)
         } else {
@@ -917,12 +916,17 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         
         layer.add(animation, forKey: "renderOpacityAnimation", withCompletion: nil)
     }
+    
     func updateRenderLayersOpacity( for renderIndex: Int, layerOpacity: CGFloat) {
         // Don't delay the opacity
         renderLayers[renderIndex].enumerated().forEach { layerIndex, layer  in
             layer.opacity = Float(layerOpacity)
         }
     }
+    
+    var allPointsRender: [CGPoint] { return  pointsRender.flatMap{$0}}
+    var allDataPointsRender: [Float] { return  dataPointsRender.flatMap{$0}}
+    var allRendersLayers: [CAShapeLayer]  {  return renderLayers.flatMap({$0}) }
     func queryDataAndRegenerateRendersLayers(_ numberOfRenders: Int, _ dataSource: OMScrollableChartDataSource) {
         // points and layers
         pointsRender.removeAll()
@@ -945,10 +949,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         // add layers
         for (renderIndex, layer) in allRendersLayers.enumerated() {
             // Insert the render layers
-
-            layer.actionLayer = {  (action, key) in
-                return MyAction()
-            }
             self.contentView.layer.insertSublayer(layer, at: UInt32(renderIndex))
         }
     }
@@ -958,17 +958,16 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     ///   - dataSource: OMScrollableChartDataSource
     func layoutRenders(_ numberOfRenders: Int, _ dataSource: OMScrollableChartDataSource) {
         queryDataAndRegenerateRendersLayers(numberOfRenders, dataSource)
+        // update with animation
         for renderIndex in 0..<numberOfRenders {
             // Get the opacity
             let  layerOpacity = dataSource.renderLayerOpacity(chart: self,
                                                               renderIndex: renderIndex)
-            updateRenderLayersOpacity(for: renderIndex,
-                                      layerOpacity: layerOpacity)
+            updateRenderLayersOpacity(for: renderIndex, layerOpacity: layerOpacity)
             
-            let timing = dataSource.queryAnimation(chart: self,
-                                                   renderIndex: renderIndex)
+            let timing = dataSource.queryAnimation(chart: self, renderIndex: renderIndex)
             if timing.repeatCount > 0 {
-                print("\(renderIndex) Animating the render layers.")
+                print("Animating the render:\(renderIndex) layers.")
                 animateRenderLayers(renderIndex,
                                     layerOpacity: layerOpacity)
            // } else {
@@ -976,29 +975,24 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             }
         }
     }
-    /// runRideProgress
-    /// - Parameters:
-    ///   - renderIndex: renderIndex
-    ///   - pageIndex: pageIndex
-    ///   - scrollAnimation: scrollAnimation
-    func runRideProgress(_ renderIndex: Int, pageIndex: Int = 1, scrollAnimation: Bool = false) {
+    
+    func runRideProgress(layerToRide: CALayer?, renderIndex: Int, scrollAnimation: Bool = false) {
         if let anim = self.rideAnim {
-            if let layerRide = self.layerToRide {
+            if let layerRide = layerToRide {
                 CATransaction.withDisabledActions {
                     layerRide.transform = CATransform3DIdentity
                 }
                 if scrollAnimation {
                     let delay: TimeInterval = 0.5
                     let preTimeOffset: TimeInterval = 1.0
-                    let duration = anim.duration + delay - preTimeOffset
-                    UIView.animate(withDuration: duration,
+                    UIView.animate(withDuration: anim.duration + delay - preTimeOffset,
                                    delay: delay,
                                    options: .curveEaseInOut,
                                    animations: {
-                            var frame: CGRect = self.frame
-                            frame.origin.x = frame.size.width * CGFloat(pageIndex)
-                            frame.origin.y = 0
-                            self.scrollRectToVisible(frame, animated: true)
+                                    var frame: CGRect = self.frame
+                                    frame.origin.x = frame.size.width * CGFloat(1)
+                                    frame.origin.y = 0
+                                    self.scrollRectToVisible(frame, animated: true)
                     })
                 }
                 layerRide.add(anim, forKey: "around", withCompletion: {  complete in
@@ -1008,36 +1002,29 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                             layerRide.transform = presentationLayer.transform
                         }
                     }
-                    self.renderDelegate?.animationDidEnded(chart: self,
-                                                           renderIndex: renderIndex,
-                                                           animation: anim)
+                    self.animationDidEnded(renderIndex: Int(renderIndex), animation: anim)
                     layerRide.removeAnimation(forKey: "around")
                 })
             }
         }
     }
-    fileprivate func executeAnimation(for keyPath: String,
-                                      renderIndex: Int,
-                                      layer: OMGradientShapeClipLayer,
-                                      layerOpacity: CGFloat,
-                                      animation: CAAnimation) {
-        if keyPath == "path" {
-            performPathAnimation(layer, animation, layerOpacity)
-        } else if keyPath == "position" {
-            performPositionAnimation(layer, animation, layerOpacity: layerOpacity)
-        } else if keyPath == "opacity" {
-            performOpacityAnimation(layer, animation)
-        } else if keyPath == "rideProgress" {
-            runRideProgress(renderIndex, scrollAnimation: true)
-        } else {
-            print("Unknown key path \(keyPath)")
+    
+     func animationDidEnded(renderIndex: Int, animation: CAAnimation) {
+        let keyPath = animation.value(forKeyPath: "keyPath") as? String
+        if let animationKF = animation as? CAKeyframeAnimation, animationKF.path != nil, keyPath == "position" {
+            if isAnimatePointsClearOpacity && isCacheStable {
+                 animatePointsClearOpacity()
+             }
         }
+        renderDelegate?.animationDidEnded(chart: self,
+                                          renderIndex: renderIndex,
+                                          animation: animation)
     }
     
     /// animateRenderLayers
     /// - Parameters:
-    ///   - renderIndex: renderIndex description
-    ///   - layerOpacity: layerOpacity description
+    ///   - renderIndex: render index
+    ///   - layerOpacity: opacity
     func animateRenderLayers(_ renderIndex: Int, layerOpacity: CGFloat) {
         renderLayers[renderIndex].enumerated().forEach { layerIndex, layer  in
             if let animation = dataSource?.animateLayers(chart: self,
@@ -1058,18 +1045,28 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                         }
                     }
                 } else {
-                    
-                    if let keyPath = animation.value(forKeyPath: "keyPath") as? String {
-                        executeAnimation(for: keyPath,
-                                         renderIndex: renderIndex,
-                                         layer: layer,
-                                         layerOpacity:layerOpacity ,
-                                         animation: animation)
+                    let keyPath = animation.value(forKeyPath: "keyPath") as? String
+                    if keyPath == "path" {
+                        performPathAnimation(layer, animation, layerOpacity)
+                    } else if keyPath == "position" {
+                        performPositionAnimation(layer, animation, layerOpacity: layerOpacity)
+                    } else if keyPath == "opacity" {
+                        performOpacityAnimation(layer, animation)
+                    } else if keyPath == "rideProgress" {
+                        runRideProgress(layerToRide: layerToRide, renderIndex: renderIndex, scrollAnimation: true)
+                    } else {
+                        print("Unknown key path \(keyPath)")
+                        
                     }
                 }
             }
         }
     }
+    var cacheTrackingLayout: Int = 0
+    var isCacheStable: Bool {
+        return cacheTrackingLayout > 2
+    }
+    
     /// Update the chart layout
     /// - Parameter forceLayout: Bool
     fileprivate func updateLayout( ignoreLayout: Bool = false) {
@@ -1081,15 +1078,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                 if flatPointsToRender.count > 0 {
                     let frameHash  = self.frame.hashValue
                     let pointsHash = flatPointsToRender.hashValue
-                    let primeNumber = 101
-                    let dictKey = "\(frameHash ^ pointsHash ^ primeNumber)"
+                    let dictKey = "\(frameHash ^ pointsHash)"
                     if let item = layoutCache[dictKey] as? [[CGPoint]] {
-                        print("[\(Date().description)] [LCACHE] cache hit \(dictKey) [PKJI]")
-                        // The layout is ok
+                        print("[LCACHE] cache hit \(dictKey) [PKJI]")
+                        cacheTrackingLayout += 1
                         setNeedsDisplay()
                         return
                     }
-                    print("[\(Date().description)] [LCACHE] cache miss \(dictKey) [PKJI]")
+                    print("[LCACHE] cache miss \(dictKey) [PKJI]")
+                    cacheTrackingLayout = 0
                     layoutCache.updateValue(pointsRender,
                                             forKey: dictKey)
                 }
@@ -1097,36 +1094,24 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
         // Create the points from the discrete data using the renders
         if allDataPointsRender.count > 0 {
-            print("\(CALayer.numberOfRunningAnimations) animations running")
-            if CALayer.numberOfRunningAnimations <= 0 {
-                print("Regenerating the layer tree. ignoringLayout: \(ignoreLayout)")
+            print("\(CALayer.isAnimatingLayers) animations running")
+            if CALayer.isAnimatingLayers <= 0 {
+                print("Regenerating the layer tree.")
                 
                 removeAllLayers()
                 addLeadingRuleIfNeeded(rootRule, view: self)
                 addFooterRuleIfNeeded(footerRule)
                 if let render = self.renderSource,
-                    let dataSource = dataSource,
-                    render.numberOfRenders > 0  {
+                    let dataSource = dataSource, render.numberOfRenders > 0  {
                     // layout renders
                     layoutRenders(render.numberOfRenders , dataSource)
                     // layout rules
                     layoutRules()
                 }
             }
-            
-//            if let points = polylinePath?.cgPath.points() {
-//                let path = BezierPath(points: points)
-//                let point = path.posAt(time: 0.5)
-//                let bezPath = path.getNPoints(count: 100)
-//                print(bezPath)
-//
-//                let xx = CAAnimation.moveAlong(bezier: points, duration: 1.0)
-//            }
         }
     }
     var oldFrame: CGRect = .zero
-    
-    
 }
 
 
@@ -1144,8 +1129,7 @@ extension OMScrollableChart {
         if let hitTestLayer = hitTestLayer {
             var isSelected: Bool = false
             // skip polyline layer
-            let startRender = Renders.points.rawValue
-            for renderIndex in startRender..<renderLayers.count {
+            for renderIndex in 1..<renderLayers.count {
                 // Get the point more near
                 let selectedLayer = locationToNearestLayer(location,
                                                            renderIndex: renderIndex)
@@ -1235,8 +1219,22 @@ extension OMScrollableChart {
         }
         //print("[\(Date().description)] [RND] visibles \(visibleLayers.count) no visibles \(invisibleLayers.count) [PKJI]")
     }
-
     
+    fileprivate func animatePointsClearOpacity() {
+        guard renderLayers.flatMap({$0}).count > 0 else {
+            return
+        }
+        CATransaction.begin()
+        CATransaction.setAnimationDuration(4.0)
+        for layer in renderLayers[Renders.points.rawValue] {
+            let anim = animationOpacity(layer,
+                                        fromValue: CGFloat(layer.opacity),
+                                        toValue: 0.0)
+            layer.add(anim, forKey: "animationPointsClearOpacity")
+        }
+        CATransaction.commit()
+    }
+
     override func layoutSubviews() {
         self.backgroundColor = .clear
         super.layoutSubviews()
@@ -1316,32 +1314,6 @@ extension OMScrollableChart {
 }
 // Regression
 extension OMScrollableChart {
-    func mean(_ lhs: [Float]) -> Float {
-        var result: Float = 0
-        vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))
-        return result
-        
-    }
-    func measq(_ lhs: [Float]) -> Float {
-        var result: Float = 0
-        vDSP_measqv(lhs, 1, &result, vDSP_Length(lhs.count))
-        return result
-        
-    }
-    public func linregress(_ lhs: [Float], _ rhs: [Float]) -> (slope: Float, intercept: Float) {
-        precondition(lhs.count == rhs.count, "Vectors must have equal count")
-        let meanx = mean(lhs)
-        let meany = mean(rhs)
-        var result: [Float] = [Float].init(repeating: 0, count: lhs.count)
-        vDSP_vmul(lhs, 1, rhs, 1, &result, 1, vDSP_Length(lhs.count))
-        
-        let meanxy = mean(result)
-        let meanxSqr = measq(lhs)
-        
-        let slope = (meanx * meany - meanxy) / (meanx * meanx - meanxSqr)
-        let intercept = meany - slope * meanx
-        return (slope, intercept)
-    }
     
     func makeLinregressPoints(data: ChartData, size: CGSize, numberOfElements: Int, renderIndex: Int) -> ChartData {
         let originalDataIndex: [Float] = data.points.enumerated().map { Float($0.offset) }
@@ -1356,7 +1328,7 @@ extension OMScrollableChart {
         
         // let results = originalDataX//.enumerated().map{ return originalDataX.prefix($0.offset+1).reduce(.zero, +)}
         
-        linFunction = linregress(originalDataIndex, data.data)
+        linFunction = Stadistics.linregress(originalDataIndex, data.data)
         
         // var index = 0
         let result: [Float] = [Float].init(repeating: 0, count: numberOfElements)
@@ -1370,7 +1342,7 @@ extension OMScrollableChart {
         // add the new points
         let newData = data.data + resulLinregress
         let generator  = scaledPointsGenerator[renderIndex]
-        let newPoints =  generator.makePoints(data: newData, size: size) ?? []
+        let newPoints =  generator.makePoints(data: newData, size: size)
         return (newPoints, newData)
     }
     func linregressDataForIndex(index: Float) -> Float {
@@ -1379,9 +1351,33 @@ extension OMScrollableChart {
     }
 }
 
-
-class MyAction: CAAction {
-    func run(forKey event: String, object anObject: Any, arguments dict: [AnyHashable : Any]?) {
-        print(event, anObject, dict)
+class Stadistics {
+    
+    class func mean(_ lhs: [Float]) -> Float {
+        var result: Float = 0
+        vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))
+        return result
+        
     }
+    class func measq(_ lhs: [Float]) -> Float {
+        var result: Float = 0
+        vDSP_measqv(lhs, 1, &result, vDSP_Length(lhs.count))
+        return result
+        
+    }
+    class func linregress(_ lhs: [Float], _ rhs: [Float]) -> (slope: Float, intercept: Float) {
+        precondition(lhs.count == rhs.count, "Vectors must have equal count")
+        let meanx = mean(lhs)
+        let meany = mean(rhs)
+        var result: [Float] = [Float].init(repeating: 0, count: lhs.count)
+        vDSP_vmul(lhs, 1, rhs, 1, &result, 1, vDSP_Length(lhs.count))
+        
+        let meanxy = mean(result)
+        let meanxSqr = measq(lhs)
+        
+        let slope = (meanx * meany - meanxy) / (meanx * meanx - meanxSqr)
+        let intercept = meany - slope * meanx
+        return (slope, intercept)
+    }
+    
 }
