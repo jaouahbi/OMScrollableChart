@@ -146,9 +146,9 @@ extension OMScrollableChart {
     }
     
     func animationOpacity(_ layer: CALayer,
-                           fromValue: CGFloat = 0,
-                           toValue: CGFloat = 1.0,
-                           duration: TimeInterval = 4.0) -> CAAnimation {
+                            fromValue: CGFloat = 0,
+                            toValue: CGFloat = 1.0,
+                            duration: TimeInterval = 4.0) -> CAAnimation {
         let fadeAnimation = CABasicAnimation(keyPath: "opacity")
         fadeAnimation.toValue    = toValue
         fadeAnimation.fromValue  = fromValue
@@ -156,7 +156,7 @@ extension OMScrollableChart {
         fadeAnimation.duration   = duration
         fadeAnimation.isRemovedOnCompletion = false
         fadeAnimation.completion = { finished in
-            CATransaction.withDisabledActions{
+            CATransaction.withDisabledActions {
                 layer.opacity = Float(toValue)
             }
         }

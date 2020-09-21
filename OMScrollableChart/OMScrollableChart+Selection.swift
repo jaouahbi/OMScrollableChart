@@ -91,14 +91,21 @@ extension OMScrollableChart {
     func selectRenderLayerWithAnimation(_ layerPoint: OMGradientShapeClipLayer,
                                         selectedPoint: CGPoint,
                                         animation: Bool = false,
-                                        renderIndex: Int) {
+                                        renderIndex: Int,
+                                        duration: TimeInterval = 0.5) {
+        
+        CATransaction.lock()
+        CATransaction.setAnimationDuration(duration)
+        CATransaction.begin()
+
+        
         // selectRenderLayer(layerPoint, renderIndex: renderIndex)
         
         if animatePointLayers {
             animateOnRenderLayerSelection(layerPoint,
-                                          renderIndex: renderIndex)
+                                          renderIndex: renderIndex, duration: duration)
         }
-        var tooltipPosition    = CGPoint.zero
+        var tooltipPosition = CGPoint.zero
         var tooltipPositionFix = CGPoint.zero
         if animation {
             tooltipPositionFix = layerPoint.position
@@ -106,8 +113,12 @@ extension OMScrollableChart {
         // Get the selection data index
         if let dataIndex = dataIndexFromPoint(layerPoint.position,
                                               renderIndex: renderIndex) {
+            
+            print("Selected item: \(dataIndex)")
             // notify the selection
-            didSelectedRenderLayerIndex(layer: layerPoint, renderIndex: renderIndex, dataIndex: dataIndex)
+            didSelectedRenderLayerIndex(layer: layerPoint,
+                                        renderIndex: renderIndex,
+                                        dataIndex: dataIndex)
             // grab the tool tip text
             let tooltipText = dataSource?.dataPointTootipText(chart: self,
                                                               renderIndex: renderIndex,
@@ -122,7 +133,7 @@ extension OMScrollableChart {
         
             if let tooltipText = tooltipText {                      // the dataSource was priority
                 tooltip.string = "\(dataSection) \(tooltipText)"
-                tooltip.displayTooltip(tooltipPosition)
+                tooltip.displayTooltip(tooltipPosition, duration: duration)
             } else {
                                                                     // then calculate manually
                 let amount = Double(dataPointsRender[renderIndex][dataIndex])
@@ -131,20 +142,21 @@ extension OMScrollableChart {
                 } else if let string = dataStringFromPoint(layerPoint.position, renderIndex: renderIndex) {
                     tooltip.string = "\(dataSection) \(string)"
                 } else {
-                    print("unexpected")
+                    print("FIXME: unexpected render | data \(renderIndex) | \(dataIndex)")
                 }
-                tooltip.displayTooltip(tooltipPosition)
+                tooltip.displayTooltip(tooltipPosition, duration: duration)
             }
         }
         if animation {
             let distance = tooltipPositionFix.distance(to: tooltipPosition)
             let factor: TimeInterval = TimeInterval(1 / (self.contentView.bounds.height / distance))
-            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 self.tooltip.moveTooltip(tooltipPositionFix,
-                                         duration: 2.0 / factor)
+                                         duration: factor * duration)
             }
         }
+        CATransaction.commit()
+        CATransaction.unlock()
     }
     func locationFromTouch(_ touches: Set<UITouch>) -> CGPoint {
         if let touch = touches.first {

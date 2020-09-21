@@ -35,7 +35,7 @@ extension ScaledPointsGenerator {
 // MARK: - DiscreteScaledPointsGenerator -
 class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
     var hScale: CGFloat  { return 1.0 }
-    var insets: UIEdgeInsets = UIEdgeInsets(top: 20, left: 0, bottom: 80, right: 0)
+    var insets: UIEdgeInsets = UIEdgeInsets(top: 20, left: 0, bottom: 10, right: 0)
     var isLimitsDirty: Bool = true
     var maximumValue: Float = 0
     var minimumValue: Float = 0

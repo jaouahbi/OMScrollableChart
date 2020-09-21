@@ -36,23 +36,18 @@ protocol ChartRuleProtocol: UIView {
 }
 
 
-extension UIView {
-    func removeSubviewsFromSuperview() {
-        self.subviews.forEach({ $0.removeFromSuperview()})
-    }
-}
 
 // Swift 3.0
 extension UIView {
 
   enum Border {
-    case left
-    case right
-    case top
-    case bottom
+    case left(constant: CGFloat)
+    case right(constant: CGFloat)
+    case top(constant: CGFloat)
+    case bottom(constant: CGFloat)
   }
 
-  func setBorder(border: UIView.Border, weight: CGFloat, color: UIColor ) {
+  func setBorder(border: UIView.Border, weight: CGFloat, color: UIColor) -> UIView {
 
     let lineView = UIView()
     addSubview(lineView)
@@ -61,30 +56,32 @@ extension UIView {
 
     switch border {
 
-    case .left:
+    case .left(let constant):
       lineView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-      lineView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-      lineView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+      lineView.topAnchor.constraint(equalTo: topAnchor, constant: -constant).isActive = true
+      lineView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: constant).isActive = true
       lineView.widthAnchor.constraint(equalToConstant: weight).isActive = true
 
-    case .right:
+    case .right(let constant):
       lineView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
-      lineView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-      lineView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
+      lineView.topAnchor.constraint(equalTo: topAnchor, constant: constant ).isActive = true
+      lineView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -constant ).isActive = true
       lineView.widthAnchor.constraint(equalToConstant: weight).isActive = true
 
-    case .top:
+    case .top(let constant):
       lineView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-      lineView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-      lineView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+      lineView.leftAnchor.constraint(equalTo: leftAnchor, constant: constant ).isActive = true
+      lineView.rightAnchor.constraint(equalTo: rightAnchor, constant: -constant).isActive = true
       lineView.heightAnchor.constraint(equalToConstant: weight).isActive = true
 
-    case .bottom:
+    case .bottom(let constant):
       lineView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-      lineView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-      lineView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
+      lineView.leftAnchor.constraint(equalTo: leftAnchor, constant: constant).isActive = true
+      lineView.rightAnchor.constraint(equalTo: rightAnchor, constant: -constant).isActive = true
       lineView.heightAnchor.constraint(equalToConstant: weight).isActive = true
     }
+    
+    return lineView
   }
 }
 
@@ -206,7 +203,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         guard !self.frame.isEmpty else {
             return false
         }
-        self.removeSubviewsFromSuperview()
+        self.subviews.forEach({ $0.removeFromSuperview()})
         let width  = chart.sectionWidth
         let height = ruleSize.height
         let numOfSections = Int(chart.numberOfSections)
@@ -227,10 +224,12 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                 self.addArrangedSubview(label)
                 label.widthAnchor.constraint(equalToConstant: width).isActive = true
                 label.heightAnchor.constraint(equalToConstant: height).isActive = true
-                label.setBorder(border: .right, weight: borderDecorationWidth, color: decorationColor)
+               _ = label.setBorder(border: .right(constant: 5),
+                                weight: borderDecorationWidth,
+                                color: decorationColor)
             }
        // }
-        self.setBorder(border: .top,
+        _ = self.setBorder(border: .top(constant: 10),
                        weight: borderDecorationWidth,
                        color: decorationColor)
         return true

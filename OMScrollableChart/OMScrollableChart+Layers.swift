@@ -166,7 +166,7 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
 //        }
 //    }
     func defaultInitializer() {
-        let scale =  UIScreen.main.scale
+        let scale = UIScreen.main.scale
         contentsScale = scale
         needsDisplayOnBoundsChange = true
         drawsAsynchronously = true
@@ -186,8 +186,9 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
     
     var startRadius: CGFloat?
     var endRadius: CGFloat?
-    var locations: [CGFloat]? = [0, 1.0]
+    var locations: [CGFloat]?
     var gradientColor: UIColor = .clear
+    
     var cgColors: [CGColor] {
         return gradientColor.makeGradient().map({ (color) -> CGColor in
             return color.cgColor

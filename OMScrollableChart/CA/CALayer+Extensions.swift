@@ -43,9 +43,9 @@ public extension CALayer {
     }
     // return all animations running by this layer.
     // the returned value is mutable
-    var animations: [(String, CAAnimation)] {
+    var animations: [(String, CAAnimation?)] {
         if let keys = animationKeys() {
-            return keys.map { return ($0, self.animation(forKey: $0)!.copy() as! CAAnimation) }
+            return keys.map { return ($0, self.animation(forKey: $0)!.copy() as? CAAnimation) }
         }
         return []
     }
