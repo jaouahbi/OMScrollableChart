@@ -37,53 +37,6 @@ protocol ChartRuleProtocol: UIView {
 
 
 
-// Swift 3.0
-extension UIView {
-
-  enum Border {
-    case left(constant: CGFloat)
-    case right(constant: CGFloat)
-    case top(constant: CGFloat)
-    case bottom(constant: CGFloat)
-  }
-
-  func setBorder(border: UIView.Border, weight: CGFloat, color: UIColor) -> UIView {
-
-    let lineView = UIView()
-    addSubview(lineView)
-    lineView.backgroundColor = color
-    lineView.translatesAutoresizingMaskIntoConstraints = false
-
-    switch border {
-
-    case .left(let constant):
-      lineView.leftAnchor.constraint(equalTo: leftAnchor).isActive = true
-      lineView.topAnchor.constraint(equalTo: topAnchor, constant: -constant).isActive = true
-      lineView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: constant).isActive = true
-      lineView.widthAnchor.constraint(equalToConstant: weight).isActive = true
-
-    case .right(let constant):
-      lineView.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
-      lineView.topAnchor.constraint(equalTo: topAnchor, constant: constant ).isActive = true
-      lineView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -constant ).isActive = true
-      lineView.widthAnchor.constraint(equalToConstant: weight).isActive = true
-
-    case .top(let constant):
-      lineView.topAnchor.constraint(equalTo: topAnchor).isActive = true
-      lineView.leftAnchor.constraint(equalTo: leftAnchor, constant: constant ).isActive = true
-      lineView.rightAnchor.constraint(equalTo: rightAnchor, constant: -constant).isActive = true
-      lineView.heightAnchor.constraint(equalToConstant: weight).isActive = true
-
-    case .bottom(let constant):
-      lineView.bottomAnchor.constraint(equalTo: bottomAnchor).isActive = true
-      lineView.leftAnchor.constraint(equalTo: leftAnchor, constant: constant).isActive = true
-      lineView.rightAnchor.constraint(equalTo: rightAnchor, constant: -constant).isActive = true
-      lineView.heightAnchor.constraint(equalToConstant: weight).isActive = true
-    }
-    
-    return lineView
-  }
-}
 
 // MARK: - OMScrollableLeadingChartRule -
 class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
@@ -123,7 +76,7 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         labelViews.forEach({$0.removeFromSuperview()})
         labelViews.removeAll()
         let fontSize: CGFloat = font.pointSize
-  
+        
         for (index, item) in chart.rulesPoints.enumerated() {
             if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                 let string = NSAttributedString(string: stepString,
@@ -146,16 +99,12 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
     override func layoutSubviews() {
         super.layoutSubviews()
         if !createLayout() { // TODO: update layout
-           // GCLog.print("Unable to create the rule layout",.error)
+            // GCLog.print("Unable to create the rule layout",.error)
         }
     }
 }
-
-
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
-   
-    
     var leftInset: CGFloat = 15
     var chart: OMScrollableChart!
     //var isPointsNeeded: Bool  =  false
@@ -209,40 +158,40 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         let numOfSections = Int(chart.numberOfSections)
         let month = Calendar.current.dateComponents([.day, .month, .year], from: Date()).month ?? 0
         //if let month = startIndex {
-            let currentMonth = month
-            //let symbols = DateFormatter().monthSymbols
-            for monthIndex in currentMonth...numOfSections + currentMonth  {
-                //GCLog.print("monthIndex: \(monthIndex % footerSectionsText.count) \(footerSectionsText[monthIndex % footerSectionsText.count])", .trace)
-                let label = UILabel(frame: .zero)
-                label.translatesAutoresizingMaskIntoConstraints = false
-                label.text = footerSectionsText[monthIndex % footerSectionsText.count]
-                label.textAlignment = .center
-                label.font = font
-                label.sizeToFit()
-                label.backgroundColor = UIColor.white
-                label.textColor = fontColor
-                self.addArrangedSubview(label)
-                label.widthAnchor.constraint(equalToConstant: width).isActive = true
-                label.heightAnchor.constraint(equalToConstant: height).isActive = true
-               _ = label.setBorder(border: .right(constant: 5),
+        let currentMonth = month
+        //let symbols = DateFormatter().monthSymbols
+        for monthIndex in currentMonth...numOfSections + currentMonth  {
+            //GCLog.print("monthIndex: \(monthIndex % footerSectionsText.count) \(footerSectionsText[monthIndex % footerSectionsText.count])", .trace)
+            let label = UILabel(frame: .zero)
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.text = footerSectionsText[monthIndex % footerSectionsText.count]
+            label.textAlignment = .center
+            label.font = font
+            label.sizeToFit()
+            label.backgroundColor = UIColor.white
+            label.textColor = fontColor
+            self.addArrangedSubview(label)
+            label.widthAnchor.constraint(equalToConstant: width).isActive = true
+            label.heightAnchor.constraint(equalToConstant: height).isActive = true
+            _ = label.setBorder(border: .right(constant: 5),
                                 weight: borderDecorationWidth,
                                 color: decorationColor)
-            }
-       // }
+        }
+        // }
         _ = self.setBorder(border: .top(constant: 10),
-                       weight: borderDecorationWidth,
-                       color: decorationColor)
+                           weight: borderDecorationWidth,
+                           color: decorationColor)
         return true
     }
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         if !createLayout() { // TODO: update layout
-           // GCLog.print("Unable to create the rule layout", .error)
+            // GCLog.print("Unable to create the rule layout", .error)
         }
     }
     override func layoutSubviews() {
         super.layoutSubviews()
-         if !createLayout() { // TODO: update layout
+        if !createLayout() { // TODO: update layout
             //GCLog.print("Unable to create the rule layout" ,.error)
         }
     }
