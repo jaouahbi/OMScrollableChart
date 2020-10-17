@@ -7,11 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7D0FC234253A6F2E00F3538E /* OMBubbleShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0FC233253A6F2E00F3538E /* OMBubbleShapeView.swift */; };
+		7D0FC236253A6F9100F3538E /* UIView+Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0FC235253A6F9100F3538E /* UIView+Animations.swift */; };
+		7D0FC238253A7ADB00F3538E /* OMGradientShapeClipLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0FC237253A7ADB00F3538E /* OMGradientShapeClipLayer.swift */; };
+		7D0FC23A253A7B5500F3538E /* OMShapeLayerLinearGradientClipPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0FC239253A7B5500F3538E /* OMShapeLayerLinearGradientClipPath.swift */; };
+		7D0FC23C253A7B9800F3538E /* OMShapeLayerRadialGradientClipPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D0FC23B253A7B9800F3538E /* OMShapeLayerRadialGradientClipPath.swift */; };
 		7D226A7D2384C3510074C44E /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D226A7C2384C3510074C44E /* AppDelegate.swift */; };
 		7D226A812384C3510074C44E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D226A802384C3510074C44E /* ViewController.swift */; };
 		7D226A842384C3510074C44E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A822384C3510074C44E /* Main.storyboard */; };
 		7D226A862384C3550074C44E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A852384C3550074C44E /* Assets.xcassets */; };
 		7D226A942384C3550074C44E /* chartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D226A932384C3550074C44E /* chartTests.swift */; };
+		7DBAA3FA253A7C98000EE535 /* UIView+Border.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA3F9253A7C98000EE535 /* UIView+Border.swift */; };
+		7DBAA403253A7FF9000EE535 /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */; };
 		D13C9C8F24FB459B00498B01 /* UIColor+OMSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7024FB459A00498B01 /* UIColor+OMSC.swift */; };
 		D13C9C9024FB459B00498B01 /* OMScrollableChart+Rules.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7124FB459A00498B01 /* OMScrollableChart+Rules.swift */; };
 		D13C9C9124FB459B00498B01 /* OMScrollableLeadingChartRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7324FB459A00498B01 /* OMScrollableLeadingChartRule.swift */; };
@@ -22,7 +29,6 @@
 		D13C9C9624FB459B00498B01 /* CAAnimation+Closure.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7B24FB459A00498B01 /* CAAnimation+Closure.swift */; };
 		D13C9C9724FB459B00498B01 /* CALayer+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7C24FB459A00498B01 /* CALayer+Extensions.swift */; };
 		D13C9C9824FB459B00498B01 /* RecursiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7D24FB459A00498B01 /* RecursiveProtocol.swift */; };
-		D13C9C9924FB459B00498B01 /* OMScrollableChart+Layers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7E24FB459A00498B01 /* OMScrollableChart+Layers.swift */; };
 		D13C9C9B24FB459B00498B01 /* CubicCurveAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C8124FB459B00498B01 /* CubicCurveAlgorithm.swift */; };
 		D13C9C9C24FB459B00498B01 /* UIBezierPath+Interpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C8224FB459B00498B01 /* UIBezierPath+Interpolation.swift */; };
 		D13C9C9D24FB459B00498B01 /* OMScrollableChart+Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C8324FB459B00498B01 /* OMScrollableChart+Animations.swift */; };
@@ -49,9 +55,21 @@
 			remoteGlobalIDString = 7D226A782384C3510074C44E;
 			remoteInfo = chart;
 		};
+		7DBAA405253A7FF9000EE535 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7D226A712384C3510074C44E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7D226A782384C3510074C44E;
+			remoteInfo = Example;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7D0FC233253A6F2E00F3538E /* OMBubbleShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMBubbleShapeView.swift; sourceTree = "<group>"; };
+		7D0FC235253A6F9100F3538E /* UIView+Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Animations.swift"; sourceTree = "<group>"; };
+		7D0FC237253A7ADB00F3538E /* OMGradientShapeClipLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMGradientShapeClipLayer.swift; sourceTree = "<group>"; };
+		7D0FC239253A7B5500F3538E /* OMShapeLayerLinearGradientClipPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMShapeLayerLinearGradientClipPath.swift; sourceTree = "<group>"; };
+		7D0FC23B253A7B9800F3538E /* OMShapeLayerRadialGradientClipPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMShapeLayerRadialGradientClipPath.swift; sourceTree = "<group>"; };
 		7D226A792384C3510074C44E /* Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Example.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D226A7C2384C3510074C44E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7D226A802384C3510074C44E /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -61,6 +79,10 @@
 		7D226A8F2384C3550074C44E /* ExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7D226A932384C3550074C44E /* chartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = chartTests.swift; sourceTree = "<group>"; };
 		7D226A952384C3550074C44E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		7DBAA3F9253A7C98000EE535 /* UIView+Border.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Border.swift"; sourceTree = "<group>"; };
+		7DBAA400253A7FF9000EE535 /* ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUITests.swift; sourceTree = "<group>"; };
+		7DBAA404253A7FF9000EE535 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D13C9C7024FB459A00498B01 /* UIColor+OMSC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIColor+OMSC.swift"; sourceTree = "<group>"; };
 		D13C9C7124FB459A00498B01 /* OMScrollableChart+Rules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Rules.swift"; sourceTree = "<group>"; };
 		D13C9C7324FB459A00498B01 /* OMScrollableLeadingChartRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OMScrollableLeadingChartRule.swift; sourceTree = "<group>"; };
@@ -71,7 +93,6 @@
 		D13C9C7B24FB459A00498B01 /* CAAnimation+Closure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CAAnimation+Closure.swift"; sourceTree = "<group>"; };
 		D13C9C7C24FB459A00498B01 /* CALayer+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CALayer+Extensions.swift"; sourceTree = "<group>"; };
 		D13C9C7D24FB459A00498B01 /* RecursiveProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecursiveProtocol.swift; sourceTree = "<group>"; };
-		D13C9C7E24FB459A00498B01 /* OMScrollableChart+Layers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Layers.swift"; sourceTree = "<group>"; };
 		D13C9C8124FB459B00498B01 /* CubicCurveAlgorithm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CubicCurveAlgorithm.swift; sourceTree = "<group>"; };
 		D13C9C8224FB459B00498B01 /* UIBezierPath+Interpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+Interpolation.swift"; sourceTree = "<group>"; };
 		D13C9C8324FB459B00498B01 /* OMScrollableChart+Animations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Animations.swift"; sourceTree = "<group>"; };
@@ -105,14 +126,32 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7DBAA3FD253A7FF9000EE535 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		7D0FC23D253A7C0900F3538E /* Layers */ = {
+			isa = PBXGroup;
+			children = (
+				7D0FC23B253A7B9800F3538E /* OMShapeLayerRadialGradientClipPath.swift */,
+				7D0FC239253A7B5500F3538E /* OMShapeLayerLinearGradientClipPath.swift */,
+				7D0FC237253A7ADB00F3538E /* OMGradientShapeClipLayer.swift */,
+			);
+			path = Layers;
+			sourceTree = "<group>";
+		};
 		7D226A702384C3510074C44E = {
 			isa = PBXGroup;
 			children = (
 				7D226A7B2384C3510074C44E /* Classes */,
 				7D226A922384C3550074C44E /* chartTests */,
+				7DBAA401253A7FF9000EE535 /* ExampleUITests */,
 				7D226A7A2384C3510074C44E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -122,6 +161,7 @@
 			children = (
 				7D226A792384C3510074C44E /* Example.app */,
 				7D226A8F2384C3550074C44E /* ExampleTests.xctest */,
+				7DBAA400253A7FF9000EE535 /* ExampleUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,6 +188,29 @@
 			path = chartTests;
 			sourceTree = "<group>";
 		};
+		7DBAA3FB253A7D50000EE535 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				D13C9C8B24FB459B00498B01 /* OMScrollableChart.swift */,
+				D13C9C8324FB459B00498B01 /* OMScrollableChart+Animations.swift */,
+				D13C9C7424FB459A00498B01 /* OMScrollableChart+Renders.swift */,
+				D13C9C7124FB459A00498B01 /* OMScrollableChart+Rules.swift */,
+				D13C9C8A24FB459B00498B01 /* OMScrollableChart+Selection.swift */,
+				D13C9C7324FB459A00498B01 /* OMScrollableLeadingChartRule.swift */,
+				D13C9C8D24FB459B00498B01 /* OScrollableChart+Tooltip.swift */,
+			);
+			path = Classes;
+			sourceTree = "<group>";
+		};
+		7DBAA401253A7FF9000EE535 /* ExampleUITests */ = {
+			isa = PBXGroup;
+			children = (
+				7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */,
+				7DBAA404253A7FF9000EE535 /* Info.plist */,
+			);
+			path = ExampleUITests;
+			sourceTree = "<group>";
+		};
 		D12CBEED24F0078D001ADC2C /* OMScrollableChart */ = {
 			isa = PBXGroup;
 			children = (
@@ -158,18 +221,13 @@
 				D13C9C8724FB459B00498B01 /* FloatPoint+Extension.swift */,
 				D13C9C8C24FB459B00498B01 /* LICENSE */,
 				D13C9C7524FB459A00498B01 /* OMBubbleTextView */,
-				D13C9C8B24FB459B00498B01 /* OMScrollableChart.swift */,
-				D13C9C8324FB459B00498B01 /* OMScrollableChart+Animations.swift */,
-				D13C9C7E24FB459A00498B01 /* OMScrollableChart+Layers.swift */,
-				D13C9C7424FB459A00498B01 /* OMScrollableChart+Renders.swift */,
-				D13C9C7124FB459A00498B01 /* OMScrollableChart+Rules.swift */,
-				D13C9C8A24FB459B00498B01 /* OMScrollableChart+Selection.swift */,
-				D13C9C7324FB459A00498B01 /* OMScrollableLeadingChartRule.swift */,
-				D13C9C8D24FB459B00498B01 /* OScrollableChart+Tooltip.swift */,
+				7DBAA3FB253A7D50000EE535 /* Classes */,
+				7D0FC23D253A7C0900F3538E /* Layers */,
 				D13C9C8424FB459B00498B01 /* Path */,
 				D13C9C8024FB459B00498B01 /* PolylineInterpolation */,
 				D13C9C7724FB459A00498B01 /* PolylineSimplyfication */,
 				D13C9C7024FB459A00498B01 /* UIColor+OMSC.swift */,
+				7DBAA3F9253A7C98000EE535 /* UIView+Border.swift */,
 			);
 			path = OMScrollableChart;
 			sourceTree = SOURCE_ROOT;
@@ -177,7 +235,9 @@
 		D13C9C7524FB459A00498B01 /* OMBubbleTextView */ = {
 			isa = PBXGroup;
 			children = (
+				7D0FC235253A6F9100F3538E /* UIView+Animations.swift */,
 				D13C9C7624FB459A00498B01 /* OMBubbleTextView.swift */,
+				7D0FC233253A6F2E00F3538E /* OMBubbleShapeView.swift */,
 			);
 			path = OMBubbleTextView;
 			sourceTree = "<group>";
@@ -260,13 +320,31 @@
 			productReference = 7D226A8F2384C3550074C44E /* ExampleTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		7DBAA3FF253A7FF9000EE535 /* ExampleUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7DBAA407253A7FF9000EE535 /* Build configuration list for PBXNativeTarget "ExampleUITests" */;
+			buildPhases = (
+				7DBAA3FC253A7FF9000EE535 /* Sources */,
+				7DBAA3FD253A7FF9000EE535 /* Frameworks */,
+				7DBAA3FE253A7FF9000EE535 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7DBAA406253A7FF9000EE535 /* PBXTargetDependency */,
+			);
+			name = ExampleUITests;
+			productName = ExampleUITests;
+			productReference = 7DBAA400253A7FF9000EE535 /* ExampleUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		7D226A712384C3510074C44E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1100;
+				LastSwiftUpdateCheck = 1130;
 				LastUpgradeCheck = 1100;
 				ORGANIZATIONNAME = dsp;
 				TargetAttributes = {
@@ -276,6 +354,10 @@
 					};
 					7D226A8E2384C3550074C44E = {
 						CreatedOnToolsVersion = 11.0;
+						TestTargetID = 7D226A782384C3510074C44E;
+					};
+					7DBAA3FF253A7FF9000EE535 = {
+						CreatedOnToolsVersion = 11.3.1;
 						TestTargetID = 7D226A782384C3510074C44E;
 					};
 				};
@@ -295,6 +377,7 @@
 			targets = (
 				7D226A782384C3510074C44E /* Example */,
 				7D226A8E2384C3550074C44E /* ExampleTests */,
+				7DBAA3FF253A7FF9000EE535 /* ExampleUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -317,6 +400,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7DBAA3FE253A7FF9000EE535 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -329,8 +419,11 @@
 				D13C9CAB24FB464F00498B01 /* CALayerHandler.swift in Sources */,
 				7D226A7D2384C3510074C44E /* AppDelegate.swift in Sources */,
 				D13C9CA424FB459B00498B01 /* OMScrollableChart.swift in Sources */,
+				7D0FC23A253A7B5500F3538E /* OMShapeLayerLinearGradientClipPath.swift in Sources */,
 				D13C9CA624FB459B00498B01 /* OScrollableChart+Tooltip.swift in Sources */,
-				D13C9C9924FB459B00498B01 /* OMScrollableChart+Layers.swift in Sources */,
+				7D0FC238253A7ADB00F3538E /* OMGradientShapeClipLayer.swift in Sources */,
+				7D0FC23C253A7B9800F3538E /* OMShapeLayerRadialGradientClipPath.swift in Sources */,
+				7D0FC234253A6F2E00F3538E /* OMBubbleShapeView.swift in Sources */,
 				D13C9C9C24FB459B00498B01 /* UIBezierPath+Interpolation.swift in Sources */,
 				D13C9CA324FB459B00498B01 /* OMScrollableChart+Selection.swift in Sources */,
 				D13C9C9524FB459B00498B01 /* OMSimplify.swift in Sources */,
@@ -340,6 +433,8 @@
 				D13C9C9724FB459B00498B01 /* CALayer+Extensions.swift in Sources */,
 				D13C9C9824FB459B00498B01 /* RecursiveProtocol.swift in Sources */,
 				D13C9CA724FB459B00498B01 /* Geometry+Utilities.swift in Sources */,
+				7DBAA3FA253A7C98000EE535 /* UIView+Border.swift in Sources */,
+				7D0FC236253A6F9100F3538E /* UIView+Animations.swift in Sources */,
 				D13C9C9B24FB459B00498B01 /* CubicCurveAlgorithm.swift in Sources */,
 				D13C9CA224FB459B00498B01 /* CGPath+Extension.swift in Sources */,
 				D164527424FE8BCD0070014F /* PolyLineInterpolation.swift in Sources */,
@@ -363,6 +458,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		7DBAA3FC253A7FF9000EE535 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7DBAA403253A7FF9000EE535 /* ExampleUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -370,6 +473,11 @@
 			isa = PBXTargetDependency;
 			target = 7D226A782384C3510074C44E /* Example */;
 			targetProxy = 7D226A902384C3550074C44E /* PBXContainerItemProxy */;
+		};
+		7DBAA406253A7FF9000EE535 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7D226A782384C3510074C44E /* Example */;
+			targetProxy = 7DBAA405253A7FF9000EE535 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -584,6 +692,44 @@
 			};
 			name = Release;
 		};
+		7DBAA408253A7FF9000EE535 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = ExampleUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dsp.ElectionGuardClient.ExampleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Example;
+			};
+			name = Debug;
+		};
+		7DBAA409253A7FF9000EE535 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = ExampleUITests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.dsp.ElectionGuardClient.ExampleUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Example;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -610,6 +756,15 @@
 			buildConfigurations = (
 				7D226A9C2384C3550074C44E /* Debug */,
 				7D226A9D2384C3550074C44E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7DBAA407253A7FF9000EE535 /* Build configuration list for PBXNativeTarget "ExampleUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DBAA408253A7FF9000EE535 /* Debug */,
+				7DBAA409253A7FF9000EE535 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

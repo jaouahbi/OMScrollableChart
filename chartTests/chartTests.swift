@@ -7,7 +7,7 @@
 //
 
 import XCTest
-@testable import chart
+@testable import Example
 
 class chartTests: XCTestCase {
 

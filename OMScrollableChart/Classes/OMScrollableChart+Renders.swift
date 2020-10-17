@@ -13,11 +13,10 @@
 // limitations under the License.
 
 //
-//  OMScrollableChart+Shapes.swift
-//  CanalesDigitalesGCiOS
+//  OMScrollableChart.swift
 //
 //  Created by Jorge Ouahbi on 16/08/2020.
-//  Copyright © 2020 Banco Caminos. All rights reserved.
+
 //
 
 import UIKit
@@ -46,9 +45,9 @@ extension OMScrollableChart {
         case OMScrollableChart.Renders.selectedPoint.rawValue:
             if let point = maxPoint(renderIndex: renderIndex) {
                 let layer = createPointLayer(point,
-                                                   size: CGSize(width: 12, height: 12),
-                                                   color: .purple)
-                layer.name = "selectedPoint"
+                                                   size: CGSize(width: 13, height: 13),
+                                                   color: .darkGreyBlueTwo)
+                layer.name = "selectedPointDefault"
                 return [layer]
             }
         default:

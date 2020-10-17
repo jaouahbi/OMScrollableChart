@@ -12,24 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import UIKit
-
-
 let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
-                              150, -150, 80, -40, 60, 10]
+    150, -150, 80, -40, 60, 10]
 //             1510, 100, 3000, 100, 1200, 13000,
 //15000, -1500, 800, 1000, 6000, 1300]
 
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol, OMScrollableChartRenderableDelegateProtocol {
     
-    var animationTimingTable: [AnimationTiming] = [
+    var animationTimingTable: [Animation] = [
         .noAnimation,
         .noAnimation,
-        .oneShotAnimation,
+        .oneShot,
         .noAnimation,
         .noAnimation
     ]
-    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
+    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> Animation {
         return animationTimingTable[renderIndex]
     }
     func didSelectDataIndex(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, layer: CALayer) {
@@ -94,27 +92,28 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         case 0:
             let layers = chart.updatePolylineLayer(lineWidth: 4,
                                                    color: .greyishBlue)
-            layers.forEach({$0.name = "polyline"})
+            layers.forEach({$0.name = "polyline"}) //debug
             return layers
         case 1:
             let layers = chart.createPointsLayers(points,
                                                   size: CGSize(width: 8, height: 8),
                                                   color: .greyishBlue)
-            layers.forEach({$0.name = "point"})
+            layers.forEach({$0.name = "point"})  //debug
             return layers
         case 2:
-            if let point = chart.maxPoint(renderIndex: renderIndex) {
-                let layer = chart.createPointLayer(point,
-                                                   size: CGSize(width: 12, height: 12),
-                                                   color: .darkGreyBlueTwo)
-                layer.name = "selectedPoint"
-                return [layer]
-            }
+//            if let point = chart.maxPoint(renderIndex: renderIndex) {
+//                let layer = chart.createPointLayer(point,
+//                                                   size: CGSize(width: 12, height: 12),
+//                                                   color: .darkGreyBlueTwo)
+//                layer.name = "selectedPoint"  //debug
+//                return [layer]
+//            }
+//            return []
             return []
         case 3:
             let layers =  chart.createRectangleLayers(points, columnIndex: 1, count: 6,
                                                       color: .black)
-            layers.forEach({$0.name = "bar income"})
+            layers.forEach({$0.name = "bar income"})  //debug
             self.pathsToAnimate.insert(
                 chart.createInverseRectanglePaths(points, columnIndex: 1, count: 6),
                 at: 0)
@@ -123,7 +122,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             
             let layers =  chart.createRectangleLayers(points, columnIndex: 4, count: 6,
                                                       color: .green)
-            layers.forEach({$0.name = "bar outcome"})
+            layers.forEach({$0.name = "bar outcome"})  //debug
             self.pathsToAnimate.insert(
                 chart.createInverseRectanglePaths(points, columnIndex: 4, count: 6),
                 at: 1)
@@ -158,13 +157,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     var opacityTableLine: [CGFloat] = [1,1,1,0,0]
     var opacityTableBar: [CGFloat] =  [0,0,0,1,1]
     var curOpacityTable: [CGFloat] = []
-//    var counter: Int = 1
-//    @objc func longTapPressed (sender: UITapGestureRecognizer) {
-//        counter = (counter + 1) % 2
-//        curOpacityTable = counter == 0 ? opacityTableLine : opacityTableBar
-//        _ = chart.setNeedsLayout()
-//    }
-//    var gesture: UILongPressGestureRecognizer?
     @IBOutlet var slider: UISlider!
     @IBOutlet var sliderLimit: UISlider!
     @IBOutlet var chart: OMScrollableChart!
@@ -172,9 +164,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     @IBOutlet var sliderAverage: UISlider!
     
     deinit {
-//        if let gesture = gesture {
-//            self.view.removeGestureRecognizer(gesture)
-//        }
     }
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -185,12 +174,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
         curOpacityTable = opacityTableLine
-        
-//              gesture = UILongPressGestureRecognizer(target: self, action: #selector(longTapPressed(sender:)));
-//              gesture?.cancelsTouchesInView = false
-//              if let gesture = gesture {
-//                  self.view.addGestureRecognizer(gesture)
-//              }
         
         segmentInterpolation.removeAllSegments()
         segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)

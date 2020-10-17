@@ -77,102 +77,18 @@ protocol ChartProtocol {
     func updateDataSourceData() -> Bool
 }
 
-struct AnimationTiming: Hashable {
-    static func == (lhs: AnimationTiming, rhs: AnimationTiming) -> Bool {
-        return lhs.repeatDuration == rhs.repeatDuration &&
-            lhs.autoreverses == rhs.autoreverses &&
-            lhs.beginTime == rhs.beginTime &&
-            lhs.duration == rhs.duration &&
-            lhs.speed == rhs.speed &&
-            lhs.fillMode == rhs.fillMode &&
-            lhs.repeatCount == rhs.repeatCount &&
-            lhs.timeOffset == rhs.timeOffset
+struct Animation: Hashable {
+    var repeatCount: Int = 1
+    static func == (lhs: Animation, rhs: Animation) -> Bool {
+        return lhs.repeatCount == rhs.repeatCount
     }
-    
     func hash(into hasher: inout Hasher) {
-        hasher.combine(repeatDuration)
-        hasher.combine(autoreverses )
-        hasher.combine(beginTime)
-        hasher.combine(duration)
-        hasher.combine(timeOffset)
-        hasher.combine(speed)
-        hasher.combine(fillMode)
         hasher.combine(repeatCount)
     }
     
-    static var noAnimation: AnimationTiming {
-        return AnimationTiming()
-    }
-    static var oneShotAnimation: AnimationTiming {
-        return AnimationTiming(beginTime: 0,
-                               duration: 0,
-                               speed: 1,
-                               timeOffset: 0,
-                               repeatCount: 1,
-                               repeatDuration: 0,
-                               autoreverses: false,
-                               fillMode: .forwards)
-    }
-    static var infiniteAnimation: AnimationTiming {
-        return AnimationTiming(beginTime: 0,
-                               duration: 0,
-                               speed: 1,
-                               timeOffset: 0,
-                               repeatCount: HUGE,
-                               repeatDuration: 0,
-                               autoreverses: false,
-                               fillMode: .forwards)
-    }
-    
-    /* The begin time of the object, in relation to its parent object, if
-     * applicable. Defaults to 0. */
-    
-    var beginTime: CFTimeInterval = 0
-    
-    
-    /* The basic duration of the object. Defaults to 0. */
-    
-    var duration: CFTimeInterval  = 0
-    
-    
-    /* The rate of the layer. Used to scale parent time to local time, e.g.
-     * if rate is 2, local time progresses twice as fast as parent time.
-     * Defaults to 1. */
-    
-    var speed: Float = 1
-    
-    
-    /* Additional offset in active local time. i.e. to convert from parent
-     * time tp to active local time t: t = (tp - begin) * speed + offset.
-     * One use of this is to "pause" a layer by setting `speed' to zero and
-     * `offset' to a suitable value. Defaults to 0. */
-    
-    var timeOffset: CFTimeInterval = 0
-    
-    
-    /* The repeat count of the object. May be fractional. Defaults to 0. */
-    
-    var repeatCount: Float  = 0
-    
-    
-    /* The repeat duration of the object. Defaults to 0. */
-    
-    var repeatDuration: CFTimeInterval = 0
-    
-    
-    /* When true, the object plays backwards after playing forwards. Defaults
-     * to NO. */
-    
-    var autoreverses: Bool = false
-    
-    
-    /* Defines how the timed object behaves outside its active duration.
-     * Local time may be clamped to either end of the active duration, or
-     * the element may be removed from the presentation. The legal values
-     * are `backwards', `forwards', `both' and `removed'. Defaults to
-     * `removed'. */
-    
-    var fillMode: CAMediaTimingFillMode = .removed
+    static var oneShot: Animation = Animation(repeatCount: 1)
+    static var noAnimation: Animation = Animation(repeatCount: 0)
+    static var infAnimation: Animation = Animation(repeatCount: -1)
 }
 
 protocol OMScrollableChartDataSource: class {
@@ -185,7 +101,7 @@ protocol OMScrollableChartDataSource: class {
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? 
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
     func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
-    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming
+    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> Animation
     func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int ,layer: OMGradientShapeClipLayer) -> CAAnimation?
     
     
@@ -877,7 +793,13 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     }
     // MARK: - Layout Cache -
     // cache hashed frame + points
-    var layoutCache = [String: Any]()
+    class StructWrapper<T>: NSObject {
+        let value: T
+        init(_ _struct: T) {
+            self.value = _struct
+        }
+    }
+    var layoutCache = NSCache<NSNumber, StructWrapper<Any>>()
     var isLayoutCacheActive: Bool = true
     
     var visibleLayers: [CAShapeLayer] {
@@ -923,7 +845,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     func updateRenderLayersOpacity( for renderIndex: Int, layerOpacity: CGFloat) {
         // Don't delay the opacity
-        print(Renders.points.rawValue)
+        //print(Renders.points.rawValue)
         if renderIndex == Renders.points.rawValue {
             return
         }
@@ -986,7 +908,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             
             let timing = dataSource.queryAnimation(chart: self, renderIndex: renderIndex)
             if timing.repeatCount > 0 {
-                print("Animating the render:\(renderIndex) layers.")
+                print("Animating the render: \(renderIndex) layers.")
                 animateRenderLayers(renderIndex,
                                     layerOpacity: layerOpacity)
            // } else {
@@ -1038,7 +960,9 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     func animationDidEnded(renderIndex: Int, animation: CAAnimation) {
         let keyPath = animation.value(forKeyPath: "keyPath") as? String
-        if let animationKF = animation as? CAKeyframeAnimation, animationKF.path != nil, keyPath == "position" {
+        if let animationKF = animation as? CAKeyframeAnimation,
+            animationKF.path != nil,
+            keyPath == "position" {
             if isAnimatePointsClearOpacity  &&
                 !isAnimatePointsClearOpacityDone {
                 animatePointsClearOpacity()
@@ -1097,10 +1021,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             }
         }
     }
-    var cacheTrackingLayout: Int = 0
-    var isCacheStable: Bool {
-        return cacheTrackingLayout > 1
-    }
     var isScrollAnimation: Bool = true
     var isScrollAnimnationDone: Bool = false
     let scrollingProgressDuration: TimeInterval = 1.2
@@ -1116,24 +1036,22 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                 if flatPointsToRender.count > 0 {
                     let frameHash  = self.frame.hashValue
                     let pointsHash = flatPointsToRender.hashValue
-                    let dictKey = "\(frameHash ^ pointsHash)"
-                    if let item = layoutCache[dictKey] as? [[CGPoint]] {
-                        //print("[LCACHE] cache hit \(dictKey) [PKJI]")
-                        cacheTrackingLayout += 1
+                    let dictKey = frameHash ^ pointsHash
+                    if let item = layoutCache.object(forKey: NSNumber(value: dictKey))?.value as? [[CGPoint]] {
+                        print("[LCACHE] cache hit \(dictKey) value [\(item)]")
                         setNeedsDisplay()
                         return
                     }
-                    //print("[LCACHE] cache miss \(dictKey) [PKJI]")
-                    cacheTrackingLayout = 0
-                    layoutCache.updateValue(pointsRender,
-                                            forKey: dictKey)
+                    print("[LCACHE] cache miss \(dictKey)")
+                    layoutCache.setObject(StructWrapper(pointsRender),
+                                          forKey: NSNumber(value: dictKey))
                 }
             }
         }
         // Create the points from the discrete data using the renders
         if allDataPointsRender.count > 0 {
             //print("\(CALayer.isAnimatingLayers) animations running")
-            if CALayer.isAnimatingLayers <= 0 {
+            if CALayer.isAnimatingLayers <= 1 {
                 //print("Regenerating the layer tree.")
                 removeAllLayers()
                 addLeadingRuleIfNeeded(rootRule, view: self)
