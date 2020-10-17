@@ -923,7 +923,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     func updateRenderLayersOpacity( for renderIndex: Int, layerOpacity: CGFloat) {
         // Don't delay the opacity
-        print(Renders.points.rawValue)
         if renderIndex == Renders.points.rawValue {
             return
         }

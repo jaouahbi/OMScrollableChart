@@ -92,7 +92,7 @@ public extension CALayer {
 }
 
 extension CAGradientLayer {
-    public override func tint(withColors colors: [UIColor]) {
+    override public func tint(withColors colors: [UIColor]) {
         sublayers?.recursiveSearch(leafBlock: {
             self.colors = colors.map { $0.cgColor }
         }) {
