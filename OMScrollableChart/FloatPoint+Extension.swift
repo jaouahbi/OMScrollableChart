@@ -22,7 +22,7 @@ extension CGFloat {
         return CGFloat(pow(Double(self), 1.0 / 3.0))
     }
     
-    fileprivate static func SolveQuadratic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat) -> CGFloat {
+    private static func SolveQuadratic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat) -> CGFloat {
         var result = (-b + sqrt(b.squared - 4 * a * c)) / (2 * a);
         guard !result.isInRangeOrEqual(0, 1) else {
             return result
@@ -36,7 +36,7 @@ extension CGFloat {
         return -1;
     }
     
-    fileprivate static func SolveCubic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat, _ d: CGFloat) -> CGFloat {
+    private static func SolveCubic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat, _ d: CGFloat) -> CGFloat {
         if (a == 0) {
             return SolveQuadratic(b, c, d)
         }
