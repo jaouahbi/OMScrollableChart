@@ -181,8 +181,8 @@ extension OMScrollableChart {
     
     /// renderLayers
     /// - Parameters:
-    ///   - renderIndex: <#renderIndex description#>
-    ///   - renderAs: <#renderAs description#>
+    ///   - renderIndex: Int
+    ///   - renderAs: RenderData
     func renderLayers(_ renderIndex: Int, renderAs: OMScrollableChart.RenderData) {
         guard let dataSource = dataSource else {
             return
@@ -199,7 +199,6 @@ extension OMScrollableChart {
             makeLinregress(data, renderIndex, dataSource)
         }
         self.renderType.insert(renderAs, at: renderIndex)
-        
     }
     
     func createPointsLayers( _ points: [CGPoint],
@@ -213,6 +212,11 @@ extension OMScrollableChart {
         return layers
     }
     
+    /// createPointLayer
+    /// - Parameters:
+    ///   - point: <#point description#>
+    ///   - size: <#size description#>
+    ///   - color: <#color description#>
     func createPointLayer( _ point: CGPoint,
                            size: CGSize,
                            color: UIColor) -> OMShapeLayerRadialGradientClipPath {

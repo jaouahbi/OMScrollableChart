@@ -94,14 +94,16 @@ extension OMScrollableChart {
                                         renderIndex: Int,
                                         duration: TimeInterval = 0.5) {
         
-        CATransaction.lock()
+//
+        
+        //CATransaction.lock()
         CATransaction.setAnimationDuration(duration)
         CATransaction.begin()
 
         
         // selectRenderLayer(layerPoint, renderIndex: renderIndex)
         
-        if animatePointLayers {
+        if animatePointLayers &&  layerPoint.opacity > 0 && animation {
             animateOnRenderLayerSelection(layerPoint,
                                           renderIndex: renderIndex, duration: duration)
         }
@@ -156,7 +158,7 @@ extension OMScrollableChart {
             }
         }
         CATransaction.commit()
-        CATransaction.unlock()
+       // CATransaction.unlock()
     }
     func locationFromTouch(_ touches: Set<UITouch>) -> CGPoint {
         if let touch = touches.first {

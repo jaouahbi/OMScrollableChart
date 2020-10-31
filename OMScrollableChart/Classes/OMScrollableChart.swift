@@ -304,7 +304,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var rulesPoints = [CGPoint]()
     var animatePolyLine = false
     var animateDashLines: Bool = false
-    var animatePointLayers: Bool = false
+    var animatePointLayers: Bool = true
     var animateLineSelection: Bool = false
     var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
     var selectedColor = UIColor.red
@@ -776,9 +776,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         return nil
     }
     func makeRawPoints(_ data: [Float], size: CGSize) -> [CGPoint] {
-        let generator  = scaledPointsGenerator[0]
-        generator.updateRangeLimits(data)
-        return generator.makePoints(data: data, size: size)
+        coreGenerator?.updateRangeLimits(data)
+        return coreGenerator?.makePoints(data: data, size: size) ?? []
     }
     func makeApproximationPoints( points: [CGPoint], tolerance: CGFloat) -> [CGPoint]? {
         guard tolerance != 0, points.count > 0 else {
@@ -883,7 +882,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
     }
     
-    
+    /// rendersIsVisible
+    /// - Parameter renderIndex: <#renderIndex description#>
     func rendersIsVisible(renderIndex: Int) -> Bool {
         if let dataSource = dataSource {
             return dataSource.renderLayerOpacity(chart: self,
@@ -1038,7 +1038,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     let pointsHash = flatPointsToRender.hashValue
                     let dictKey = frameHash ^ pointsHash
                     if let item = layoutCache.object(forKey: NSNumber(value: dictKey))?.value as? [[CGPoint]] {
-                        print("[LCACHE] cache hit \(dictKey) value [\(item)]")
+                        print("[LCACHE] cache hit \(dictKey)")
                         setNeedsDisplay()
                         return
                     }
@@ -1051,7 +1051,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         // Create the points from the discrete data using the renders
         if allDataPointsRender.count > 0 {
             //print("\(CALayer.isAnimatingLayers) animations running")
-            if CALayer.isAnimatingLayers <= 1 {
+            if CALayer.isAnimatingLayers <= 1 || ignoreLayout {
                 //print("Regenerating the layer tree.")
                 removeAllLayers()
                 addLeadingRuleIfNeeded(rootRule, view: self)
@@ -1117,16 +1117,17 @@ extension OMScrollableChart {
             //
             if !isSelected {
                 // test the layers
+                
                 if let polylineLayer = locationToNearestLayer(location,
-                                                              renderIndex: 0),
+                                                              renderIndex: Renders.polyline.rawValue),
                     let selectedLayer = locationToNearestLayer(location,
-                                                               renderIndex: 1) {
+                                                               renderIndex: Renders.points.rawValue) {
                     let point = CGPoint( x: selectedLayer.position.x,
                                          y: selectedLayer.position.y )
                     selectRenderLayerWithAnimation(selectedLayer,
                                                    selectedPoint: location,
                                                    animation: true,
-                                                   renderIndex: 1)
+                                                   renderIndex: Renders.points.rawValue)
                 }
             }
         }

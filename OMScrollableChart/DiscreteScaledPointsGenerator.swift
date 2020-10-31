@@ -81,7 +81,16 @@ class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
         maximumValue = max
         isLimitsDirty = false
     }
+    var lastPoints: [CGPoint] = []
+    var lastValueCalc: Int = 0
     func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
+        let lastValue = data.hashValue ^ Int(size.width) ^ Int(size.height)
+        if lastValue != lastValueCalc {
+            lastValueCalc = lastValue
+        } else {
+            print("makePoints cache it \(lastValue)")
+            return lastPoints
+        }
         // claculate the size
         let insetHeight   = (insets.bottom + insets.top)
         let insetWidth    = (insets.left + insets.right)
@@ -96,10 +105,12 @@ class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
         //           scaled[n] = (A[n] + B[n]) * C;
         vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
         let xScale = newSize.width / CGFloat(data.count)
-        return scaled.enumerated().map {
+        lastPoints =  scaled.enumerated().map {
             return CGPoint(x: xScale * hScale * CGFloat($0.offset),
                            y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
         }
+        
+        return lastPoints
     }
 }
 
