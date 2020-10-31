@@ -42,6 +42,7 @@ extension OMScrollableChart {
         guard let rule = rule else {
             return
         }
+        //rule.backgroundColor = .red
         assert(rule.type == .leading)
         if rule.superview == nil {
             rule.translatesAutoresizingMaskIntoConstraints = false
@@ -50,14 +51,29 @@ extension OMScrollableChart {
             } else {
                 self.insertSubview(rule, at: rule.type.rawValue)
             }
+            
+            let width = rule.ruleSize.width > 0 ?
+                rule.ruleSize.width :
+                contentSize.width
+            let height = rule.ruleSize.height > 0 ?
+                rule.ruleSize.height :
+                contentSize.height
+            print(height, width)
             ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-            ruletopAnchor      = rule.topAnchor.constraint(equalTo: self.topAnchor)
-            rulebottomAnchor   = rule.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-            rulewidthAnchor    = rule.widthAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.width))
+            ruletopAnchor      = rule.topAnchor.constraint(equalTo: self.contentView.topAnchor)
+            rulewidthAnchor    = rule.widthAnchor.constraint(equalToConstant: CGFloat(width))
+            ruleHeightAnchor    = rule.heightAnchor.constraint(equalToConstant: CGFloat(height))
+            
+            if let footerRule = footerRule {
+                rulebottomAnchor =  rule.bottomAnchor.constraint(equalTo: footerRule.bottomAnchor,
+                                                                 constant: -footerRule.ruleSize.height)
+            }
+            
             ruleLeadingAnchor?.isActive  = true
             ruletopAnchor?.isActive  = true
-            rulebottomAnchor?.isActive  = true
+            //rulebottomAnchor?.isActive  = true
             rulewidthAnchor?.isActive  = true
+            ruleHeightAnchor?.isActive  = true
         }
     }
     
@@ -71,6 +87,7 @@ extension OMScrollableChart {
             return
         }
         assert(rule.type == .footer)
+        //rule.backgroundColor = .red
         if rule.superview == nil {
             rule.translatesAutoresizingMaskIntoConstraints = false
             if let view = view {
@@ -82,13 +99,16 @@ extension OMScrollableChart {
             let width = rule.ruleSize.width > 0 ?
                 rule.ruleSize.width :
                 contentSize.width
+            let height = rule.ruleSize.height > 0 ?
+                rule.ruleSize.height :
+                contentSize.height
             
-            rule.backgroundColor = UIColor.gray
+            //rule.backgroundColor = UIColor.gray
             rule.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
             rule.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
             rule.topAnchor.constraint(equalTo: self.contentView.bottomAnchor,
                                       constant: 0).isActive = true
-            rule.heightAnchor.constraint(equalToConstant: CGFloat(rule.ruleSize.height)).isActive = true
+            rule.heightAnchor.constraint(equalToConstant: CGFloat(height)).isActive = true
             rule.widthAnchor.constraint(equalToConstant: width).isActive = true
         }
     }
@@ -174,22 +194,47 @@ extension OMScrollableChart {
     }
     func makeRulesPoints() -> Bool {
         if let generator  = coreGenerator {
-            guard numberOfRuleMarks > 0 && (generator.range != 0)  else {
+            guard numberOfRuleMarks > 0 &&
+                    (generator.range != 0)  else {
                 return false
             }
             internalRulesMarks.removeAll()
             internalCalcRules()
-            rulesPoints = generator.makePoints(data: rulesMarks, size: drawableFrame.size)
+            rulesPoints = generator.makePoints(data: rulesMarks,
+                                            size: self.contentView.frame.size)
             return true
         }
         return false
+    }
+    
+    func addDashLinesToMarksToVerticalRule(_ leadingRule: ChartRuleProtocol) {
+        dashLineLayers.forEach({$0.removeFromSuperlayer()})
+        dashLineLayers.removeAll()
+        
+        let leadingRuleWidth: CGFloat = leadingRule.ruleSize.width
+        let width: CGFloat = contentView.frame.width
+        
+        let fontSize = ruleFont.pointSize
+        for (index, item) in rulesPoints.enumerated() {
+            var yPos = (item.y + fontSize * 0.5)
+            if index > 0 {
+                if index < rulesPoints.count - 1 {
+                    yPos = item.y
+                } else {
+                    yPos = item.y
+                }
+            }
+            let markPointLeft  = CGPoint(x: leadingRuleWidth, y: yPos)
+            let markPointRight = CGPoint(x: width, y: yPos)
+            addDashLineLayerFromRuleMark(point: markPointLeft, endPoint: markPointRight)
+        }
     }
     
     func layoutRules() {
         // rules lines
         
         let oldRulesPoints = rulesPoints
-        guard let rule = rootRule else {
+        guard let leadingRule = rootRule else {
             return
         }
         
@@ -201,21 +246,12 @@ extension OMScrollableChart {
             return
         }
         
-        dashLineLayers.forEach({$0.removeFromSuperlayer()})
-        dashLineLayers.removeAll()
-        
-        let padding: CGFloat = rule.ruleSize.width
-        let width = contentView.frame.width
-        
-        for item in rulesPoints {
-            let markPointLeft  = CGPoint(x: padding, y: item.y)
-            let markPointRight = CGPoint(x: width, y: item.y)
-            addDashLineLayerFromRuleMark(point: markPointLeft, endPoint: markPointRight)
-        }
+        addDashLinesToMarksToVerticalRule(leadingRule)
 
         // Mark for display the rule.
         rules.forEach {
             $0.layoutRule()
+            $0.setNeedsDisplay()
         }
     }
 }

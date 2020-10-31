@@ -17,57 +17,7 @@ import CoreGraphics
 // swiftlint:disable identifier_name shorthand_operator
 // swiftlint:disable file_length
 // swiftlint:disable type_body_length
-struct Point3D {
-    var x:CGFloat, y:CGFloat, z:CGFloat;
-}
-struct Segment3D {
-    var  P0:Point3D;
-    var  P1:Point3D;
-};
 
-extension Point3D {
-    func dot( point:Point3D) -> CGFloat {
-        return ((self).x * (point).x + (self).y * (point).y + (self).z * (point).z);
-    }
-    
-    func norm( ) -> CGFloat {
-        return self.dot(point: self);
-    }
-    
-    func norm2() -> CGFloat {
-        return sqrt(self.norm());
-    }
-    
-    func d2( point:Point3D) -> CGFloat{
-        let sub: Point3D = Point3D(x: self.x - point.x, y: self.y - point.y, z: self.z - point.z);
-        return sub.norm2( )
-    }
-    
-    func sub( point:Point3D) -> Point3D {
-        let  sub:Point3D = Point3D(x:self.x - point.x, y: self.y - point.y, z: self.z - point.z)
-        return sub;
-    }
-    
-    func d(  point:Point3D) ->CGFloat {
-        return self.sub( point: point).norm()
-    }
-    
-    func add( scalar:CGFloat) -> Point3D {
-        var newv:Point3D = Point3D(x: 0,y: 0,z: 0);
-        newv.x = self.x + scalar;
-        newv.y = self.y + scalar;
-        newv.z = self.z + scalar;
-        return newv;
-    }
-    
-    func mul( point:Point3D) -> Point3D {
-        var newv:Point3D = Point3D(x: 0,y: 0,z: 0);
-        newv.x = self.x * point.x;
-        newv.y = self.y * point.y;
-        newv.z = self.z * point.z;
-        return newv;
-    }
-}
 
 //
 //Point3D to3D(Point2D point) {
@@ -87,119 +37,7 @@ extension Point3D {
 
 
 //TODO: https://github.com/airbnb/lottie-ios/blob/master/lottie-swift/src/Private/Utility/Extensions/MathKit.swift
-/**
- * CGAffineTransform
- *
- * var a = CGAffineTransformMakeRotation(45.0 * M_PI / 180.0)
- * var b = CGPointMake(30.0, 43.3)
- */
 
-/**
- * ...
- * a + b
- */
-func + (left: CGAffineTransform, right: CGPoint) -> CGAffineTransform {
-    return left.translatedBy(x: right.x, y: right.y)
-}
-
-/**
- * ...
- * a += b
- */
-func += (left: inout CGAffineTransform, right: CGPoint) {
-    left = left + right
-}
-
-/**
- * ...
- * a - b
- */
-func - (left: CGAffineTransform, right: CGPoint) -> CGAffineTransform {
-    return left.translatedBy(x: -right.x, y: -right.y)
-}
-
-/**
- * ...
- * a -= b
- */
-func -= (left: inout CGAffineTransform, right: CGPoint) {
-    left = left - right
-}
-
-/**
- * ...
- * a * b
- */
-func * (left: CGAffineTransform, right: CGPoint) -> CGAffineTransform {
-    return left.scaledBy(x: right.x, y: right.y)
-}
-
-/**
- * ...
- * a *= b
- */
-func *= (left: inout CGAffineTransform, right: CGPoint) {
-    left = left * right
-}
-
-/**
- * Multiply transformation with CGPoint
- */
-func * (left: CGAffineTransform, right: CGPoint) -> CGPoint {
-    return CGPoint(
-        x: left.a * right.x + left.b * right.y + left.tx,
-        y: left.c * right.x + left.d * right.y + left.ty
-    )
-}
-
-/**
- * Multiply transformation with CGSize
- */
-func * (left: CGAffineTransform, right: CGSize) -> CGSize {
-    return CGSize(
-        width: left.a * right.width + left.b * right.height + left.tx,
-        height: left.c * right.width + left.d * right.height + left.ty
-    )
-}
-
-/**
- * Multiply transformation with CGRect
- * Only scale and translation operations are meaningful
- */
-func * (left: CGAffineTransform, right: CGRect) -> CGRect {
-    var point1 = CGPoint(x: right.origin.x, y: right.origin.y)
-    var point2 = CGPoint(x: right.maxX, y: right.maxY)
-    
-    point1 = left * point1
-    point2 = left * point2
-    
-    return CGRect(x: point1.x, y: point1.y, width: point2.x - point1.x, height: point2.y - point1.y)
-}
-
-/**
- * Rotation operator
- */
-infix operator *^: MultiplicationPrecedence
-
-/**
- * Rotate transformation
- *
- * var transform = CGAffineTransformMakeTranslation(100, 120)
- * transform = transform *^ (45.0 * M_PI / 180.0)
- */
-func *^ (left: CGAffineTransform, right: CGFloat) -> CGAffineTransform {
-    return left.rotated(by: right)
-}
-
-/**
- * Invert transformation
- *
- * var transform = CGAffineTransformMakeRotation(127.0 * M_PI / 180.0)
- * transform = ~transform
- */
-prefix func ~ (left: CGAffineTransform) -> CGAffineTransform {
-    return left.inverted()
-}
 
 /**
  * CGPoint
@@ -908,41 +746,7 @@ public extension CGPoint {
 //    let  targetSize = sizeScaleByFactor(sourceRect.size, factor: aspect)
 //    return rectAroundCenter(rectGetCenter(destinationRect), size: targetSize)
 //}
-// https://gist.github.com/pixeldock/f1c3b2bf0f7fe48d412c09fcb2705bf1
-extension Array {
-    func takeElements(_ numberOfElements: Int, startAt: Int = 0) -> Array {
-        var numberOfElementsToGet = numberOfElements
-        if numberOfElementsToGet > count - startAt {
-            numberOfElementsToGet = count - startAt
-        }
-        let from = Array(self[startAt..<count])
-        return Array(from[0..<numberOfElementsToGet])
-    }
-}
-extension Array where Element: Comparable {
-    var indexOfMax: Index? {
-        guard var maxValue = self.first else { return nil }
-        var maxIndex = 0
-        for (index, value) in self.enumerated() {
-            if value > maxValue {
-                maxValue = value
-                maxIndex = index
-            }
-        }
-        return maxIndex
-    }
-    var indexOfMin: Index? {
-        guard var maxValue = self.first else { return nil }
-        var maxIndex = 0
-        for (index, value) in self.enumerated() {
-            if value < maxValue {
-                maxValue = value
-                maxIndex = index
-            }
-        }
-        return maxIndex
-    }
-}
+
 //extension Float {
 //    func roundToNearestValue(value: Float) -> Float {
 //        let mask = value - 1.0
@@ -1015,11 +819,6 @@ func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
     return lhs.distanceFrom(rhs) < 0.000001 //CGPointEqualToPoint(lhs, rhs)
 }
 
-extension Array: Hashable where Iterator.Element: Hashable {
-    public var hashValue: Int {
-        return self.reduce(1, { $0.hashValue ^ $1.hashValue })
-    }
-}
 extension CGRect: Hashable {
     public var hashValue: Int {
         return NSCoder.string(for: self).hashValue

@@ -34,7 +34,8 @@ public class BezierPath {
     /// - Parameter time: Time as a percentage along bezier curve
     /// - Returns: position on the bezier curve
     public func posAt(time: TimeInterval) -> CGPoint {
-        guard let first = self.points.first, let last = self.points.last else {
+        guard let first = self.points.first,
+              let last = self.points.last else {
             print("NO POINTS IN BezierPath")
             return .zero
         }
@@ -95,20 +96,20 @@ class BezierPoint: CAShapeLayer {
     }
 }
 
-extension Array where Element: BezierPoint {
-    func getBezierPath() -> BezierPath {
-        let positions = self.map { $0.superlayer!.convert($0.position, to: nil) }
-        return BezierPath(points: positions)
-    }
-    func getBezierVertices(count: Int = 100) -> [CGPoint] {
-        let bezPath = self.getBezierPath()
-        return bezPath.getNPoints(count: count)
-    }
+//extension Array where Element: BezierPoint {
+//    func getBezierPath() -> BezierPath {
+//        let positions = self.map { $0.superlayer!.convert($0.position, to: nil) }
+//        return BezierPath(points: positions)
+//    }
+//    func getBezierVertices(count: Int = 100) -> [CGPoint] {
+//        let bezPath = self.getBezierPath()
+//        return bezPath.getNPoints(count: count)
+//    }
 //    func getBezierGeometry(with count: Int = 100) -> SCNGeometry {
 //        let points = self.getBezierVertices(count: count)
 //        return SCNGeometry.line(points: points)
 //    }
-}
+//}
 
 extension CAAnimation
 {

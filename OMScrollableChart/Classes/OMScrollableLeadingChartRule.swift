@@ -54,18 +54,23 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         super.init(coder: coder)
         backgroundColor = .clear
     }
+    
+    
+    
     var fontColor = UIColor.black {
         didSet {
             views?.forEach({($0 as? UILabel)?.textColor = fontColor})
         }
     }
+    var fontStrokeColor = UIColor.lightGray
+    
     var font = UIFont.systemFont(ofSize: 14, weight: .thin) {
         didSet {
             views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
+    var leftInset: CGFloat = 16
     var ruleSize: CGSize = CGSize(width: 60, height: 0)
-    var leftInset: CGFloat = 15
     func layoutRule() -> Bool {
         guard let chart = chart else {
             return false
@@ -91,26 +96,76 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
                 }
             }
         }
-        return true
     }
+            
+//    func createLayout() -> Bool {
+//        guard let chart = chart else {
+//            return false
+//        }
+//        labelViews.forEach({$0.removeFromSuperview()})
+//        labelViews.removeAll()
+//        let fontSize: CGFloat = font.pointSize
+//
+//        let attributes = [NSAttributedString.Key.font: self.font,
+//                          NSAttributedString.Key.foregroundColor: self.fontColor,
+//                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
+//
+//        for (index, item) in chart.rulesPoints.enumerated() {
+//            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
+//                let string = NSAttributedString(string: stepString,
+//                                                attributes: attributes)
+//                let label = UILabel()
+//                label.attributedText = string
+//                label.sizeToFit()
+//
+//                var yPos = (item.y - fontSize)
+//                if index > 0 {
+//                    if index < chart.rulesPoints.count - 1 {
+//                        print(index, item)
+//                        yPos = item.y - fontSize * 0.5
+//                    } else {
+//                        print(index, item)
+//                        yPos = item.y
+//                    }
+//                }
+//                let frame = CGRect(x: leftInset,
+//                                     y: yPos,
+//                                     width: label.bounds.width,
+//                                     height: label.bounds.height)
+//                label.frame = frame
+//                self.addSubview(label)
+//                labelViews.append(label)
+//
+//                chart.flowDelegate?.drawRootRuleText(in: frame,
+//                                                     text: string)
+//            }
+//
+//
+//        return true
+//    }
+                
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         setNeedsLayout()
     }
+        
     var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
         if oldFrame != frame {
             if !layoutRule() { // TODO: update layout
-                //GCLog.print("Unable to create the rule layout" ,.error)
+                GCLog.print("Unable to create the rule layout" ,.error)
             }
-            oldFrame = frame
+        oldFrame = frame
+            chart.layoutRules()
+            
         }
     }
 }
+        
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
-    var leftInset: CGFloat = 15
+    var leftInset: CGFloat = 16
     var chart: OMScrollableChart!
     //var isPointsNeeded: Bool  =  false
     var type: ChartRuleType = .footer
@@ -153,12 +208,15 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
+    var borders = [UIView]()
     /// create rule layout
     /// - Returns: Bool
     func layoutRule() -> Bool {
         guard !self.frame.isEmpty else {
             return false
         }
+        borders.forEach({ $0.removeFromSuperview()})
+        borders = []
         self.subviews.forEach({ $0.removeFromSuperview()})
         let width  = chart.sectionWidth
         let height = ruleSize.height
@@ -180,14 +238,15 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             self.addArrangedSubview(label)
             label.widthAnchor.constraint(equalToConstant: width).isActive = true
             label.heightAnchor.constraint(equalToConstant: height).isActive = true
-            borders.append(label.setBorder(border: .right(constant: 5),
+
+            borders.append( label.setBorder(border: .right(constant: 5),
                                 weight: borderDecorationWidth,
-                                color: decorationColor))
+                                color: decorationColor.withAlphaComponent(0.45)))
         }
-        // }
+        
         borders.append(self.setBorder(border: .top(constant: 10),
                            weight: borderDecorationWidth,
-                           color: decorationColor))
+                           color: decorationColor.withAlphaComponent(0.45)))
         return true
     }
     override func didMoveToSuperview() {
@@ -199,7 +258,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         super.layoutSubviews()
         if oldFrame != frame {
             if !layoutRule() { // TODO: update layout
-                //GCLog.print("Unable to create the rule layout" ,.error)
+                GCLog.print("Unable to create the rule layout" ,.error)
             }
             oldFrame = frame
         }

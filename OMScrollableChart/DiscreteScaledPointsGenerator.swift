@@ -21,101 +21,6 @@
 import UIKit
 import Accelerate
 
-protocol ScaledPointsGenerator {
-    var maximumValue: Float {get}
-    var minimumValue: Float {get}
-    var insets: UIEdgeInsets {get set}
-    var minimum: Float?  {get set}
-    var maximum: Float?  {get set}
-    var range: Float  {get}
-    var hScale: CGFloat  {get}
-    var isLimitsDirty: Bool {get set}
-    
-    func makePoints(data: [Float], size: CGSize) -> [CGPoint]
-    func updateRangeLimits(_ data: [Float])
-}
-
-// Default values.
-extension ScaledPointsGenerator {
-    var hScale: CGFloat  {return 1.0}
-    var minimum: Float?  {return nil }
-    var maximum: Float?  {return nil }
-    var range: Float {
-        return maximumValue - minimumValue
-    }
-}
-// MARK: - DiscreteScaledPointsGenerator -
-class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
-    var insets: UIEdgeInsets = UIEdgeInsets(top: 20, left: 0, bottom: 10, right: 0)
-    var isLimitsDirty: Bool = true
-    var maximumValue: Float = 0
-    var minimumValue: Float = 0
-    var minimum: Float? = nil {
-        didSet {
-            isLimitsDirty = true
-        }
-    }
-    var maximum: Float? = nil {
-        didSet {
-            isLimitsDirty = true
-        }
-    }
-    func updateRangeLimits(_ data: [Float]) {
-        guard isLimitsDirty else {
-            return
-        }
-        // Normalize values in array (i.e. scale to 0-1)...
-        var min: Float = 0
-        if let minimum = minimum {
-            min = minimum
-        } else {
-            vDSP_minv(data, 1, &min, vDSP_Length(data.count))
-        }
-        minimumValue = min
-        var max: Float = 0
-        if let maximum = maximum {
-            max = maximum
-        } else {
-            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
-        }
-        maximumValue = max
-        isLimitsDirty = false
-    }
-    var lastPoints: [CGPoint] = []
-    var lastValueCalc: Int = 0
-    func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
-        let lastValue = data.hashValue ^ Int(size.width) ^ Int(size.height)
-        if lastValue != lastValueCalc {
-            lastValueCalc = lastValue
-        } else {
-            print("makePoints cache it \(lastValue)")
-            return lastPoints
-        }
-        // claculate the size
-        let insetHeight   = (insets.bottom + insets.top)
-        let insetWidth    = (insets.left + insets.right)
-        let insetY        =  insets.top
-        // the size
-        let newSize  = CGSize(width: size.width,
-                             height: size.height - insetHeight)
-        var scale = 1 / self.range
-        var minusMin = -minimumValue
-        var scaled = [Float](repeating: 0, count: data.count)
-        //        for (n = 0; n < N; ++n)
-        //           scaled[n] = (A[n] + B[n]) * C;
-        vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
-        let xScale = newSize.width / CGFloat(data.count)
-        lastPoints =  scaled.enumerated().map {
-            return CGPoint(x: xScale * hScale * CGFloat($0.offset),
-                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
-        }
-        
-        return lastPoints
-    }
-}
-
-// version 2
-
 //protocol ScaledPointsGeneratorProtocol {
 //    var maximumValue: Float {get}
 //    var minimumValue: Float {get}
@@ -141,36 +46,148 @@ class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
 //        return makePoints()
 //    }
 //}
-//// MARK: - DiscreteScaledPointsGenerator -
-//// let scaledPoints = DiscreteScaledPointsGenerator2(data, contentSize)
-//// scaledPoints.points
-//class DiscreteScaledPointsGenerator2: ScaledPointsGeneratorProtocol {
-//    var data: [Float]!
-//    var size: CGSize!
-//    init(_ data: [Float], size: CGSize) {
-//        self.data = data
-//        self.size  = size
-//        updateRangeLimits()
-//    }
-//    var hScale: CGFloat  { return 1.0 }
-//    var insets: UIEdgeInsets =  UIEdgeInsets(top: 20, left: 0, bottom: 40, right: 0) {
-//        didSet {
-//            updateRangeLimits()
+
+protocol ScaledPointsGeneratorProtocol {
+    var maximumValue: Float {get}
+    var minimumValue: Float {get}
+    var insets: UIEdgeInsets {get set}
+    var minimum: Float?  {get set}
+    var maximum: Float?  {get set}
+    var range: Float  {get}
+    var hScale: CGFloat  {get}
+    var isLimitsDirty: Bool {get set}
+    
+    func makePoints(data: [Float], size: CGSize) -> [CGPoint]
+    func updateRangeLimits(_ data: [Float])
+}
+
+// Default values.
+extension ScaledPointsGeneratorProtocol {
+    var hScale: CGFloat  {return 1.0}
+    var minimum: Float?  {return nil }
+    var maximum: Float?  {return nil }
+    var range: Float {
+        return maximumValue - minimumValue
+    }
+}
+// MARK: - DiscreteScaledPointsGenerator -
+class DiscreteScaledPointsGenerator: ScaledPointsGeneratorProtocol {
+    var insets: UIEdgeInsets = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+    var isLimitsDirty: Bool = true
+    private(set) var maximumValue: Float = 0
+    private(set) var minimumValue: Float = 0
+    var minimum: Float? = nil {
+        didSet {
+            isLimitsDirty = true
+        }
+    }
+    var maximum: Float? = nil {
+        didSet {
+            isLimitsDirty = true
+        }
+    }
+    internal func updateRangeLimits(_ data: [Float]) {
+        guard isLimitsDirty else {
+            return
+        }
+        // Normalize values in array (i.e. scale to 0-1)...
+        var min: Float = 0
+        if let minimum = minimum {
+            min = minimum
+        } else {
+            vDSP_minv(data, 1, &min, vDSP_Length(data.count))
+        }
+        minimumValue = min
+        var max: Float = 0
+        if let maximum = maximum {
+            max = maximum
+        } else {
+            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
+        }
+        maximumValue = max
+        isLimitsDirty = false
+    }
+    //var lastPoints: [CGPoint] = []
+    //var lastValueCalc: Int = 0
+    func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
+//        let lastValue = data.hashValue ^ Int(size.width) ^ Int(size.height)
+//        if lastValue != lastValueCalc {
+//            lastValueCalc = lastValue
+//        } else {
+//            print("makePoints cache it \(lastValue)")
+//            return lastPoints
 //        }
-//    }
-//    var maximumValue: Float = 0
-//    var minimumValue: Float = 0
-//    var minimum: Float? = nil {
-//        didSet {
-//            updateRangeLimits()
+        if isLimitsDirty {
+            updateRangeLimits(data)
+        }
+        // claculate the size
+        let insetHeight   = (insets.bottom + insets.top)
+        let insetWidth    = (insets.left + insets.right)
+        let insetY        =  insets.top
+        let insetX        =  insets.left
+        // the size
+        let newSize  = CGSize(width: size.width - insetWidth,
+                             height: size.height - insetHeight)
+        var scale = 1 / self.range
+        var minusMin = -minimumValue
+        var scaled = [Float](repeating: 0, count: data.count)
+        //        for (n = 0; n < N; ++n)
+        //           scaled[n] = (A[n] + B[n]) * C;
+        vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
+        let xScale = newSize.width / CGFloat(data.count)
+
+//        lastPoints =  scaled.enumerated().map {
+//            return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX,
+//                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
 //        }
-//    }
-//    var maximum: Float? = nil {
-//        didSet {
-//            updateRangeLimits()
+//        return lastPoints
+        
+        return scaled.enumerated().map {
+                    return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX
+                                   y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
+        
+
+    }
+}
+
+
+// MARK:  ScaledPointsGenerator -
+
+class ScaledPointsGenerator: DiscreteScaledPointsGenerator {
+    var data: [Float]! {
+        didSet {
+            isLimitsDirty = true
+        }
+    }
+    var size: CGSize! {
+        didSet {
+            isLimitsDirty = true
+        }
+    }
+    public init(_ data: [Float], size: CGSize, insets: UIEdgeInsets = .zero) {
+        super.init()
+        self.data = data
+        self.size = size
+        self.insets = insets
+        updateRangeLimits()
+    }
+    internal func updateRangeLimits() {
+        // Normalize values in array (i.e. scale to 0-1)...
+        super.updateRangeLimits(data)
+    }
+    internal func makePoints() -> [CGPoint] {
+        // claculate the size
+        return self.makePoints(data: data, size: size)
+    }
+}
+
+
+// MARK: - DiscreteLogaritmicScaledPointsGenerator -
+class DiscreteLogaritmicScaledPointsGenerator: DiscreteScaledPointsGenerator {
+//    internal func updateRangeLimits(_ data: [Float]) {
+//        guard isLimitsDirty else {
+//            return
 //        }
-//    }
-//    internal func updateRangeLimits() {
 //        // Normalize values in array (i.e. scale to 0-1)...
 //        var min: Float = 0
 //        if let minimum = minimum {
@@ -186,25 +203,58 @@ class DiscreteScaledPointsGenerator: ScaledPointsGenerator {
 //            vDSP_maxv(data, 1, &max, vDSP_Length(data.count))
 //        }
 //        maximumValue = max
+//        isLimitsDirty = false
 //    }
-//    internal func makePoints() -> [CGPoint] {
-//        // claculate the size
-//        let insetHeight   = (insets.bottom + insets.top)
-//        //let insetWidth    = (insets.left + insets.right)
-//        let insetY        =  insets.top
-//        // the size
-//        let newSize  = CGSize(width: size.width,
-//                             height: size.height - insetHeight)
-//        var scale = 1 / self.range
-//        var minusMin = -minimumValue
-//        var scaled = [Float](repeating: 0, count: data.count)
-//        //        for (n = 0; n < N; ++n)
-//        //           scaled[n] = (A[n] + B[n]) * C;
-//        vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
-//        let xScale = newSize.width / CGFloat(data.count)
-//        return scaled.enumerated().map {
-//            return CGPoint(x: xScale * hScale * CGFloat($0.offset),
-//                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
-//        }
-//    }
-//}
+    override func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
+        if isLimitsDirty {
+            updateRangeLimits(data)
+        }
+        // claculate the size
+        let insetHeight   = (insets.bottom + insets.top)
+        let insetWidth    = (insets.left + insets.right)
+        let insetY        =  insets.top
+        let insetX        =  insets.left
+        // the size
+        let newSize  = CGSize(width: size.width - insetWidth,
+                             height: size.height - insetHeight)
+        var scale = 1 / self.range
+        var minusMin = -minimumValue
+        var scaled = [Float](repeating: 0, count: data.count)
+        //        for (n = 0; n < N; ++n)
+        //           scaled[n] = (A[n] + B[n]) * C;
+        vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
+        let xScale = newSize.width / CGFloat(data.count)
+        return scaled.enumerated().map {
+            return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX,
+                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
+        }
+    }
+}
+
+func log_position(value: Double) -> Double {
+    // position will be between 0 and 100
+    var minp = 0.0;
+    var maxp = 100.0;
+    
+    // The result should be between 100 an 10000000
+    var minv = log(100.0)
+    var maxv = log(10000000.9)
+    // calculate adjustment factor
+    var scale = (maxv-minv) / (maxp-minp);
+    
+    return (log(value)-minv) / scale + minp;
+}
+func log_value(position: Double ) -> Double {
+  // position will be between 0 and 100
+    var minp = 0.0;
+    var maxp = 100.0;
+
+  // The result should be between 100 an 10000000
+    var minv = log(100.0)
+    var maxv = log(10000000.9)
+
+  // calculate adjustment factor
+  var scale = (maxv-minv) / (maxp-minp);
+
+  return exp(minv + scale * (position-minp));
+}

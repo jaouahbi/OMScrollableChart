@@ -1,6 +1,5 @@
 //
 //  PolyLineInterpolation.swift
-//  Example
 //
 //  Created by Jorge Ouahbi on 01/09/2020.
 //  Copyright © 2020 dsp. All rights reserved.
@@ -28,8 +27,8 @@ public enum PolyLineInterpolation {
                return  UIBezierPath(cubicCurvePoints: polylinePoints, maxYPosition: 0)
            case .catmullRom(let alpha):
                return UIBezierPath(catmullRomPoints: polylinePoints, alpha: alpha)
-           case .hermite(_):
-               return UIBezierPath(hermitePoints: polylinePoints, maxYPosition: 0)
+           case .hermite(let alpha):
+               return UIBezierPath(hermitePoints: polylinePoints, maxYPosition: 0, alpha: alpha)
            }
        }
    }
