@@ -21,7 +21,7 @@ class OMBubbleShapeView: UIView {
     @IBInspectable var fillColor:    UIColor = .paleGrey { didSet { setNeedsDisplay() } }
     @IBInspectable var shadowGradientColor: UIColor = .paleGrey { didSet { setNeedsDisplay() } }
     @IBInspectable var strokeColor:  UIColor = UIColor(white: 0.91, alpha: 1.0)   { didSet { setNeedsDisplay() } }
-    @IBInspectable var drawGlossEffect: Bool = true
+    @IBInspectable var drawGlossEffect: Bool = false
     @IBInspectable  var isFlipped: Bool = false { didSet {setNeedsDisplay()}}
     var calloutDirection: CalloutDirection = .left { didSet {setNeedsDisplay()}}
     var gradientMask: UIImage? { return isFlipped ? gradientMaskInvert : gradientMaskNormal}

@@ -32,11 +32,8 @@ protocol ChartRuleProtocol: UIView {
     var leftInset: CGFloat {get set}
     var ruleSize: CGSize {get}
     var views: [UIView]? {get}
-    func createLayout() -> Bool
+    func layoutRule() -> Bool
 }
-
-
-
 
 // MARK: - OMScrollableLeadingChartRule -
 class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
@@ -72,60 +69,100 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
             views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
-    var ruleSize: CGSize = CGSize(width: 60, height: 0)
     var leftInset: CGFloat = 16
-    func createLayout() -> Bool {
+    var ruleSize: CGSize = CGSize(width: 60, height: 0)
+    func layoutRule() -> Bool {
         guard let chart = chart else {
             return false
         }
-        labelViews.forEach({$0.removeFromSuperview()})
-        labelViews.removeAll()
-        let fontSize: CGFloat = font.pointSize
-        
-        let attributes = [NSAttributedString.Key.font: self.font,
-                          NSAttributedString.Key.foregroundColor: self.fontColor,
-                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
-        
-        for (index, item) in chart.rulesPoints.enumerated() {
-            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
-                let string = NSAttributedString(string: stepString,
-                                                attributes: attributes)
-                let label = UILabel()
-                label.attributedText = string
-                label.sizeToFit()
-                
-                var yPos = (item.y - fontSize)
-                if index > 0 {
-                    if index < chart.rulesPoints.count - 1 {
-                        print(index, item)
-                        yPos = item.y - fontSize * 0.5
-                    } else {
-                        print(index, item)
-                        yPos = item.y
-                    }
+        if labelViews.isEmpty {
+            let fontSize: CGFloat = font.pointSize
+            
+            for (index, item) in chart.rulesPoints.enumerated() {
+                if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
+                    let string = NSAttributedString(string: stepString,
+                                                    attributes: [NSAttributedString.Key.font: self.font,
+                                                                 NSAttributedString.Key.foregroundColor: self.fontColor,
+                                                                 NSAttributedString.Key.strokeColor: UIColor.lightGray])
+                    let label = UILabel()
+                    label.attributedText = string
+                    label.sizeToFit()
+                    label.frame = CGRect(x: leftInset,
+                                         y: (item.y - fontSize),
+                                         width: label.bounds.width,
+                                         height: label.bounds.height)
+                    self.addSubview(label)
+                    labelViews.append(label)
                 }
-                let frame = CGRect(x: leftInset,
-                                     y: yPos,
-                                     width: label.bounds.width,
-                                     height: label.bounds.height)
-                label.frame = frame
-                self.addSubview(label)
-                labelViews.append(label)
-                
-                chart.flowDelegate?.drawRootRuleText(in: frame,
-                                                     text: string)
             }
         }
-        return true
     }
+            
+//    func createLayout() -> Bool {
+//        guard let chart = chart else {
+//            return false
+//        }
+//        labelViews.forEach({$0.removeFromSuperview()})
+//        labelViews.removeAll()
+//        let fontSize: CGFloat = font.pointSize
+//
+//        let attributes = [NSAttributedString.Key.font: self.font,
+//                          NSAttributedString.Key.foregroundColor: self.fontColor,
+//                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
+//
+//        for (index, item) in chart.rulesPoints.enumerated() {
+//            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
+//                let string = NSAttributedString(string: stepString,
+//                                                attributes: attributes)
+//                let label = UILabel()
+//                label.attributedText = string
+//                label.sizeToFit()
+//
+//                var yPos = (item.y - fontSize)
+//                if index > 0 {
+//                    if index < chart.rulesPoints.count - 1 {
+//                        print(index, item)
+//                        yPos = item.y - fontSize * 0.5
+//                    } else {
+//                        print(index, item)
+//                        yPos = item.y
+//                    }
+//                }
+//                let frame = CGRect(x: leftInset,
+//                                     y: yPos,
+//                                     width: label.bounds.width,
+//                                     height: label.bounds.height)
+//                label.frame = frame
+//                self.addSubview(label)
+//                labelViews.append(label)
+//
+//                chart.flowDelegate?.drawRootRuleText(in: frame,
+//                                                     text: string)
+//            }
+//
+//
+//        return true
+//    }
+                
+    override func didMoveToSuperview() {
+        super.didMoveToSuperview()
+        setNeedsLayout()
+    }
+        
+    var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
-        chart.layoutRules()
-        if !createLayout() { // TODO: update layout
-            // GCLog.print("Unable to create the rule layout",.error)
+        if oldFrame != frame {
+            if !layoutRule() { // TODO: update layout
+                GCLog.print("Unable to create the rule layout" ,.error)
+            }
+        oldFrame = frame
+            chart.layoutRules()
+            
         }
     }
 }
+        
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var leftInset: CGFloat = 16
@@ -135,6 +172,8 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var views: [UIView]? {
         return arrangedSubviews
     }
+    var borders: [UIView] = []
+    
     var footerRuleHeight: CGFloat = 30 {
         didSet {
             setNeedsLayout()
@@ -172,7 +211,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var borders = [UIView]()
     /// create rule layout
     /// - Returns: Bool
-    func createLayout() -> Bool {
+    func layoutRule() -> Bool {
         guard !self.frame.isEmpty else {
             return false
         }
@@ -199,11 +238,12 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             self.addArrangedSubview(label)
             label.widthAnchor.constraint(equalToConstant: width).isActive = true
             label.heightAnchor.constraint(equalToConstant: height).isActive = true
+
             borders.append( label.setBorder(border: .right(constant: 5),
                                 weight: borderDecorationWidth,
                                 color: decorationColor.withAlphaComponent(0.45)))
         }
-        // }
+        
         borders.append(self.setBorder(border: .top(constant: 10),
                            weight: borderDecorationWidth,
                            color: decorationColor.withAlphaComponent(0.45)))
@@ -211,14 +251,16 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     }
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
-        if !createLayout() { // TODO: update layout
-            // GCLog.print("Unable to create the rule layout", .error)
-        }
+        setNeedsLayout()
     }
+    var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
-        if !createLayout() { // TODO: update layout
-            //GCLog.print("Unable to create the rule layout" ,.error)
+        if oldFrame != frame {
+            if !layoutRule() { // TODO: update layout
+                GCLog.print("Unable to create the rule layout" ,.error)
+            }
+            oldFrame = frame
         }
     }
 }

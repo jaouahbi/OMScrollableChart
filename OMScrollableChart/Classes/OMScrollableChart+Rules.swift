@@ -250,6 +250,7 @@ extension OMScrollableChart {
 
         // Mark for display the rule.
         rules.forEach {
+            $0.layoutRule()
             $0.setNeedsDisplay()
         }
     }
