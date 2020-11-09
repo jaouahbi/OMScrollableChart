@@ -236,7 +236,7 @@
 		D125879F2558DE2400FE25F3 /* Lines */ = {
 			isa = PBXGroup;
 			children = (
-				D13C9C8724FB459B00498B01 /* FloatPoint+Extension.swift */,
+				D1B07FAC25597F7A003B34C6 /* FloatPoint */,
 				D125879A2558DDF500FE25F3 /* LineSegment.swift */,
 				D192CCB0254A55CD0047FBFB /* LineSegment3D.swift */,
 			);
@@ -323,6 +323,14 @@
 				D192CD09254AB20E0047FBFB /* Info.plist */,
 			);
 			path = ExampleTests;
+			sourceTree = "<group>";
+		};
+		D1B07FAC25597F7A003B34C6 /* FloatPoint */ = {
+			isa = PBXGroup;
+			children = (
+				D13C9C8724FB459B00498B01 /* FloatPoint+Extension.swift */,
+			);
+			path = FloatPoint;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

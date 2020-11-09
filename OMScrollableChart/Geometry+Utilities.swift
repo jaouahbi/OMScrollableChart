@@ -815,9 +815,9 @@ extension CGPoint: Hashable {
     }
 }
 
-func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
-    return lhs.distanceFrom(rhs) < 0.000001 //CGPointEqualToPoint(lhs, rhs)
-}
+//func ==(lhs: CGPoint, rhs: CGPoint) -> Bool {
+//    return lhs.distanceFrom(rhs) < 0.000001 //CGPointEqualToPoint(lhs, rhs)
+//}
 
 extension CGRect: Hashable {
     public var hashValue: Int {

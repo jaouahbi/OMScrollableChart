@@ -22,7 +22,7 @@ extension CGFloat {
         return CGFloat(pow(Double(self), 1.0 / 3.0))
     }
     
-    private static func SolveQuadratic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat) -> CGFloat {
+    private static func solveQuadratic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat) -> CGFloat {
         var result = (-b + sqrt(b.squared - 4 * a * c)) / (2 * a);
         guard !result.isInRangeOrEqual(0, 1) else {
             return result
@@ -36,9 +36,9 @@ extension CGFloat {
         return -1;
     }
     
-    private static func SolveCubic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat, _ d: CGFloat) -> CGFloat {
+    private static func solveCubic(_ a: CGFloat, _ b: CGFloat, _ c: CGFloat, _ d: CGFloat) -> CGFloat {
         if (a == 0) {
-            return SolveQuadratic(b, c, d)
+            return solveQuadratic(b, c, d)
         }
         if (d == 0) {
             return 0
@@ -114,7 +114,7 @@ extension CGFloat {
             let b = 3 * P0.x - 6 * P1.x + 3 * P2.x;
             let c = -3 * P0.x + 3 * P1.x;
             let d = P0.x - self;
-            let tTemp = CGFloat.SolveCubic(a, b, c, d);
+            let tTemp = CGFloat.solveCubic(a, b, c, d);
             if (tTemp == -1) {
                 return -1;
             }
@@ -163,7 +163,7 @@ extension Double {
         return pow(Double(self), 1.0 / 3.0)
     }
     
-    static func SolveQuadratic(_ a: Double, _ b: Double, _ c: Double) -> Double {
+    static func solveQuadratic(_ a: Double, _ b: Double, _ c: Double) -> Double {
         var result = (-b + sqrt(b.squared - 4 * a * c)) / (2 * a);
         guard !result.isInRangeOrEqual(0, 1) else {
             return result
@@ -225,9 +225,9 @@ extension Double {
         }
     }
     
-    static func SolveCubic(_ a: Double, _ b: Double, _ c: Double, _ d: Double) -> Double {
+    static func solveCubic(_ a: Double, _ b: Double, _ c: Double, _ d: Double) -> Double {
         if (a == 0) {
-            return SolveQuadratic(b, c, d)
+            return solveQuadratic(b, c, d)
         }
         if (d == 0) {
             return 0
@@ -303,7 +303,7 @@ extension Double {
             let b = 3 * Double(P0.x) - 6 * Double(P1.x) + 3 * Double(P2.x);
             let c = -3 * Double(P0.x) + 3 * Double(P1.x);
             let d = Double(P0.x) - self
-            let tTemp = Double.SolveCubic(a, b, c, d);
+            let tTemp = Double.solveCubic(a, b, c, d);
             if (tTemp == -1) {
                 return -1;
             }

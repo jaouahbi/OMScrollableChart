@@ -439,15 +439,15 @@ extension UIBezierPath {
         let intercept = average(ys) - slope * average(xs)
         return { argument in intercept + slope * argument }
     }
-    var linearRegression: (Double) -> Double {
-        let points = self.cgPath.elementsPoints()
-        let xs = points.map({Double($0.x)})
-        let ys = points.map({Double($0.y)})
-        let regression = linearRegression(xs, ys)
-        return regression
-        //        let y1 = linearRegression(1) //Result is 1.6
-        //        let y2 = linearRegression(3) //Result is 2.8
-    }
+//    var linearRegression: (Double) -> Double {
+//        let points = self.cgPath.elementsPoints()
+//        let xs = points.map({Double($0.x)})
+//        let ys = points.map({Double($0.y)})
+//        let regression = linearRegression(xs, ys)
+//        return regression
+//        //        let y1 = linearRegression(1) //Result is 1.6
+//        //        let y2 = linearRegression(3) //Result is 2.8
+//    }
 }
 
 

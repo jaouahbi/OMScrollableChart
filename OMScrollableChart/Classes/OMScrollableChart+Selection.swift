@@ -26,30 +26,32 @@ extension OMScrollableChart {
     /// - Parameters:
     ///   - point: point
     ///   - renderIndex: render index
-    func selectNearestRenderLayer( from point: CGPoint, renderIndex: Int) {
+    func selectNearestRenderLayer(to point: CGPoint, renderIndex: Int) {
         /// Select the last point if the render is not hidden.
         guard let lastPoint = locationToLayer(point,
                                               renderIndex: renderIndex,
-                                              mostNearLayer: true) else {
+                                              mostNearLayer: true)
+        else {
             return
         }
-        selectRenderLayerWithAnimation(lastPoint,
-                                       selectedPoint: point,
-                                       renderIndex: renderIndex)
+        self.selectRenderLayerWithAnimation(lastPoint,
+                                            selectedPoint: point,
+                                            renderIndex: renderIndex)
     }
+    
     /// selectRenderLayer
     /// - Parameters:
     ///   - layer: layer
     ///   - renderIndex: Int
-    func selectRenderLayer(_ layer: OMGradientShapeClipLayer, renderIndex: Int) {
+    func selectRenderLayers(except layer: OMGradientShapeClipLayer, renderIndex: Int) {
         let allUnselectedRenderLayers = self.renderLayers[renderIndex].filter { $0 != layer }
         print("allUnselectedRenderLayers = \(allUnselectedRenderLayers.count)")
         allUnselectedRenderLayers.forEach { (layer: OMGradientShapeClipLayer) in
             layer.gardientColor = self.unselectedColor
-            layer.opacity      = self.unselectedOpacy
+            layer.opacity = self.unselectedOpacy
         }
         layer.gardientColor = self.selectedColor
-        layer.opacity   = self.selectedOpacy
+        layer.opacity = self.selectedOpacy
     }
     /// locationToLayer
     /// - Parameters:
@@ -57,9 +59,9 @@ extension OMScrollableChart {
     ///   - renderIndex: renderIndex
     ///   - mostNearLayer: Bool
     /// - Returns: OMGradientShapeClipLayer
-    func locationToLayer( _ location: CGPoint, renderIndex: Int, mostNearLayer: Bool = true) -> OMGradientShapeClipLayer? {
+    func locationToLayer(_ location: CGPoint, renderIndex: Int, mostNearLayer: Bool = true) -> OMGradientShapeClipLayer? {
         let mapped = renderLayers[renderIndex].map {
-            return $0.frame.origin.distance(from: location)
+            $0.frame.origin.distance(from: location)
         }
         if mostNearLayer {
             guard let index = mapped.indexOfMin else {
@@ -73,15 +75,17 @@ extension OMScrollableChart {
             return renderLayers[renderIndex][index]
         }
     }
+    
     /// hitTestAsLayer
     /// - Parameter location: <#location description#>
     /// - Returns: CALayer
-    func hitTestAsLayer( _ location: CGPoint) -> CALayer? {
+    func hitTestAsLayer(_ location: CGPoint) -> CALayer? {
         if let layer = contentView.layer.hitTest(location) { // If you hit a layer and if its a Shapelayer
             return layer
         }
         return nil
     }
+    
     /// didSelectedRenderLayerIndex
     /// - Parameters:
     ///   - layer: <#layer description#>
@@ -101,16 +105,26 @@ extension OMScrollableChart {
     }
     
     func didSelectedRenderLayerIndex(layer: CALayer, renderIndex: Int, dataIndex: Int) {
-        
         renderDelegate?.didSelectDataIndex(chart: self,
                                            renderIndex: renderIndex,
                                            dataIndex: dataIndex,
                                            layer: layer)
     }
-    
-    
-    
-    private func buildTooltipText(_ renderIndex: Int, _ dataIndex: Int, _ tooltipPosition: inout CGPoint, _ layerPoint: OMGradientShapeClipLayer, _ selectedPoint: CGPoint, _ duration: TimeInterval) {
+    /// Build the tooltip text to show.
+    /// - Parameters:
+    ///   - renderIndex: Index
+    ///   - dataIndex: data index
+    ///   - tooltipPosition: CGPoint
+    ///   - layerPoint: layer point
+    ///   - selectedPoint: selected point
+    ///   - duration: TimeInterval
+    private func buildTooltipText(_ renderIndex: Int,
+                                  _ dataIndex: Int,
+                                  _ tooltipPosition: inout CGPoint,
+                                  _ layerPoint: OMGradientShapeClipLayer,
+                                  _ selectedPoint: CGPoint,
+                                  _ duration: TimeInterval)
+    {
         // grab the tool tip text
         let tooltipText = dataSource?.dataPointTootipText(chart: self,
                                                           renderIndex: renderIndex,
@@ -120,10 +134,9 @@ extension OMScrollableChart {
         let dataSection = dataSource?.dataSectionForIndex(chart: self,
                                                           dataIndex: dataIndex,
                                                           section: 0) ?? ""
-        tooltipPosition = CGPoint(x: layerPoint.position.x,
-                                  y: selectedPoint.y)
+        tooltipPosition = CGPoint(x: layerPoint.position.x, y: selectedPoint.y)
         
-        if let tooltipText = tooltipText {                      // the dataSource was priority
+        if let tooltipText = tooltipText { // the dataSource was priority
             tooltip.string = "\(dataSection) \(tooltipText)"
             tooltip.displayTooltip(tooltipPosition, duration: duration)
         } else {
@@ -140,6 +153,8 @@ extension OMScrollableChart {
         }
     }
     
+
+    
     /// selectRenderLayerWithAnimation
     /// - Parameters:
     ///   - layerPoint: OMGradientShapeClipLayer
@@ -150,26 +165,25 @@ extension OMScrollableChart {
                                         selectedPoint: CGPoint,
                                         animation: Bool = false,
                                         renderIndex: Int,
-                                        duration: TimeInterval = 0.5) {
-        
-//
-        
-        //CATransaction.lock()
+                                        duration: TimeInterval = 0.5)
+    {
         CATransaction.setAnimationDuration(duration)
         CATransaction.begin()
-
         
-        // selectRenderLayer(layerPoint, renderIndex: renderIndex)
+        //zoom(toPoint: selectedPoint, scale: 2.0, animated: false)
+        if showPointsOnSelection {
+            selectRenderLayers(except: layerPoint, renderIndex: renderIndex)
+        }
         
-        if animatePointLayers &&  layerPoint.opacity > 0 && animation {
+        if animatePointLayers, layerPoint.opacity > 0, animation {
             animateOnRenderLayerSelection(layerPoint,
                                           renderIndex: renderIndex, duration: duration)
         }
-//        if animatePointLayers {
-//            self.animateOnRenderLayerSelection(layerPoint,
-//                                          renderIndex: renderIndex,
-//                                          duration: duration)
-//        }
+        //        if animatePointLayers {
+        //            self.animateOnRenderLayerSelection(layerPoint,
+        //                                          renderIndex: renderIndex,
+        //                                          duration: duration)
+        //        }
         var tooltipPosition = CGPoint.zero
         var tooltipPositionFix = CGPoint.zero
         if animation {
@@ -179,32 +193,35 @@ extension OMScrollableChart {
         if let dataIndex = dataIndexFromPoint(layerPoint.position, renderIndex: renderIndex) {
             print("Selected data point: \(dataIndex)")
             // notify the data index selection
-            didSelectedRenderLayerIndex(layer: layerPoint,
-                                        renderIndex: renderIndex,
-                                        dataIndex: Int(dataIndex))
+            self.didSelectedRenderLayerIndex(layer: layerPoint,
+                                             renderIndex: renderIndex,
+                                             dataIndex: Int(dataIndex))
             
             let sectionIndex = floorf(Float(dataIndex / numberOfSectionsPerPage))
             print("Selected section: \(Int(sectionIndex))")
             // notify the section selection
-            didSelectedRenderLayerSection(layer: layerPoint,
-                                        renderIndex: renderIndex,
-                                        sectionIndex: Int(sectionIndex))
+            self.didSelectedRenderLayerSection(layer: layerPoint,
+                                               renderIndex: renderIndex,
+                                               sectionIndex: Int(sectionIndex))
             
             // Create the text and show the
-            buildTooltipText(renderIndex, dataIndex, &tooltipPosition, layerPoint, selectedPoint, duration)
+            self.buildTooltipText(renderIndex, dataIndex, &tooltipPosition, layerPoint, selectedPoint, duration)
         }
         if animation {
             let distance = tooltipPositionFix.distance(to: tooltipPosition)
-            let factor: TimeInterval = TimeInterval(1 / (self.contentView.bounds.height / distance))
-            let after = 0.5
+            let factor = TimeInterval(1 / (self.contentView.bounds.height / distance))
+            let after: TimeInterval = 0.5
             DispatchQueue.main.asyncAfter(deadline: .now() + after) {
                 self.tooltip.moveTooltip(tooltipPositionFix,
                                          duration: factor * duration)
             }
         }
         CATransaction.commit()
-       // CATransaction.unlock()
     }
+    
+    /// locationFromTouchInContentView
+    /// - Parameter touches: Set<UITouch>
+    /// - Returns: CGPoint
     func locationFromTouchInContentView(_ touches: Set<UITouch>) -> CGPoint {
         if let touch = touches.first {
             return touch.location(in: self.contentView)
@@ -220,15 +237,16 @@ extension OMScrollableChart {
         let newPoint = CGPoint(x: point.x, y: point.y)
         switch self.renderType[renderIndex] {
         case .discrete:
-            return discreteData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
-        case .mean(_):
-            return averagedData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
-        case .approximation(_):
-            return approximationData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
-        case .linregress(_):
-            return linregressData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
+            return discreteData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
+        case .mean:
+            return averagedData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
+        case .approximation:
+            return approximationData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
+        case .linregress:
+            return linregressData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
         }
     }
+    
     /// dataStringFromPoint
     /// - Parameters:
     ///   - point: CGPoint
@@ -236,34 +254,38 @@ extension OMScrollableChart {
     /// - Returns: String?
     func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
         switch self.renderType[renderIndex] {
-        case .mean(_):
+        case .mean:
             if let render = averagedData[renderIndex],
-                let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-                let item: Double = Double(render.data[firstIndex])
+               let firstIndex = indexForPoint(point, renderIndex: renderIndex)
+            {
+                let item = Double(render.data[firstIndex])
                 if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
-                    return  currentStep
+                    return currentStep
                 }
             }
         case .discrete:
             if let render = discreteData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point) {
-                let item: Double = Double(render.data[firstIndex])
+               let firstIndex = render.points.firstIndex(of: point)
+            {
+                let item = Double(render.data[firstIndex])
                 if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
                     return currentStep
                 }
             }
-        case .approximation(_):
+        case .approximation:
             if let render = approximationData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point) {
-                let item: Double = Double(render.data[firstIndex])
+               let firstIndex = render.points.firstIndex(of: point)
+            {
+                let item = Double(render.data[firstIndex])
                 if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
                     return currentStep
                 }
             }
-        case .linregress(_):
+        case .linregress:
             if let render = linregressData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point) {
-                let item: Double = Double(render.data[firstIndex])
+               let firstIndex = render.points.firstIndex(of: point)
+            {
+                let item = Double(render.data[firstIndex])
                 if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
                     return currentStep
                 }
@@ -271,19 +293,25 @@ extension OMScrollableChart {
         }
         return nil
     }
+    
+    /// dataFromPoint
+    /// - Parameters:
+    ///   - point: CGPoint
+    ///   - renderIndex: Index
+    /// - Returns: Float?
     func dataFromPoint(_ point: CGPoint, renderIndex: Int) -> Float? {
-//        if self.renderType[renderIndex].isAveraged {
-//            if let render = discreteData[renderIndex],
-//                let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
-//                return Float(render.data[firstIndex])
-//            }
-//        } else {
-//            if let render = discreteData[renderIndex],
-//                let firstIndex = render.points.firstIndex(of: point) {
-//                return Float(render.data[firstIndex])
-//            }
-//        }
-//        return nil
+        //        if self.renderType[renderIndex].isAveraged {
+        //            if let render = discreteData[renderIndex],
+        //                let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
+        //                return Float(render.data[firstIndex])
+        //            }
+        //        } else {
+        //            if let render = discreteData[renderIndex],
+        //                let firstIndex = render.points.firstIndex(of: point) {
+        //                return Float(render.data[firstIndex])
+        //            }
+        //        }
+        //        return nil
         switch self.renderType[renderIndex] {
         case .discrete:
             if let render = discreteData[renderIndex] {
@@ -291,19 +319,19 @@ extension OMScrollableChart {
                     return render.data[firstIndex]
                 }
             }
-        case .mean(_):
+        case .mean:
             if let render = self.averagedData[renderIndex] {
                 if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                     return render.data[firstIndex]
                 }
             }
-        case .approximation(_):
+        case .approximation:
             if let render = self.approximationData[renderIndex] {
                 if let firstIndex = render.points.firstIndex(of: point) {
                     return render.data[firstIndex]
                 }
             }
-        case .linregress(_):
+        case .linregress:
             if let render = self.linregressData[renderIndex] {
                 if let firstIndex = render.points.firstIndex(of: point) {
                     return render.data[firstIndex]
@@ -311,8 +339,14 @@ extension OMScrollableChart {
             }
         }
         return nil
-       // return dataIndexFromLayers(point, renderIndex: renderIndex)
+        // return dataIndexFromLayers(point, renderIndex: renderIndex)
     }
+    
+    /// dataIndexFromPoint
+    /// - Parameters:
+    ///   - point: CGPoint
+    ///   - renderIndex: index
+    /// - Returns: Int?
     func dataIndexFromPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
         switch self.renderType[renderIndex] {
         case .discrete:
@@ -321,26 +355,31 @@ extension OMScrollableChart {
                     return firstIndex
                 }
             }
-        case .mean(_):
+        case .mean:
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return firstIndex
             }
-            
-        case .approximation(_):
+        case .approximation:
             if let render = self.approximationData[renderIndex] {
                 if let firstIndex = render.points.firstIndex(of: point) {
                     return firstIndex
                 }
             }
-        case .linregress(_):
+        case .linregress:
             if let render = self.linregressData[renderIndex] {
                 if let firstIndex = render.points.firstIndex(of: point) {
                     return firstIndex
                 }
             }
         }
-        return nil //dataIndexFromLayers(point, renderIndex: renderIndex)
+        return nil // dataIndexFromLayers(point, renderIndex: renderIndex)
     }
+    
+    /// dataIndexFromLayers
+    /// - Parameters:
+    ///   - point: CGPoint
+    ///   - renderIndex: Index
+    /// - Returns: Int?
     func dataIndexFromLayers(_ point: CGPoint, renderIndex: Int) -> Int? {
         if self.renderType[renderIndex].isMean {
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
@@ -348,12 +387,11 @@ extension OMScrollableChart {
             }
         } else {
             if let layersPathContains = renderLayers[renderIndex].filter({
-                return $0.path!.contains(point)
+                $0.path!.contains(point)
             }).first {
                 return renderLayers[renderIndex].firstIndex(of: layersPathContains)
             }
         }
         return nil
     }
-    
 }

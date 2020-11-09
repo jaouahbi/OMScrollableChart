@@ -27,12 +27,12 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     var selectedSegmentIndex: Int = 0
     var chartPointsRandom: [Float] =  []
     var animationTimingTable: [AnimationTiming] = [
-        .noAnimation,
-        .noAnimation,
-        .oneShotAnimation,
-        .noAnimation,
-        .noAnimation,
-        .noAnimation
+        .none,
+        .none,
+        .oneShot,
+        .none,
+        .none,
+        .none
     ]
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
         return animationTimingTable[renderIndex]
@@ -66,7 +66,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         case 1:
             break
         case 2:
-            animationTimingTable[renderIndex].repeatCount = 0
+            animationTimingTable[renderIndex] = .none
         case 3:
             break
         case 4:
@@ -149,9 +149,9 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 }
             }
             let layers = chart.createSegmentLayers(paths,
-                                                   lineWidth: chart.lineWidth,
-                                                   color: UIColor.darkGreyBlueTwo,
-                                                   strokeColor:  UIColor.darkGreyBlueTwo.withAlphaComponent(0.8))
+                                                   lineWidth: 1.0,
+                                                   color:UIColor.darkGreyBlueTwo.withAlphaComponent(0.8),
+                                                   strokeColor:  UIColor.black)
             layers.forEach({$0.name = "line segment"})  //debug
             return layers
         default:
@@ -235,7 +235,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         segmentTypeOfData.insertSegment(withTitle: "regression", at: 3, animated: false)
         segmentTypeOfData.selectedSegmentIndex = 0 // discrete
         
-        chartPointsRandom = randomFloat(32, max: 50000, min: -50)
+        chartPointsRandom = randomFloat(64, max: 50000, min: -50)
         
         toleranceSlider.maximumValue  = 100
         toleranceSlider.minimumValue  = 1

@@ -24,7 +24,6 @@ class ExampleTests: XCTestCase {
     var result3 = [CGPoint]()
     var result4 = [CGPoint]()
     
-
     func testSimplification() {
 
         let numberOfItems = 300
@@ -118,7 +117,7 @@ class Swift_LineSegmentTests: XCTestCase {
     
     func testInterpolatePointAtT() {
         let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
-        let point = segment.interpolatePointAtT(0.5)
+        let point = segment.interpolatePointAtT(t: 0.5)
         
         XCTAssert(point == CGPoint(x: 5.0, y: 5.0))
     }
@@ -131,7 +130,7 @@ class Swift_LineSegmentTests: XCTestCase {
     
     func testPointsOnLineAtDistance() {
         let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 0.0))
-        let pts = segment.pointsOnLineAtDistance(2.0)
+        let pts = segment.pointsOnLineAtDistance(distance: 2.0)
         let comparePts = [
             CGPoint(x: 2.0, y: 0.0),
             CGPoint(x: 4.0, y: 0.0),
@@ -148,12 +147,12 @@ class Swift_LineSegmentTests: XCTestCase {
         let segment1 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
         let segment2 = LineSegment(CGPoint(x: 0.0, y: 10.0), CGPoint(x: 10.0, y: 0.0))
         
-        XCTAssert(segment1.intersectionPointWithLineSegment(segment2)! == CGPoint(x: 5.0, y: 5.0), "Lines should intersection at (5.0, 5.0)")
+        XCTAssert(segment1.intersectionPointWithLineSegment(segment: segment2)! == CGPoint(x: 5.0, y: 5.0), "Lines should intersection at (5.0, 5.0)")
         
         // test do not intersect
         let segment3 = LineSegment(CGPoint(x: 20.0, y: 20.0), CGPoint(x: 30.0, y: 30.0))
         
-        XCTAssert(segment1.intersectionPointWithLineSegment(segment3) == nil, "Lines should not intersection, expected nil")
+        XCTAssert(segment1.intersectionPointWithLineSegment(segment: segment3) == nil, "Lines should not intersection, expected nil")
     }
     
 }
