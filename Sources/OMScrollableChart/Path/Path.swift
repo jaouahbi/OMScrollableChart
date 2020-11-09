@@ -5,10 +5,10 @@ import UIKit
 // swiftlint:disable identifier_name shorthand_operator
 // swiftlint:disable file_length
 // swiftlint:disable type_body_length//
-struct Path {
+public struct Path {
     // MARK: - Interface
 
-    init(cgPath: CGPath) {
+    public init(cgPath: CGPath) {
         let pathElements = Path.pathElements(cgPath: cgPath)
         let elementsLengths = Path.calculateLengths(pathElements: pathElements)
         let totalLength = Path.calculateSumOfLengths(lengths: elementsLengths)
@@ -20,7 +20,7 @@ struct Path {
         percentages = lengthsPercentages
     }
 
-    init(elements pathElements: [Path.Element]) {
+    public init(elements pathElements: [Path.Element]) {
         let elementsLengths = Path.calculateLengths(pathElements: pathElements)
         let totalLength = Path.calculateSumOfLengths(lengths: elementsLengths)
         let lengthsPercentages = Path.calculatePercentages(parts: elementsLengths, whole: totalLength)
@@ -31,7 +31,7 @@ struct Path {
         percentages = lengthsPercentages
     }
 
-    init(withTimingFunction timingFunction: CAMediaTimingFunction) {
+    public init(withTimingFunction timingFunction: CAMediaTimingFunction) {
         let P0x: CGFloat
         let P0y: CGFloat
         let P1x: CGFloat
@@ -65,7 +65,7 @@ struct Path {
         self.init(elements: [startElement, endElement])
     }
 
-    func pathsFromElements() ->  [UIBezierPath] {
+    public func pathsFromElements() ->  [UIBezierPath] {
         var paths = [UIBezierPath]()
         var lastPoint = CGPoint.zero
         for ele in elements {
@@ -93,7 +93,7 @@ struct Path {
         return paths
     }
     
-    func percentagesWhereYIs(y: Double) -> [Double] {
+    public  func percentagesWhereYIs(y: Double) -> [Double] {
         var subpathStart: CGPoint?
         var recentPoint: CGPoint?
         var totalPercentage: Double = 0
@@ -116,7 +116,7 @@ struct Path {
         return answer
     }
 
-    func pointForPercentage(pathPercent: Double, startPoint: CGPoint? = nil) -> CGPoint? {
+    public  func pointForPercentage(pathPercent: Double, startPoint: CGPoint? = nil) -> CGPoint? {
         var subpathStart: CGPoint?
         var recentPoint: CGPoint? = startPoint
         var totalPercentage: Double = 0
@@ -147,10 +147,10 @@ struct Path {
 
     // MARK: - Internal
 
-   let elements: [Path.Element]
-   let lengths: [Double]
-   let length: Double
-   let percentages: [Double]
+    public  let elements: [Path.Element]
+    public let lengths: [Double]
+    public  let length: Double
+    public  let percentages: [Double]
 }
 
 // MARK: - Routines

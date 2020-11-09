@@ -11,11 +11,33 @@
 		7D226A812384C3510074C44E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D226A802384C3510074C44E /* ViewController.swift */; };
 		7D226A842384C3510074C44E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A822384C3510074C44E /* Main.storyboard */; };
 		7D226A862384C3550074C44E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A852384C3550074C44E /* Assets.xcassets */; };
+		D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1037ADA255A012A0019E50A /* OMScrollableChart.framework */; };
 		D125876E2558A34600FE25F3 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D125876D2558A34600FE25F3 /* TestUtils.swift */; };
 		D192CD24254AB4230047FBFB /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		D1037AD9255A012A0019E50A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart::Product";
+			remoteInfo = OMScrollableChart;
+		};
+		D1037ADB255A012A0019E50A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChartTests::Product";
+			remoteInfo = OMScrollableChartTests;
+		};
+		D1037AE3255A01350019E50A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart";
+			remoteInfo = OMScrollableChart;
+		};
 		D192CCF4254AB1D10047FBFB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7D226A712384C3510074C44E /* Project object */;
@@ -34,6 +56,7 @@
 		7D226A8A2384C3550074C44E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUITests.swift; sourceTree = "<group>"; };
 		7DBAA404253A7FF9000EE535 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OMScrollableChart.xcodeproj; path = ../OMScrollableChart.xcodeproj; sourceTree = "<group>"; };
 		D125876D2558A34600FE25F3 /* TestUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		D192CCC5254AA6090047FBFB /* run-sonar-swift.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "run-sonar-swift.sh"; sourceTree = "<group>"; };
 		D192CCC6254AA6090047FBFB /* runcov.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = runcov.sh; sourceTree = "<group>"; };
@@ -46,6 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,12 +86,14 @@
 		7D226A702384C3510074C44E = {
 			isa = PBXGroup;
 			children = (
+				D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */,
 				D192CCC5254AA6090047FBFB /* run-sonar-swift.sh */,
 				D192CCC6254AA6090047FBFB /* runcov.sh */,
 				D192CCC7254AA6090047FBFB /* sonar-project.properties */,
 				7D226A7B2384C3510074C44E /* Classes */,
 				7DBAA401253A7FF9000EE535 /* ExampleUITests */,
 				7D226A7A2384C3510074C44E /* Products */,
+				D1037AE5255A013C0019E50A /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -102,6 +128,22 @@
 			path = ExampleUITests;
 			sourceTree = "<group>";
 		};
+		D1037AD3255A012A0019E50A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D1037ADA255A012A0019E50A /* OMScrollableChart.framework */,
+				D1037ADC255A012A0019E50A /* OMScrollableChartTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		D1037AE5255A013C0019E50A /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -116,8 +158,11 @@
 			buildRules = (
 			);
 			dependencies = (
+				D1037AE4255A01350019E50A /* PBXTargetDependency */,
 			);
 			name = Example;
+			packageProductDependencies = (
+			);
 			productName = chart;
 			productReference = 7D226A792384C3510074C44E /* Example.app */;
 			productType = "com.apple.product-type.application";
@@ -169,8 +214,16 @@
 				Base,
 			);
 			mainGroup = 7D226A702384C3510074C44E;
+			packageReferences = (
+			);
 			productRefGroup = 7D226A7A2384C3510074C44E /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = D1037AD3255A012A0019E50A /* Products */;
+					ProjectRef = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				7D226A782384C3510074C44E /* Example */,
@@ -178,6 +231,23 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		D1037ADA255A012A0019E50A /* OMScrollableChart.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = OMScrollableChart.framework;
+			remoteRef = D1037AD9255A012A0019E50A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D1037ADC255A012A0019E50A /* OMScrollableChartTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = file;
+			path = OMScrollableChartTests.xctest;
+			remoteRef = D1037ADB255A012A0019E50A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		7D226A772384C3510074C44E /* Resources */ = {
@@ -220,6 +290,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		D1037AE4255A01350019E50A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = OMScrollableChart;
+			targetProxy = D1037AE3255A01350019E50A /* PBXContainerItemProxy */;
+		};
 		D192CCF5254AB1D10047FBFB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7D226A782384C3510074C44E /* Example */;

@@ -6,7 +6,7 @@ import UIKit
 // swiftlint:disable cyclomatic_complexity
 
 extension Path {
-    enum Element {
+    public enum Element {
         case moveToPoint(point: CGPoint)
         case addLineToPoint(point: CGPoint)
         case addQuadCurveToPoint(destination: CGPoint, control: CGPoint)

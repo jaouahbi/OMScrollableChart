@@ -53,7 +53,7 @@ extension OMScrollableChart {
         return []
     }
     /// Polyline UIBezierPath
-    var polylinePath: UIBezierPath? {
+    public var polylinePath: UIBezierPath? {
         guard let polylinePoints = polylinePoints,
             let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
             print("Unexpected empty polylinePath (UIBezierPath).")
@@ -67,7 +67,7 @@ extension OMScrollableChart {
     ///   - lineWidth: line width
     ///   - color: color
     /// - Returns: [OMGradientShapeClipLayer]
-    func updatePolylineLayer(lineWidth: CGFloat, color: UIColor) -> [OMGradientShapeClipLayer] {
+    public  func updatePolylineLayer(lineWidth: CGFloat, color: UIColor) -> [OMGradientShapeClipLayer] {
         guard let polylinePath = polylinePath else {
             print("Unexpected empty polylinePath (UIBezierPath).")
             return []
@@ -93,7 +93,7 @@ extension OMScrollableChart {
     ///   - data: [Float]]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+    public  func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
         let discretePoints = makeRawPoints(data, size: contentView.bounds.size)
         if discretePoints.count > 0 {
             let chartData = (discretePoints, data)
@@ -128,7 +128,7 @@ extension OMScrollableChart {
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    func makeMean(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+    public  func makeMean(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
         if let points = makeMeanPoints(data: data,
                                        size: contentView.bounds.size,
                                        elementsToMean: numberOfElementsToMean)
@@ -157,7 +157,7 @@ extension OMScrollableChart {
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    func makeDiscrete(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+    public  func makeDiscrete(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
         //                      let linregressData = makeLinregressPoints(data: discreteData,
         //                                                                size: contentSize,
         //                                                                numberOfElements: 1)
@@ -184,7 +184,7 @@ extension OMScrollableChart {
         }
     }
     
-    private func makeLinregress(_ data: [Float],
+    public  func makeLinregress(_ data: [Float],
                                 _ renderIndex: Int,
                                 _ dataSource: OMScrollableChartDataSource)
     {
@@ -219,7 +219,7 @@ extension OMScrollableChart {
     /// - Parameters:
     ///   - renderIndex: render index
     ///   - renderAs: RenderType
-    func renderLayers(_ renderIndex: Int, renderAs: OMScrollableChart.RenderType) {
+    public func renderLayers(_ renderIndex: Int, renderAs: OMScrollableChart.RenderType) {
         guard let dataSource = dataSource else {
             return
         }
@@ -239,7 +239,7 @@ extension OMScrollableChart {
     ///   - size: CGSize
     ///   - color: UIColor
     /// - Returns:  [OMShapeLayerRadialGradientClipPath]
-    func createPointsLayers(_ points: [CGPoint], size: CGSize, color: UIColor) -> [OMShapeLayerRadialGradientClipPath] {
+    public func createPointsLayers(_ points: [CGPoint], size: CGSize, color: UIColor) -> [OMShapeLayerRadialGradientClipPath] {
         return points.map { createPointLayer($0, size: size, color: color) }
     }
     
@@ -249,7 +249,7 @@ extension OMScrollableChart {
     ///   - size: CGSize
     ///   - color: UIColor
     /// - Returns: OMShapeLayerRadialGradientClipPath
-    private func createPointLayer(_ point: CGPoint, size: CGSize, color: UIColor) -> OMShapeLayerRadialGradientClipPath {
+    public  func createPointLayer(_ point: CGPoint, size: CGSize, color: UIColor) -> OMShapeLayerRadialGradientClipPath {
         let circleLayer = OMShapeLayerRadialGradientClipPath()
         circleLayer.bounds = CGRect(x: 0,
                                     y: 0,
@@ -279,7 +279,7 @@ extension OMScrollableChart {
     ///   - columnIndex: columnIndex
     ///   - count: count
     /// - Returns: [UIBezierPath]
-    func createInverseRectanglePaths(_ points: [CGPoint],
+    public  func createInverseRectanglePaths(_ points: [CGPoint],
                                      columnIndex: Int,
                                      count: Int) -> [UIBezierPath]
     {
@@ -311,7 +311,7 @@ extension OMScrollableChart {
     ///   - count: count
     ///   - color: UIColor
     /// - Returns: [OMGradientShapeClipLayer]
-    func createRectangleLayers(_ points: [CGPoint],
+    public  func createRectangleLayers(_ points: [CGPoint],
                                columnIndex: Int,
                                count: Int,
                                color: UIColor) -> [OMGradientShapeClipLayer]
@@ -357,7 +357,7 @@ extension OMScrollableChart {
     ///   - color: UIColor
     ///   - strokeColor: UIColor
     /// - Returns: [OMGradientShapeClipLayer]
-    func createSegmentLayers(_ segmentsPaths: [UIBezierPath], lineWidth: CGFloat = 1.0, color: UIColor = .red, strokeColor: UIColor = .black) -> [OMGradientShapeClipLayer] {
+    public  func createSegmentLayers(_ segmentsPaths: [UIBezierPath], lineWidth: CGFloat = 1.0, color: UIColor = .red, strokeColor: UIColor = .black) -> [OMGradientShapeClipLayer] {
         var layers = [OMGradientShapeClipLayer]()
         for currentPointIndex in 0..<segmentsPaths.count - 1 {
             let path = segmentsPaths[currentPointIndex]

@@ -9,7 +9,7 @@
 import UIKit
 
 // MARK: - OMShapeLayerLinearGradientClipPath -
-class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
+public class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
     
     var start: CGPoint = CGPoint(x: 0.0, y: 0.5)
     var end: CGPoint = CGPoint(x: 1.0, y: 0.5)
@@ -47,7 +47,7 @@ class OMShapeLayerLinearGradientClipPath: OMGradientShapeClipLayer {
         defaultInitializer()
     }
     
-    override func draw(in ctx: CGContext) {
+    override  public func draw(in ctx: CGContext) {
         super.draw(in: ctx)
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()

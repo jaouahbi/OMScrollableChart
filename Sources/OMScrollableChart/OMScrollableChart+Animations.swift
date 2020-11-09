@@ -21,7 +21,7 @@
 
 import UIKit
 extension OMScrollableChart {
-    func animateLineStrokeEnd( _ layer: CAShapeLayer,
+    public  func animateLineStrokeEnd( _ layer: CAShapeLayer,
                                fromValue: CGFloat = 0,
                                toValue: CGFloat = 1.0,
                                duration: TimeInterval = 0.4) -> CAAnimation {
@@ -35,7 +35,7 @@ extension OMScrollableChart {
         growAnimation.isRemovedOnCompletion = false
         return growAnimation
     }
-    func animateLineStrokeStartStrokeEnd( _ layer: CAShapeLayer,
+    public func animateLineStrokeStartStrokeEnd( _ layer: CAShapeLayer,
                                           fromValue: CGFloat = 0,
                                           toValue: CGFloat = 1.0,
                                           rangeValue: CGFloat = 0.2,
@@ -61,7 +61,7 @@ extension OMScrollableChart {
         return animGroup
     }
     
-    func animateLayerPath( _ shapeLayer: CAShapeLayer,
+    public func animateLayerPath( _ shapeLayer: CAShapeLayer,
                            pathStart: UIBezierPath,
                            pathEnd: UIBezierPath,
                            duration: TimeInterval = 0.5) -> CAAnimation {

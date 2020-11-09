@@ -8,10 +8,10 @@
 
 import UIKit
 
-typealias GradientColors = (UIColor, UIColor)
+public typealias GradientColors = (UIColor, UIColor)
 
 // Layer with clip path
-class OMShapeLayerClipPath: CAShapeLayer {
+public class OMShapeLayerClipPath: CAShapeLayer {
     func addPathAndClipIfNeeded(ctx: CGContext) {
         if let path = self.path {
             ctx.addPath(path)
@@ -29,7 +29,7 @@ class OMShapeLayerClipPath: CAShapeLayer {
 }
 
 // shape layer with clip path and gradient friendly
-class OMGradientShapeClipLayer: OMShapeLayerClipPath {
+public class OMGradientShapeClipLayer: OMShapeLayerClipPath {
     // Some predefined Gradients (from WebKit)
     
     var gardientColor: UIColor = .clear

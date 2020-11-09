@@ -92,7 +92,7 @@ extension OMScrollableChart {
     ///   - pointIndex: Int
     ///   - duration: animation duration [TimeInterval]
     /// - Returns: CAAnimation
-    func animateLayerPathRideToPoint(_ path: UIBezierPath,
+    public  func animateLayerPathRideToPoint(_ path: UIBezierPath,
                                      layerToRide: CALayer,
                                      sectionIndex: Int,
                                      duration: TimeInterval = 10.0) -> CAAnimation {

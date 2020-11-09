@@ -244,7 +244,7 @@ extension OMScrollableChart {
     /// locationFromTouchInContentView
     /// - Parameter touches: Set<UITouch>
     /// - Returns: CGPoint
-    func locationFromTouchInContentView(_ touches: Set<UITouch>) -> CGPoint {
+    public func locationFromTouchInContentView(_ touches: Set<UITouch>) -> CGPoint {
         if let touch = touches.first {
             return touch.location(in: self.contentView)
         }
@@ -256,7 +256,7 @@ extension OMScrollableChart {
     ///   - point: CGPoint
     ///   - renderIndex: Int
     /// - Returns: Int?
-    func indexForPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
+    public func indexForPoint(_ point: CGPoint, renderIndex: Int) -> Int? {
         let newPoint = CGPoint(x: point.x, y: point.y)
         switch self.renderType[renderIndex] {
         case .discrete:
@@ -275,7 +275,7 @@ extension OMScrollableChart {
     ///   - point: CGPoint
     ///   - renderIndex: Int
     /// - Returns: String?
-    func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
+    public func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
         switch self.renderType[renderIndex] {
         case .mean:
             if let render = meanData[renderIndex],

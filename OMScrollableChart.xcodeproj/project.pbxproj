@@ -27,7 +27,7 @@
 		OBJ_102 /* PolylineDecimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_51 /* PolylineDecimation.swift */; };
 		OBJ_103 /* Visvalingam.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_52 /* Visvalingam.swift */; };
 		OBJ_104 /* RecursiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_53 /* RecursiveProtocol.swift */; };
-		OBJ_105 /* UIColor+OMSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_54 /* UIColor+OMSC.swift */; };
+		OBJ_105 /* UIColor+OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_54 /* UIColor+OMScrollableChart.swift */; };
 		OBJ_106 /* UIView+Border.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_55 /* UIView+Border.swift */; };
 		OBJ_113 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_124 /* OMScrollableChartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_58 /* OMScrollableChartTests.swift */; };
@@ -58,7 +58,6 @@
 		OBJ_93 /* OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_38 /* OMScrollableChart.swift */; };
 		OBJ_94 /* OMScrollableLeadingChartRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_39 /* OMScrollableLeadingChartRule.swift */; };
 		OBJ_95 /* Path.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_41 /* Path.swift */; };
-		OBJ_96 /* PathAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_42 /* PathAnimation.swift */; };
 		OBJ_97 /* PathElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_43 /* PathElement.swift */; };
 		OBJ_98 /* CubicCurveAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_46 /* CubicCurveAlgorithm.swift */; };
 		OBJ_99 /* PolyLineInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_47 /* PolyLineInterpolation.swift */; };
@@ -108,7 +107,6 @@
 		OBJ_38 /* OMScrollableChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChart.swift; sourceTree = "<group>"; };
 		OBJ_39 /* OMScrollableLeadingChartRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableLeadingChartRule.swift; sourceTree = "<group>"; };
 		OBJ_41 /* Path.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Path.swift; sourceTree = "<group>"; };
-		OBJ_42 /* PathAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathAnimation.swift; sourceTree = "<group>"; };
 		OBJ_43 /* PathElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathElement.swift; sourceTree = "<group>"; };
 		OBJ_46 /* CubicCurveAlgorithm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicCurveAlgorithm.swift; sourceTree = "<group>"; };
 		OBJ_47 /* PolyLineInterpolation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyLineInterpolation.swift; sourceTree = "<group>"; };
@@ -117,7 +115,7 @@
 		OBJ_51 /* PolylineDecimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineDecimation.swift; sourceTree = "<group>"; };
 		OBJ_52 /* Visvalingam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Visvalingam.swift; sourceTree = "<group>"; };
 		OBJ_53 /* RecursiveProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecursiveProtocol.swift; sourceTree = "<group>"; };
-		OBJ_54 /* UIColor+OMSC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+OMSC.swift"; sourceTree = "<group>"; };
+		OBJ_54 /* UIColor+OMScrollableChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+OMScrollableChart.swift"; sourceTree = "<group>"; };
 		OBJ_55 /* UIView+Border.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Border.swift"; sourceTree = "<group>"; };
 		OBJ_58 /* OMScrollableChartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChartTests.swift; sourceTree = "<group>"; };
 		OBJ_59 /* XCTestManifests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTestManifests.swift; sourceTree = "<group>"; };
@@ -152,9 +150,10 @@
 		OBJ_10 /* OMScrollableChart */ = {
 			isa = PBXGroup;
 			children = (
-				OBJ_11 /* Animations */,
 				OBJ_14 /* Array+Extensions.swift */,
 				OBJ_15 /* CAAnimation+Closure.swift */,
+				OBJ_12 /* OMScrollableChart+Animations.swift */,
+				OBJ_13 /* OMScrollableChart+PathRide.swift */,
 				OBJ_16 /* CALayer+Extensions.swift */,
 				OBJ_17 /* CALayerHandler.swift */,
 				OBJ_18 /* CGAffineTransform+Extensions.swift */,
@@ -172,21 +171,12 @@
 				OBJ_40 /* Path */,
 				OBJ_44 /* Polyline */,
 				OBJ_53 /* RecursiveProtocol.swift */,
-				OBJ_54 /* UIColor+OMSC.swift */,
+				OBJ_54 /* UIColor+OMScrollableChart.swift */,
 				OBJ_55 /* UIView+Border.swift */,
 			);
 			name = OMScrollableChart;
 			path = Sources/OMScrollableChart;
 			sourceTree = SOURCE_ROOT;
-		};
-		OBJ_11 /* Animations */ = {
-			isa = PBXGroup;
-			children = (
-				OBJ_12 /* OMScrollableChart+Animations.swift */,
-				OBJ_13 /* OMScrollableChart+PathRide.swift */,
-			);
-			path = Animations;
-			sourceTree = "<group>";
 		};
 		OBJ_21 /* Layers */ = {
 			isa = PBXGroup;
@@ -230,7 +220,6 @@
 			isa = PBXGroup;
 			children = (
 				OBJ_41 /* Path.swift */,
-				OBJ_42 /* PathAnimation.swift */,
 				OBJ_43 /* PathElement.swift */,
 			);
 			path = Path;
@@ -265,7 +254,7 @@
 			path = PolylineSimplyfication;
 			sourceTree = "<group>";
 		};
-		OBJ_5 /*  */ = {
+		OBJ_5 = {
 			isa = PBXGroup;
 			children = (
 				OBJ_6 /* Package.swift */,
@@ -277,7 +266,6 @@
 				OBJ_64 /* LICENSE */,
 				OBJ_65 /* README.md */,
 			);
-			name = "";
 			sourceTree = "<group>";
 		};
 		OBJ_56 /* Tests */ = {
@@ -390,7 +378,7 @@
 			knownRegions = (
 				en,
 			);
-			mainGroup = OBJ_5 /*  */;
+			mainGroup = OBJ_5;
 			productRefGroup = OBJ_60 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -451,7 +439,6 @@
 				OBJ_93 /* OMScrollableChart.swift in Sources */,
 				OBJ_94 /* OMScrollableLeadingChartRule.swift in Sources */,
 				OBJ_95 /* Path.swift in Sources */,
-				OBJ_96 /* PathAnimation.swift in Sources */,
 				OBJ_97 /* PathElement.swift in Sources */,
 				OBJ_98 /* CubicCurveAlgorithm.swift in Sources */,
 				OBJ_99 /* PolyLineInterpolation.swift in Sources */,
@@ -460,7 +447,7 @@
 				OBJ_102 /* PolylineDecimation.swift in Sources */,
 				OBJ_103 /* Visvalingam.swift in Sources */,
 				OBJ_104 /* RecursiveProtocol.swift in Sources */,
-				OBJ_105 /* UIColor+OMSC.swift in Sources */,
+				OBJ_105 /* UIColor+OMScrollableChart.swift in Sources */,
 				OBJ_106 /* UIView+Border.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -9,7 +9,7 @@
 import UIKit
 
 // MARK: - OMShapeLayerRadialGradientClipPath -
-class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
+public class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
     
     override init() {
         super.init()
@@ -53,7 +53,7 @@ class OMShapeLayerRadialGradientClipPath: OMGradientShapeClipLayer {
         
     }
     
-    override func draw(in ctx: CGContext) {
+    override public  func draw(in ctx: CGContext) {
         super.draw(in: ctx)
         
         let colorSpace = CGColorSpaceCreateDeviceRGB()

@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import UIKit
+import OMScrollableChart
+
 //let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
 //    150, -150, 80, -40, 60, 10,110, 10, 30, 10, 10, 30,
 //    150, -150, 80, -40, 60, 10,110, 10, 30, 10, 10, 30,
@@ -21,8 +23,6 @@ import UIKit
 //    150, -150, 80, -40, 60, 10]
 //             1510, 100, 3000, 100, 1200, 13000,
 //15000, -1500, 800, 1000, 6000, 1300]
-
-
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol, OMScrollableChartRenderableDelegateProtocol {
     var selectedSegmentIndex: Int = 0
     var chartPointsRandom: [Float] =  []
