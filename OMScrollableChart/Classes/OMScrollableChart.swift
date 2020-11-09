@@ -221,6 +221,8 @@ struct AnimationTiming: Hashable {
     var fillMode: CAMediaTimingFillMode = .removed
 }
 
+
+
 protocol OMScrollableChartDataSource: class {
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float]
     func numberOfPages(chart: OMScrollableChart) -> CGFloat
@@ -230,7 +232,8 @@ protocol OMScrollableChartDataSource: class {
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderType
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? 
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
-    func layerOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
+    func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat
+    func layerRenderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming
     func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int ,layer: OMGradientShapeClipLayer) -> CAAnimation?
     
@@ -239,6 +242,11 @@ protocol OMScrollableChartDataSource: class {
 protocol OMScrollableChartRenderableDelegateProtocol: class {
     func animationDidEnded(chart: OMScrollableChart,  renderIndex: Int, animation: CAAnimation)
     func didSelectDataIndex(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, layer: CALayer)
+    func didSelectSection(chart: OMScrollableChart,
+                                    renderIndex: Int,
+                                    sectionIndex: Int, layer: CALayer)
+    
+    
 }
 protocol OMScrollableChartRenderableProtocol: class {
     var numberOfRenders: Int {get}
@@ -251,6 +259,10 @@ extension OMScrollableChartRenderableProtocol {
 }
 @objcMembers
 class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAnimationDelegate {
+    enum Opacity: CGFloat {
+        case hide = 0.0
+        case show = 1.0
+    }
     private var pointsLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var polylineLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var dashLineLayers = [OMGradientShapeClipLayer]()
@@ -267,7 +279,6 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var rideAnim: CAAnimation? = nil
     var layerToRide: CALayer?
     var ridePath: Path?
-    
     
     // Content view
     lazy var contentView: UIView =  {
@@ -327,7 +338,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     /// Polyline Interpolation
     var polylineInterpolation: PolyLineInterpolation = .catmullRom(0.5) {
         didSet {
-            updateLayout(ignoreLayout: true) // force layout
+            updateLayout(ignoreLayoutCache: true) // force layout
         }
     }
     lazy var numberFormatter: NumberFormatter = {
@@ -355,17 +366,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         return currencyFormatter
     }()
     
-    var numberOfElementsToAverage: Int = 1 {
+    var numberOfElementsToMean: CGFloat = 2 {
         didSet {
-            self.setNeedsLayout()
-            self.setNeedsDisplay()
+            updateLayout(ignoreLayoutCache: true) // force layout
         }
     }
     // 1.0 -> 20.0
     var approximationTolerance: CGFloat = 1.0 {
         didSet {
-            self.setNeedsLayout()
-            self.setNeedsDisplay()
+            updateLayout(ignoreLayoutCache: true) // force layout
         }
     }
     // MARK: - Rules -
@@ -550,7 +559,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             
             print("ContentSize chaged frame for: \(self.contentView.bounds)")
 
-            self.updateLayout(ignoreLayout: true)
+            self.updateLayout(ignoreLayoutCache: true)
         }
     }
 
@@ -647,7 +656,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         return dataPointsRenderNewDataPoints
     }
     
-    class OMScrollableChartRuleFlow : OMScrollableChartRuleDelegate {
+    class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
         func renderDataTypeChanged(in dataOfRender: OMScrollableChart.RenderType) {
             print("renderDataTypeChanged", dataOfRender)
         }
@@ -808,14 +817,14 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     enum RenderType: Equatable{
         case discrete
-        case averaged(Int)
+        case mean(Int)
         case approximation(CGFloat)
         case linregress(Int)
         func makePoints( data: [Float], for size: CGSize, generator: ScaledPointsGenerator) -> [CGPoint] {
             switch self {
             case .discrete:
                 return generator.makePoints(data: data, size: size)
-            case .averaged(let elementsToAverage):
+            case .mean(let elementsToAverage):
                 if elementsToAverage != 0 {
                     var result: Float = 0
                     let positives = data.map{$0>0 ? $0: abs($0)}
@@ -875,7 +884,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         
         var isAveraged: Bool {
             switch self {
-            case .averaged(_):
+            case .mean(_):
                return true
             default:
                 return false
@@ -890,7 +899,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     enum Renders: Int {
         case polyline       = 0
         case points         = 1
-        case selectedPoint  = 2
+        case selectedPoint   = 2
         case base           = 3  //  public renders base index
     }
     var coreGenerator: ScaledPointsGenerator? {
@@ -951,6 +960,24 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
         return nil
     }
+    // https://stackoverflow.com/questions/61879898/how-to-get-a-centerpoint-from-an-array-of-cgpoints
+    func makeMeanPoints( data: [Float], size: CGSize, elementsToMean: CGFloat) -> [CGPoint]? {
+        var meanPoints: [CGPoint] = []
+        let points = makeRawPoints(data, size: size)
+        guard elementsToMean > 0 else {
+            return points
+        }
+        let chunked = points.chunked(into: Int(elementsToMean))
+        for item in chunked {
+            meanPoints.append( item.mean() ?? .zero)
+        }
+        return meanPoints
+    }
+    /// Make raw discrete points
+    /// - Parameters:
+    ///   - data: Data
+    ///   - size: CGSize
+    /// - Returns: Array of discrete CGPoint
     func makeRawPoints(_ data: [Float], size: CGSize) -> [CGPoint] {
         if let generator = coreGenerator {
             generator.updateRangeLimits(data)
@@ -958,11 +985,16 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
         return []
     }
-    func makeApproximationPoints( points: [CGPoint], tolerance: CGFloat) -> [CGPoint]? {
+    public enum SimplifyType {
+        case douglasPeuckerRadial
+        case douglasPeuckerDecimate
+        case visvalingam
+    }
+    func makeApproximationPoints( points: [CGPoint], type: SimplifyType, tolerance: CGFloat) -> [CGPoint]? {
         guard tolerance != 0, points.isEmpty == false else {
             return nil
         }
-        return  OMSimplify.simplifyDouglasPeuckerDecimate(points, tolerance: CGFloat(tolerance))
+        return  OMSimplify.simplifyDouglasPeuckerRadial(points, tolerance: CGFloat(tolerance), highestQuality: true)
     }
     private func removeAllLayers() {
         self.renderLayers.forEach{$0.forEach{$0.removeFromSuperlayer()}}
@@ -1068,12 +1100,17 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     
     func rendersIsVisible(renderIndex: Int) -> Bool {
         if let dataSource = dataSource {
-            return dataSource.layerOpacity(chart: self, renderIndex: renderIndex) == 1.0
+            return dataSource.layerRenderOpacity(chart: self, renderIndex: renderIndex) == Opacity.show.rawValue
         }
         return false
     }
-
     
+    func rendersLayerIsVisible(renderIndex: Int, layer: OMGradientShapeClipLayer) -> Bool {
+        if let dataSource = dataSource {
+            return dataSource.layerOpacity(chart: self, renderIndex: renderIndex, layer: layer) == Opacity.show.rawValue
+        }
+        return false
+    }
     /// layoutRenders
     /// - Parameters:
     ///   - numberOfRenders: numberOfRenders
@@ -1083,15 +1120,13 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         // update with animation
         for renderIndex in 0..<numberOfRenders {
             // Get the opacity
-            let  layerOpacity = dataSource.layerOpacity(chart: self, renderIndex: renderIndex)
+            let  layerOpacity = dataSource.layerRenderOpacity(chart: self, renderIndex: renderIndex)
             // update it
             updateRenderLayersOpacity(for: renderIndex, layerOpacity: layerOpacity)
-            
             let timing = dataSource.queryAnimation(chart: self, renderIndex: renderIndex)
             if timing.repeatCount > 0 {
                 print("Animating the render:\(renderIndex) layers.")
-                animateRenderLayers(renderIndex,
-                                    layerOpacity: layerOpacity)
+                animateRenderLayers(renderIndex, layerOpacity: layerOpacity)
             } else {
                 print("The render \(renderIndex) dont want animate its layers.")
             }
@@ -1102,15 +1137,15 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         let delay: TimeInterval = 0.5
         let preTimeOffset: TimeInterval = 1.0
         let duration: TimeInterval = duration + delay - preTimeOffset
+        let xPositionDisp = self.frame.size.width * CGFloat(page)
         self.layoutIfNeeded()
         UIView.animate(withDuration: duration,
                        delay: delay,
                        options: .curveEaseInOut,
                        animations: {
-                self.contentOffset.x = self.frame.size.width * CGFloat(1)
+                        self.contentOffset.x = xPositionDisp
         }, completion: { completed in
-            if self.isAnimatePointsClearOpacity &&
-                !self.isAnimatePointsClearOpacityDone {
+            if self.isAnimatePointsClearOpacity && !self.isAnimatePointsClearOpacityDone {
                 self.animatePointsClearOpacity()
                 self.isAnimatePointsClearOpacityDone = true
             }
@@ -1123,7 +1158,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     layerRide.transform = CATransform3DIdentity
                 }
                 if scrollAnimation {
-                    scrollingProgressAnimatingToPage(anim.duration, page: 1)
+                    scrollingProgressAnimatingToPage(anim.duration, page: Int(self.numberOfPages) - 1)
                 }
                 layerRide.add(anim, forKey: "around", withCompletion: {  complete in
                     if let presentationLayer = layerRide.presentation() {
@@ -1210,12 +1245,23 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var isScrollAnimnationDone: Bool = false
     let scrollingProgressDuration: TimeInterval = 1.2
     
+    private func performAnimations() {
+        if !isScrollAnimnationDone && isScrollAnimation {
+            isScrollAnimnationDone = true
+            scrollingProgressAnimatingToPage(scrollingProgressDuration, page: Int(self.numberOfPages) - 1)
+        } else {
+            // Only animate if the points if the render its visible.
+            if rendersIsVisible(renderIndex: Renders.points.rawValue) {
+                animatePointsClearOpacity()
+            }
+        }
+    }
     /// Update the chart layout
     /// - Parameter forceLayout: Bool
-    private func updateLayout( ignoreLayout: Bool = false) {
-        //GCLog.print("updateLayout for render points blounded at frame \(self.frame).", .trace)
+    private func updateLayout( ignoreLayoutCache: Bool = false) {
+        print("updateLayout for render points blounded at frame \(self.frame).")
         // If we need to force layout, we must ignore the layoput cache.
-        if ignoreLayout == false {
+        if ignoreLayoutCache == false {
             if isLayoutCacheActive {
                 let flatPointsToRender = pointsRender.flatMap({$0})
                 if flatPointsToRender.isEmpty == false {
@@ -1223,7 +1269,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     let pointsHash = flatPointsToRender.hashValue
                     let dictKey = "\(frameHash ^ pointsHash)"
                     if let item = layoutCache[dictKey] as? [[CGPoint]] {
-                        //print("[LCACHE] cache hit \(dictKey) [PKJI]")
+                        print("[LCACHE] cache hit \(dictKey) [\(item.count))]")
                         cacheTrackingLayout += 1
                         setNeedsDisplay()
                         return
@@ -1238,8 +1284,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         // Create the points from the discrete data using the renders
         if allDataPointsRender.isEmpty == false {
             print("\(CALayer.isAnimatingLayers) animations running")
-            if CALayer.isAnimatingLayers <= 1  || ignoreLayout {
-                print("Regenerating the layer tree. for: \(self.contentView.bounds) \(ignoreLayout)")
+            if CALayer.isAnimatingLayers <= 1  || ignoreLayoutCache {
+                print("Regenerating the layer tree. for: \(self.contentView.bounds) \(ignoreLayoutCache)")
                 removeAllLayers()
                 addLeadingRuleIfNeeded(rootRule, view: self)
                 addFooterRuleIfNeeded(footerRule)
@@ -1252,17 +1298,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     // layout rules
                     layoutRules()
                 }
-                
-                if !isScrollAnimnationDone && isScrollAnimation {
-                    isScrollAnimnationDone = true
-                    scrollingProgressAnimatingToPage(scrollingProgressDuration,
-                                                     page: 1)
-                } else {
-                    // Only animate if the points if the render its visible.
-                    if rendersIsVisible(renderIndex: Renders.points.rawValue) {
-                        animatePointsClearOpacity()
-                    }
-                }
+                // animate layers
+                performAnimations()
             }
         }
     }
@@ -1355,15 +1392,14 @@ extension OMScrollableChart {
         }
         get { return super.frame }
     }
-    
-    func forceLayoutReload() {
-        self.updateLayout(ignoreLayout: true)
+    internal func forceLayoutReload() {
+        self.updateLayout(ignoreLayoutCache: true)
     }
     private func layoutForFrame() {
         if self.updateDataSourceData() {
             self.forceLayoutReload()
         } else {
-            //GCLog.print("layout is 1")
+            print("layout is OK")
         }
     }
     private func updateRendersOpacity() {
@@ -1373,9 +1409,30 @@ extension OMScrollableChart {
             if let render = self.renderSource,
                 let dataSource = dataSource, render.numberOfRenders > 0  {
                 for renderIndex in 0..<render.numberOfRenders {
-                    let opacity = dataSource.layerOpacity(chart: self, renderIndex: renderIndex)
-                    // layout renders opacity
-                    updateRenderLayersOpacity(for: renderIndex, layerOpacity: opacity)
+                    let opacity = dataSource.layerRenderOpacity(chart: self, renderIndex: renderIndex)
+                    if opacity == 1.0 {
+                        // query the layers
+                        updateRendersLayerOpacity()
+                    } else {
+                        // layout renders opacity
+                        updateRenderLayersOpacity(for: renderIndex, layerOpacity: opacity)
+                    }
+                }
+            }
+        }
+    }
+    private func updateRendersLayerOpacity() {
+        // Create the points from the discrete data using the renders
+        //print("[\(Date().description)] [RND] updating render layer opacity [PKJI]")
+        if allDataPointsRender.isEmpty == false {
+            if let render = self.renderSource,
+                let dataSource = dataSource, render.numberOfRenders > 0  {
+                for renderIndex in 0..<render.numberOfRenders {
+                    renderLayers[renderIndex].enumerated().forEach { layerIndex, layer  in
+                        let opacity = dataSource.layerOpacity(chart: self, renderIndex: renderIndex, layer: layer)
+                        // layout renders opacity
+                        layer.opacity = Float(opacity)
+                    }
                 }
             }
         }
@@ -1404,6 +1461,7 @@ extension OMScrollableChart {
         if oldFrame != self.frame {
             flowDelegate?.frameChanged(frame: frame)
             layoutForFrame()
+            oldFrame = self.frame
         } else {
             updateRendersOpacity()
         }
@@ -1545,3 +1603,94 @@ class Stadistics {
     }
     
 }
+
+extension Array where Element == CGPoint {
+    /// Calculate signed area.
+    ///
+    /// See https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
+    ///
+    /// - Returns: The signed area
+
+    func signedArea() -> CGFloat {
+        if isEmpty { return .zero }
+
+        var sum: CGFloat = 0
+        for (index, point) in enumerated() {
+            let nextPoint: CGPoint
+            if index < count-1 {
+                nextPoint = self[index+1]
+            } else {
+                nextPoint = self[0]
+            }
+
+            sum += point.x * nextPoint.y - nextPoint.x * point.y
+        }
+
+        return sum / 2
+    }
+
+    func segments() -> [LineSegment]? {
+        if isEmpty { return nil }
+        var segments = [LineSegment]()
+        for index in stride(from: 0, to: count - 1, by: 1){
+            segments.append(LineSegment(self[index], self[index + 1]))
+        }
+        return segments
+    }
+    /// Calculate centroid
+    ///
+    /// See https://en.wikipedia.org/wiki/Centroid#Of_a_polygon
+    ///
+    /// - Note: If the area of the polygon is zero (e.g. the points are collinear), this returns `nil`.
+    ///
+    /// - Parameter points: Unclosed points of polygon.
+    /// - Returns: Centroid point.
+
+    func centroid() -> CGPoint? {
+        if isEmpty { return nil }
+
+        let area = signedArea()
+        if area == 0 { return nil }
+
+        var sumPoint: CGPoint = .zero
+
+        for (index, point) in enumerated() {
+            let nextPoint: CGPoint
+            if index < count-1 {
+                nextPoint = self[index+1]
+            } else {
+                nextPoint = self[0]
+            }
+
+            let factor = point.x * nextPoint.y - nextPoint.x * point.y
+            sumPoint.x += (point.x + nextPoint.x) * factor
+            sumPoint.y += (point.y + nextPoint.y) * factor
+        }
+
+        return sumPoint / 6 / area
+    }
+
+    func mean() -> CGPoint? {
+        if isEmpty { return nil }
+
+        return reduce(.zero, +) / CGFloat(count)
+    }
+}
+
+//extension CGPoint {
+//    static func + (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+//        CGPoint(x: lhs.x + rhs.x, y: lhs.y + rhs.y)
+//    }
+//
+//    static func - (lhs: CGPoint, rhs: CGPoint) -> CGPoint {
+//        CGPoint(x: lhs.x - rhs.x, y: lhs.y - rhs.y)
+//    }
+//
+//    static func / (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+//        CGPoint(x: lhs.x / rhs, y: lhs.y / rhs)
+//    }
+//
+//    static func * (lhs: CGPoint, rhs: CGFloat) -> CGPoint {
+//        CGPoint(x: lhs.x * rhs, y: lhs.y * rhs)
+//    }
+//}

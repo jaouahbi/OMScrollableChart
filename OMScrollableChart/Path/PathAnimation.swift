@@ -22,8 +22,6 @@ public typealias VectorVal = Float
 internal func * (left: CGPoint, right: VectorVal) -> CGPoint {
     return CGPoint(x: left.x * CGFloat(right), y: left.y * CGFloat(right))
 }
-
-
 public class BezierPath {
     private let points: [CGPoint]
     public init(points: [CGPoint]) {
@@ -90,7 +88,6 @@ class BezierPoint: CAShapeLayer {
         super.init()
         self.position = position
     }
-    
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

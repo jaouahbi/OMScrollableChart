@@ -824,5 +824,7 @@ extension CGRect: Hashable {
         return NSCoder.string(for: self).hashValue
     }
 }
+
+
 // swiftlint:enabled file_length
 // swiftlint:enabled type_body_length

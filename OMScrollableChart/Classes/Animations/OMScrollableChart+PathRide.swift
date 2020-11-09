@@ -9,32 +9,61 @@ import UIKit
 
 extension OMScrollableChart {
     
-    func pathRideToPointAnimation( cgPath: CGPath,
-                                   pointIndex: Int,
+    /// pathRideToPointAnimation
+    /// - Parameters:
+    ///   - cgPath: CGPath
+    ///   - pointIndex: pointIndex
+    ///   - timingFunction: CAMediaTimingFunction
+    ///   - duration: animation duration
+    /// - Returns: CAAnimation?
+    private func pathRideToPointAnimation( cgPath: CGPath,
+                                           sectionIndex: Int,
+                                           startPoint: CGPoint? = nil,
                                    timingFunction: CAMediaTimingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut),
                                    duration: TimeInterval) -> CAAnimation? {
-        let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(pointIndex))
+        let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(sectionIndex))
         return pathRideAnimation(cgPath: cgPath,
                                  percent: percent,
                                  duration: duration)
     }
-    func pathRideToPoint( cgPath: CGPath,
-                                   pointIndex: Int,
+    /// pathRideToPoint
+    /// - Parameters:
+    ///   - cgPath: CGPath
+    ///   - sectionIndex: pointIndex
+    ///   - startPoint: C GPoint
+    ///   - timingFunction: CAMediaTimingFunction
+    /// - Returns: CGPoint
+    private func pathRideToPoint( cgPath: CGPath,
+                                   sectionIndex: Int,
+                                   startPoint: CGPoint? = nil,
                                    timingFunction: CAMediaTimingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)) -> CGPoint {
-        let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(pointIndex))
+        let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(sectionIndex))
         self.ridePath = Path(withTimingFunction: timingFunction)
-        let point =  self.ridePath?.pointForPercentage(pathPercent: Double(percent)) ?? .zero
+        let point = self.ridePath?.pointForPercentage(pathPercent: Double(percent), startPoint: startPoint) ?? .zero
+        print("pointForPercentage",percent, point)
         return point
     }
-    func pathRideAnimation( cgPath: CGPath,
+    /// pathRideAnimation
+    /// - Parameters:
+    ///   - cgPath: CGPath
+    ///   - percent: percent
+    ///   - timingFunction: CAMediaTimingFunction
+    ///   - duration: animation duration
+    /// - Returns: CAAnimation
+    private func pathRideAnimation( cgPath: CGPath,
                             percent: CFloat = 1.0,
+                            startPoint: CGPoint? = nil,
                             timingFunction: CAMediaTimingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut),
                             duration: TimeInterval) -> CAAnimation? {
         self.ridePath = Path(withTimingFunction: timingFunction)
+
+
         let timesForFourthOfAnimation: Double
-        if let curveLengthPercentagesForFourthOfAnimation = ridePath?.percentagesWhereYIs(y: Double(percent)) {
+        let percents = ridePath?.percentagesWhereYIs(y: Double(percent))
+        if let curveLengthPercentagesForFourthOfAnimation = percents {
             if curveLengthPercentagesForFourthOfAnimation.count > 0 {
-                if let originX = ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0])?.x {
+                if let originX = ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0],
+                                                         startPoint: startPoint)?.x {
                     timesForFourthOfAnimation = Double(originX)
                 } else {
                     timesForFourthOfAnimation = 1
@@ -61,16 +90,14 @@ extension OMScrollableChart {
     ///   - path: UIBezierPath
     ///   - layerToRide: CALayer
     ///   - pointIndex: Int
-    ///   - duration: TimeInterval
+    ///   - duration: animation duration [TimeInterval]
     /// - Returns: CAAnimation
     func animateLayerPathRideToPoint(_ path: UIBezierPath,
                                      layerToRide: CALayer,
-                                     pointIndex: Int,
+                                     sectionIndex: Int,
                                      duration: TimeInterval = 10.0) -> CAAnimation {
         self.layerToRide = layerToRide
-        self.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath,
-                                                 pointIndex: pointIndex,
-                                                 duration: duration)
+        self.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath, sectionIndex: sectionIndex, duration: duration)
         let anim = CABasicAnimation(keyPath: "rideProgress")
         anim.fromValue = NSNumber(value: 0)
         anim.toValue   = NSNumber(value: 1.0)
@@ -79,8 +106,6 @@ extension OMScrollableChart {
         anim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
         anim.isRemovedOnCompletion = false
         anim.delegate = self
-        
         return anim
     }
-
 }

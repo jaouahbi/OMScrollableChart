@@ -1,6 +1,5 @@
 //
 //  Point3D.swift
-//  Example
 //
 //  Created by Jorge Ouahbi on 29/10/2020.
 //  Copyright © 2020 dsp. All rights reserved.
@@ -8,21 +7,20 @@
 
 import UIKit
 
-struct Point3D: Comparable {
-    static func < (lhs: Point3D, rhs: Point3D) -> Bool {
+public struct Point3D: Comparable {
+    public static func < (lhs: Point3D, rhs: Point3D) -> Bool {
         return lhs.z < rhs.z
     }
-    
     var x: CGFloat, y: CGFloat, z: CGFloat
     static var zero = Point3D(x: 0, y: 0, z: 0)
 }
 
-struct Segment3D {
+public struct LineSegment3D {
     var P0: Point3D
     var P1: Point3D
 }
 
-extension Point3D {
+public extension Point3D {
     func dot(point: Point3D) -> CGFloat {
         return (self.x * point.x + self.y * point.y + self.z * point.z)
     }

@@ -9,39 +9,6 @@
 import XCTest
 @testable import Example
 
-func randomNumber(probabilities: [Double]) -> Int {
-    // Sum of all probabilities (so that we don't have to require that the sum is 1.0):
-    let sum = probabilities.reduce(0, +)
-    // Random number in the range 0.0 <= rnd < sum :
-    let rnd = Double.random(in: 0.0 ..< sum)
-    // Find the first interval of accumulated probabilities into which `rnd` falls:
-    var accum = 0.0
-    for (i, p) in probabilities.enumerated() {
-        accum += p
-        if rnd < accum {
-            return i
-        }
-    }
-    // This point might be reached due to floating point inaccuracies:
-    return (probabilities.count - 1)
-}
-
-//MARK: - Random numbers
-fileprivate extension BinaryInteger {
-  static func random(min: Self, max: Self) -> Self {
-    assert(min < max, "min must be smaller than max")
-    let delta = max - min
-    return min + Self(arc4random_uniform(UInt32(delta)))
-  }
-}
-
-fileprivate extension FloatingPoint {
-  static func random(min: Self, max: Self, resolution: Int = 1000) -> Self {
-    let randomFraction = Self(Int.random(min: 0, max: resolution)) / Self(resolution)
-    return min + randomFraction * max
-  }
-}
-
 class ExampleTests: XCTestCase {
 
     override func setUpWithError() throws {
@@ -57,26 +24,12 @@ class ExampleTests: XCTestCase {
     var result3 = [CGPoint]()
     var result4 = [CGPoint]()
     
-    func randomSize(bounded bounds: CGRect,
-                    numberOfItems: Int) -> [CGSize]{
-        let randomSizes  = (0..<numberOfItems).map { _ in CGSize(width: .random(min: 0, max: bounds.size.width), height: .random(min: 0, max: bounds.size.height)) }
-        return randomSizes
-    }
-    func randomFloat(_ numberOfItems: Int, max: Float = 0, min: Float = 100000) -> [Float]{
-        let randomData = (0..<numberOfItems).map { _ in Float.random(min: min, max: max) }
-        return randomData
-    }
-    
-    
-    
-    
+
     func testSimplification() {
 
         let numberOfItems = 300
         let randomPoints  = (0..<numberOfItems).map { _ in CGPoint(x: .random(min: 0, max: UIScreen.main.bounds.size.width),
                                                                 y: .random(min: 0, max: UIScreen.main.bounds.size.height)) }
-
-        
         print("X",
               "Vis",
               "DglsHQ",
@@ -110,4 +63,97 @@ class ExampleTests: XCTestCase {
             XCTAssert(points == points2)
         }
     }
+
+}
+
+class Swift_LineSegmentTests: XCTestCase {
+    
+    func testEquality() {
+        let segment1 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        let segment2 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        
+        XCTAssert(segment1 == segment2)
+    }
+    
+    func testMidpoint() {
+        let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        let actualMidpoint = CGPoint(x: 5.0, y: 5.0)
+        
+        XCTAssert(segment.midpoint() == actualMidpoint)
+    }
+    
+    func testAngle() {
+        // Test vertical
+        let vertical = LineSegment(CGPoint(x: 0.0, y: -10.0), CGPoint(x: 0.0, y: 10.0))
+        XCTAssert(vertical.angle() == CGFloat(M_PI/2))
+        
+        // Test horizontal
+        let horizontal = LineSegment(CGPoint(x: 0.0, y: -1.0), CGPoint(x: 10.0, y: -1.0))
+        XCTAssert(horizontal.angle() == 0)
+        
+        // Test 45deg or PI/4
+        let fortyfive = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        XCTAssert(fortyfive.angle() == CGFloat(M_PI/4.0))
+    }
+    
+    func testLength() {
+        let segment = LineSegment(CGPoint(x: 0.0, y: -10.0), CGPoint(x: 0.0, y: 10.0))
+        
+        XCTAssert(segment.length() == 20.0)
+    }
+    
+    func testTranslate() {
+        var segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        segment.translateInPlace(dX: -1.0, dY: -1.0)
+        
+        XCTAssert(segment.p1 == CGPoint(x: -1.0, y: -1.0) && segment.p2 == CGPoint(x: 9.0, y: 9.0))
+    }
+    
+    func testRotate() {
+        let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        let rotated = segment.rotate(radians: -CGFloat(M_PI/2), aboutPoint: CGPoint(x: 0.0, y: 0.0))
+        
+        XCTAssert( rotated.p1 == CGPoint(x: 0, y: 0) && rotated.p2 == CGPoint(x: 10, y: -10))
+    }
+    
+    func testInterpolatePointAtT() {
+        let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        let point = segment.interpolatePointAtT(0.5)
+        
+        XCTAssert(point == CGPoint(x: 5.0, y: 5.0))
+    }
+    
+    func testBounds() {
+        let segment = LineSegment(CGPoint(x: -10.0, y: -10.0), CGPoint(x: 10.0, y: 10.0))
+        
+        XCTAssert(segment.bounds() == CGRect(x: -10.0, y: -10.0, width: 20.0, height: 20.0))
+    }
+    
+    func testPointsOnLineAtDistance() {
+        let segment = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 0.0))
+        let pts = segment.pointsOnLineAtDistance(2.0)
+        let comparePts = [
+            CGPoint(x: 2.0, y: 0.0),
+            CGPoint(x: 4.0, y: 0.0),
+            CGPoint(x: 6.0, y: 0.0),
+            CGPoint(x: 8.0, y: 0.0),
+            CGPoint(x: 10.0, y: 0.0)
+        ]
+        
+        XCTAssert(pts == comparePts)
+    }
+    
+    func testIntersectionPointWithLineSegment() {
+        // test intersection
+        let segment1 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
+        let segment2 = LineSegment(CGPoint(x: 0.0, y: 10.0), CGPoint(x: 10.0, y: 0.0))
+        
+        XCTAssert(segment1.intersectionPointWithLineSegment(segment2)! == CGPoint(x: 5.0, y: 5.0), "Lines should intersection at (5.0, 5.0)")
+        
+        // test do not intersect
+        let segment3 = LineSegment(CGPoint(x: 20.0, y: 20.0), CGPoint(x: 30.0, y: 30.0))
+        
+        XCTAssert(segment1.intersectionPointWithLineSegment(segment3) == nil, "Lines should not intersection, expected nil")
+    }
+    
 }

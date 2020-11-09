@@ -21,6 +21,10 @@
 
 import UIKit
 
+let kDefaultPointSize = CGSize(width: 8, height: 8)
+let kDefaultSelectedPointSize =  CGSize(width: 13, height: 13)
+let kDefaultLineWidth: CGFloat = 4
+
 extension OMScrollableChart {
     
     // Render the internal layers:
@@ -31,21 +35,17 @@ extension OMScrollableChart {
     private func renderDefaultLayers(_ renderIndex: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
         switch renderIndex {
         case OMScrollableChart.Renders.polyline.rawValue:
-            let lineWidth: CGFloat = 4
             let color  = UIColor.greyishBlue
-            let layers = updatePolylineLayer(lineWidth: lineWidth, color: color)
+            let layers = updatePolylineLayer(lineWidth: kDefaultLineWidth, color: color)
             layers.forEach({$0.name = "polyline"})
             return layers
         case OMScrollableChart.Renders.points.rawValue:
-            let pointSize = CGSize(width: 8, height: 8)
-            let layers = createPointsLayers(points,
-                                            size: pointSize,
-                                            color: .greyishBlue)
+            let layers = createPointsLayers(points, size: kDefaultPointSize,  color: .greyishBlue)
             layers.forEach({$0.name = "point"})
             return layers
         case OMScrollableChart.Renders.selectedPoint.rawValue:
             if let point = maxPoint(in: renderIndex) {
-                let layer = createPointLayer(point, size: CGSize(width: 13, height: 13), color: .darkGreyBlueTwo)
+                let layer = createPointLayer(point, size: kDefaultSelectedPointSize, color: .darkGreyBlueTwo)
                 layer.name = "selectedPointDefault"
                 return [layer]
             }
@@ -54,15 +54,20 @@ extension OMScrollableChart {
         }
         return []
     }
+    // Polyline UIBezierPath
     var polylinePath: UIBezierPath? {
-        guard  let polylinePoints =  polylinePoints,
+        guard  let polylinePoints = polylinePoints,
             let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
                 return nil
         }
         return polylinePath
     }
-    func updatePolylineLayer( lineWidth: CGFloat,
-                              color: UIColor) -> [OMGradientShapeClipLayer] {
+    ///  Update the polyline UIBezierPath
+    /// - Parameters:
+    ///   - lineWidth: line width
+    ///   - color: color
+    /// - Returns: [OMGradientShapeClipLayer]
+    func updatePolylineLayer( lineWidth: CGFloat, color: UIColor) -> [OMGradientShapeClipLayer] {
         guard  let polylinePath = polylinePath else {
             return []
         }
@@ -78,8 +83,7 @@ extension OMScrollableChart {
         polylineLayer.shadowOpacity = 0.5
         polylineLayer.shadowRadius  = 6.0
         // Update the frame
-        polylineLayer.frame         = contentView.bounds
-        
+        polylineLayer.frame        = contentView.bounds
         return [polylineLayer]
     }
     func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
@@ -88,7 +92,8 @@ extension OMScrollableChart {
         if discretePoints.count > 0 {
             let chartData = (discretePoints, data)
             if let approximationPoints =  makeApproximationPoints( points: discretePoints,
-                                                                   tolerance: approximationTolerance) {
+                                                                type: .douglasPeuckerRadial,
+                                                                tolerance: approximationTolerance) {
                 if approximationPoints.count > 0 {
                     self.approximationData.insert(chartData, at: renderIndex)
                     self.pointsRender.insert(approximationPoints, at: renderIndex)
@@ -107,17 +112,12 @@ extension OMScrollableChart {
         }
     }
     
-    func makeAverage(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let points = makeAveragedPoints(data: data,
-                                                   size: contentView.bounds.size,
-                                                   elementsToAverage: numberOfElementsToAverage) {
+    func makeMean(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+        if let points = makeMeanPoints(data: data, size: contentView.bounds.size, elementsToMean: numberOfElementsToMean) {
             let chartData = (points, data)
             self.averagedData.insert(chartData, at: renderIndex)
             self.pointsRender.insert(points, at: renderIndex)
-            var layers = dataSource.dataLayers(chart: self,
-                                               renderIndex: renderIndex,
-                                               section: 0,
-                                               points: points)
+            var layers = dataSource.dataLayers(chart: self, renderIndex: renderIndex, section: 0, points: points)
             // accumulate layers
             if layers.isEmpty {
                 layers = renderDefaultLayers(renderIndex, points: points)
@@ -180,31 +180,26 @@ extension OMScrollableChart {
         }
     }
     
-    /// renderLayers
+    /// Render layers of render ´renderIndex´ as ´OMScrollableChart.RenderType´
     /// - Parameters:
     ///   - renderIndex: render index
-    ///   - renderAs: RenderData
+    ///   - renderAs: RenderType
     func renderLayers(_ renderIndex: Int, renderAs: OMScrollableChart.RenderType) {
         guard let dataSource = dataSource else {
             return
         }
         let currentRenderData = renderDataPoints[renderIndex]
         switch renderAs {
-        case .approximation: makeApproximation(currentRenderData, renderIndex, dataSource)
-        case .averaged: makeAverage(currentRenderData, renderIndex, dataSource)
-        case .discrete: makeDiscrete(currentRenderData, renderIndex, dataSource)
-        case .linregress: makeLinregress(currentRenderData, renderIndex, dataSource)
+            case .approximation: makeApproximation(currentRenderData, renderIndex, dataSource)
+            case .mean: makeMean(currentRenderData, renderIndex, dataSource)
+            case .discrete: makeDiscrete(currentRenderData, renderIndex, dataSource)
+            case .linregress: makeLinregress(currentRenderData, renderIndex, dataSource)
         }
         self.renderType.insert(renderAs, at: renderIndex)
     }
     
     func createPointsLayers( _ points: [CGPoint], size: CGSize, color: UIColor) -> [OMShapeLayerRadialGradientClipPath] {
-        var layers = [OMShapeLayerRadialGradientClipPath]()
-        for point in points {
-            let circleLayer = createPointLayer(point, size: size, color: color)
-            layers.append(circleLayer)
-        }
-        return layers
+        return points.map({createPointLayer($0, size: size, color: color)})
     }
     
     private func createPointLayer( _ point: CGPoint, size: CGSize, color: UIColor) -> OMShapeLayerRadialGradientClipPath {
@@ -291,5 +286,26 @@ extension OMScrollableChart {
         }
         return layers
     }
-    
+    func createSegmentLayers( _ segmentsPaths: [UIBezierPath], lineWidth: CGFloat = 1.0,  color: UIColor = .red, strokeColor: UIColor = .black) -> [OMGradientShapeClipLayer] {
+        var layers =  [OMGradientShapeClipLayer]()
+        for currentPointIndex in 0..<segmentsPaths.count - 1 {
+            let path = segmentsPaths[currentPointIndex]
+            let shapeSegmentLayer = OMShapeLayerLinearGradientClipPath()
+            shapeSegmentLayer.gardientColor   = color
+            shapeSegmentLayer.path            = path.cgPath
+            shapeSegmentLayer.fillColor       = color.cgColor
+            shapeSegmentLayer.position        = path.bounds.origin
+            shapeSegmentLayer.strokeColor     = strokeColor.cgColor
+            shapeSegmentLayer.lineWidth       = lineWidth
+            shapeSegmentLayer.anchorPoint     = .zero
+            shapeSegmentLayer.shadowColor     = UIColor.black.cgColor
+            shapeSegmentLayer.shadowOffset    = pointsLayersShadowOffset
+            shapeSegmentLayer.shadowOpacity   = 0.7
+            shapeSegmentLayer.shadowRadius    = 3.0
+            shapeSegmentLayer.isHidden        = false
+            shapeSegmentLayer.bounds          = shapeSegmentLayer.path!.boundingBoxOfPath
+            layers.insert(shapeSegmentLayer, at: currentPointIndex)
+        }
+        return layers
+    }
 }

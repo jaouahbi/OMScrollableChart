@@ -164,7 +164,6 @@ class ScaledPointsGenerator: DiscreteScaledPointsGenerator {
     }
 }
 
-
 // MARK: - DiscreteLogaritmicScaledPointsGenerator -
 class DiscreteLogaritmicScaledPointsGenerator: DiscreteScaledPointsGenerator {
 //    internal func updateRangeLimits(_ data: [Float]) {

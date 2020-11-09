@@ -108,7 +108,7 @@ private func douglasPeckerDecimate(_ points: [Point3D],
     var maxi = currentSubchainIndex // index of vertex farthest from S
     var maxDistanceSqFarthestPoint: CGFloat = 0 // distance squared of farthest vertex
     let tol2 = tolerance * tolerance // tolerance squared   // tolerance squared
-    let segment = Segment3D(P0: points[currentSubchainIndex], P1: points[currentKeyIndex]) // segment from v[j] to v[k]
+    let segment = LineSegment3D(P0: points[currentSubchainIndex], P1: points[currentKeyIndex]) // segment from v[j] to v[k]
     var segmentDirection = Point3D(x: 0, y: 0, z: 0) // segment direction vector
     
     // segment direction vector
@@ -188,7 +188,7 @@ func decimateDouglasPeucker(_ srcPoints: [CGPoint], tolerance: CGFloat = 1.0) ->
     var keyIndex: Int = 1
     var lastReducedIndex: Int = 0 // misc counters
     let tol2: CGFloat = tolerance * tolerance // tolerance squared
-    var reduced = [Point3D](repeating: Point3D(x: 0, y: 0, z: 0), count: numberOfPoints)
+    var reduced = [Point3D](repeating: .zero, count: numberOfPoints)
 
     let points = srcPoints.map { Point3D(x: $0.x, y: $0.y, z: 0) }
     var marks = [Int](repeating: 0, count: numberOfPoints)

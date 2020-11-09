@@ -87,21 +87,59 @@ extension OMScrollableChart {
     ///   - layer: <#layer description#>
     ///   - renderIndex: Int
     ///   - dataIndex: Int
-    func didSelectedRenderLayerIndex(layer: CALayer, renderIndex: Int, dataIndex: Int) {
+    func didSelectedRenderLayerSection(layer: CALayer, renderIndex: Int, sectionIndex: Int) {
         // lets animate the footer rule
-        if let footer = footerRule as? OMScrollableChartRuleFooter,
-            let views = footer.views {
-            if dataIndex < views.count {
-                views[dataIndex].shakeGrow(duration: 1.0)
-            } else {
-                print("Section index is out of bounds", dataIndex, views.count)
-            }
+        if let footer = footerRule as? OMScrollableChartRuleFooter, let views = footer.views {
+            print("sectionIndex", sectionIndex)
+            // shake section
+            views[sectionIndex].shakeGrow(duration: 1.0)
         }
-        renderDelegate?.didSelectDataIndex(chart: self,
-                                        renderIndex: renderIndex,
-                                        dataIndex: dataIndex,
-                                        layer: layer)
+        renderDelegate?.didSelectSection(chart: self,
+                                         renderIndex: renderIndex,
+                                         sectionIndex: sectionIndex,
+                                         layer: layer)
     }
+    
+    func didSelectedRenderLayerIndex(layer: CALayer, renderIndex: Int, dataIndex: Int) {
+        
+        renderDelegate?.didSelectDataIndex(chart: self,
+                                           renderIndex: renderIndex,
+                                           dataIndex: dataIndex,
+                                           layer: layer)
+    }
+    
+    
+    
+    private func buildTooltipText(_ renderIndex: Int, _ dataIndex: Int, _ tooltipPosition: inout CGPoint, _ layerPoint: OMGradientShapeClipLayer, _ selectedPoint: CGPoint, _ duration: TimeInterval) {
+        // grab the tool tip text
+        let tooltipText = dataSource?.dataPointTootipText(chart: self,
+                                                          renderIndex: renderIndex,
+                                                          dataIndex: dataIndex,
+                                                          section: 0)
+        // grab the section
+        let dataSection = dataSource?.dataSectionForIndex(chart: self,
+                                                          dataIndex: dataIndex,
+                                                          section: 0) ?? ""
+        tooltipPosition = CGPoint(x: layerPoint.position.x,
+                                  y: selectedPoint.y)
+        
+        if let tooltipText = tooltipText {                      // the dataSource was priority
+            tooltip.string = "\(dataSection) \(tooltipText)"
+            tooltip.displayTooltip(tooltipPosition, duration: duration)
+        } else {
+            // then calculate manually
+            let amount = Double(renderDataPoints[renderIndex][dataIndex])
+            if let dataString = currencyFormatter.string(from: NSNumber(value: amount)) {
+                tooltip.string = "\(dataSection) \(dataString)"
+            } else if let string = dataStringFromPoint(layerPoint.position, renderIndex: renderIndex) {
+                tooltip.string = "\(dataSection) \(string)"
+            } else {
+                print("FIXME: unexpected render | data \(renderIndex) | \(dataIndex)")
+            }
+            tooltip.displayTooltip(tooltipPosition, duration: duration)
+        }
+    }
+    
     /// selectRenderLayerWithAnimation
     /// - Parameters:
     ///   - layerPoint: OMGradientShapeClipLayer
@@ -132,47 +170,28 @@ extension OMScrollableChart {
             tooltipPositionFix = layerPoint.position
         }
         // Get the selection data index
-        if let dataIndex = dataIndexFromPoint(layerPoint.position,
-                                              renderIndex: renderIndex) {
-            
-            print("Selected item: \(dataIndex)")
-            //self.polylinePath?.cgPath.elementsPoints()
-            // notify the selection
+        if let dataIndex = dataIndexFromPoint(layerPoint.position, renderIndex: renderIndex) {
+            print("Selected data point: \(dataIndex)")
+            // notify the data index selection
             didSelectedRenderLayerIndex(layer: layerPoint,
                                         renderIndex: renderIndex,
-                                        dataIndex: dataIndex)
-            // grab the tool tip text
-            let tooltipText = dataSource?.dataPointTootipText(chart: self,
-                                                              renderIndex: renderIndex,
-                                                              dataIndex: dataIndex,
-                                                              section: 0)
-            // grab the section
-            let dataSection = dataSource?.dataSectionForIndex(chart: self,
-                                                              dataIndex: dataIndex,
-                                                              section: 0) ?? ""
-            tooltipPosition = CGPoint(x: layerPoint.position.x,
-                                      y: selectedPoint.y)
-        
-            if let tooltipText = tooltipText {                      // the dataSource was priority
-                tooltip.string = "\(dataSection) \(tooltipText)"
-                tooltip.displayTooltip(tooltipPosition, duration: duration)
-            } else {
-                                                                    // then calculate manually
-                let amount = Double(renderDataPoints[renderIndex][dataIndex])
-                if let dataString = currencyFormatter.string(from: NSNumber(value: amount)) {
-                    tooltip.string = "\(dataSection) \(dataString)"
-                } else if let string = dataStringFromPoint(layerPoint.position, renderIndex: renderIndex) {
-                    tooltip.string = "\(dataSection) \(string)"
-                } else {
-                    print("FIXME: unexpected render | data \(renderIndex) | \(dataIndex)")
-                }
-                tooltip.displayTooltip(tooltipPosition, duration: duration)
-            }
+                                        dataIndex: Int(dataIndex))
+            
+            let sectionIndex = floorf(Float(dataIndex / numberOfSectionsPerPage))
+            print("Selected section: \(Int(sectionIndex))")
+            // notify the section selection
+            didSelectedRenderLayerSection(layer: layerPoint,
+                                        renderIndex: renderIndex,
+                                        sectionIndex: Int(sectionIndex))
+            
+            // Create the text and show the
+            buildTooltipText(renderIndex, dataIndex, &tooltipPosition, layerPoint, selectedPoint, duration)
         }
         if animation {
             let distance = tooltipPositionFix.distance(to: tooltipPosition)
             let factor: TimeInterval = TimeInterval(1 / (self.contentView.bounds.height / distance))
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            let after = 0.5
+            DispatchQueue.main.asyncAfter(deadline: .now() + after) {
                 self.tooltip.moveTooltip(tooltipPositionFix,
                                          duration: factor * duration)
             }
@@ -196,7 +215,7 @@ extension OMScrollableChart {
         switch self.renderType[renderIndex] {
         case .discrete:
             return discreteData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
-        case .averaged(_):
+        case .mean(_):
             return averagedData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
         case .approximation(_):
             return approximationData[renderIndex]?.points.map{ $0.distance(to: newPoint)}.indexOfMin
@@ -211,7 +230,7 @@ extension OMScrollableChart {
     /// - Returns: String?
     func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
         switch self.renderType[renderIndex] {
-        case .averaged(_):
+        case .mean(_):
             if let render = averagedData[renderIndex],
                 let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 let item: Double = Double(render.data[firstIndex])
@@ -266,7 +285,7 @@ extension OMScrollableChart {
                     return render.data[firstIndex]
                 }
             }
-        case .averaged(_):
+        case .mean(_):
             if let render = self.averagedData[renderIndex] {
                 if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                     return render.data[firstIndex]
@@ -296,7 +315,7 @@ extension OMScrollableChart {
                     return firstIndex
                 }
             }
-        case .averaged(_):
+        case .mean(_):
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return firstIndex
             }
