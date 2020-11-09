@@ -7,25 +7,31 @@
 //
 
 import XCTest
-@testable import Example
+@testable import OMScrollableChart
 
-class ExampleTests: XCTestCase {
+class OMScrollableChartTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
-
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
-
-    var result1 = [CGPoint]()
-    var result2 = [CGPoint]()
-    var result3 = [CGPoint]()
-    var result4 = [CGPoint]()
-    
+    static var allTests = [
+        ("testSimplification", testSimplification),
+        ("testScaledPointsGenerator", testScaledPointsGenerator),
+        ("testEquality", testEquality),
+        ("testMidpoint", testMidpoint),
+        ("testAngle", testAngle),
+        ("testLength", testLength),
+        ("testTranslate", testTranslate),
+        ("testRotate", testRotate),
+        ("testInterpolatePointAtT", testInterpolatePointAtT),
+        ("testBounds", testBounds),
+        ("testPointsOnLineAtDistance", testPointsOnLineAtDistance),
+        ("testIntersectionPointWithLineSegment", testIntersectionPointWithLineSegment)
+            // test intersection
+    ]
     func testSimplification() {
-
+        var result1 = [CGPoint]()
+        var result2 = [CGPoint]()
+        var result3 = [CGPoint]()
+        var result4 = [CGPoint]()
+        
         let numberOfItems = 300
         let randomPoints  = (0..<numberOfItems).map { _ in CGPoint(x: .random(min: 0, max: UIScreen.main.bounds.size.width),
                                                                 y: .random(min: 0, max: UIScreen.main.bounds.size.height)) }
@@ -63,10 +69,7 @@ class ExampleTests: XCTestCase {
         }
     }
 
-}
-
-class Swift_LineSegmentTests: XCTestCase {
-    
+  
     func testEquality() {
         let segment1 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
         let segment2 = LineSegment(CGPoint(x: 0.0, y: 0.0), CGPoint(x: 10.0, y: 10.0))
@@ -154,5 +157,5 @@ class Swift_LineSegmentTests: XCTestCase {
         
         XCTAssert(segment1.intersectionPointWithLineSegment(segment: segment3) == nil, "Lines should not intersection, expected nil")
     }
-    
 }
+

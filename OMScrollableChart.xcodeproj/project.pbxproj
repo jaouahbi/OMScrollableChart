@@ -1,0 +1,726 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXAggregateTarget section */
+		"OMScrollableChart::OMScrollableChartPackageTests::ProductTarget" /* OMScrollableChartPackageTests */ = {
+			isa = PBXAggregateTarget;
+			buildConfigurationList = OBJ_115 /* Build configuration list for PBXAggregateTarget "OMScrollableChartPackageTests" */;
+			buildPhases = (
+			);
+			dependencies = (
+				OBJ_118 /* PBXTargetDependency */,
+			);
+			name = OMScrollableChartPackageTests;
+			productName = OMScrollableChartPackageTests;
+		};
+/* End PBXAggregateTarget section */
+
+/* Begin PBXBuildFile section */
+		D17A586F2559FB580016A698 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A586E2559FB580016A698 /* TestUtils.swift */; };
+		OBJ_100 /* UIBezierPath+Interpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_48 /* UIBezierPath+Interpolation.swift */; };
+		OBJ_101 /* OMSimplify.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_50 /* OMSimplify.swift */; };
+		OBJ_102 /* PolylineDecimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_51 /* PolylineDecimation.swift */; };
+		OBJ_103 /* Visvalingam.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_52 /* Visvalingam.swift */; };
+		OBJ_104 /* RecursiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_53 /* RecursiveProtocol.swift */; };
+		OBJ_105 /* UIColor+OMSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_54 /* UIColor+OMSC.swift */; };
+		OBJ_106 /* UIView+Border.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_55 /* UIView+Border.swift */; };
+		OBJ_113 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
+		OBJ_124 /* OMScrollableChartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_58 /* OMScrollableChartTests.swift */; };
+		OBJ_125 /* XCTestManifests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_59 /* XCTestManifests.swift */; };
+		OBJ_127 /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = "OMScrollableChart::OMScrollableChart::Product" /* OMScrollableChart.framework */; };
+		OBJ_71 /* OMScrollableChart+Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_12 /* OMScrollableChart+Animations.swift */; };
+		OBJ_72 /* OMScrollableChart+PathRide.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_13 /* OMScrollableChart+PathRide.swift */; };
+		OBJ_73 /* Array+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_14 /* Array+Extensions.swift */; };
+		OBJ_74 /* CAAnimation+Closure.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_15 /* CAAnimation+Closure.swift */; };
+		OBJ_75 /* CALayer+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_16 /* CALayer+Extensions.swift */; };
+		OBJ_76 /* CALayerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_17 /* CALayerHandler.swift */; };
+		OBJ_77 /* CGAffineTransform+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_18 /* CGAffineTransform+Extensions.swift */; };
+		OBJ_78 /* DiscreteScaledPointsGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_19 /* DiscreteScaledPointsGenerator.swift */; };
+		OBJ_79 /* Geometry+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_20 /* Geometry+Utilities.swift */; };
+		OBJ_80 /* OMGradientShapeClipLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_22 /* OMGradientShapeClipLayer.swift */; };
+		OBJ_81 /* OMShapeLayerLinearGradientClipPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_23 /* OMShapeLayerLinearGradientClipPath.swift */; };
+		OBJ_82 /* OMShapeLayerRadialGradientClipPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_24 /* OMShapeLayerRadialGradientClipPath.swift */; };
+		OBJ_83 /* FloatPoint+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_27 /* FloatPoint+Extension.swift */; };
+		OBJ_84 /* LineSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_28 /* LineSegment.swift */; };
+		OBJ_85 /* LineSegment3D.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_29 /* LineSegment3D.swift */; };
+		OBJ_86 /* OMBubbleShapeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_31 /* OMBubbleShapeView.swift */; };
+		OBJ_87 /* OMBubbleTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_32 /* OMBubbleTextView.swift */; };
+		OBJ_88 /* UIView+Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_33 /* UIView+Animations.swift */; };
+		OBJ_89 /* OMScrollableChart+Renders.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_34 /* OMScrollableChart+Renders.swift */; };
+		OBJ_90 /* OMScrollableChart+Rules.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_35 /* OMScrollableChart+Rules.swift */; };
+		OBJ_91 /* OMScrollableChart+Selection.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_36 /* OMScrollableChart+Selection.swift */; };
+		OBJ_92 /* OMScrollableChart+Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_37 /* OMScrollableChart+Tooltip.swift */; };
+		OBJ_93 /* OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_38 /* OMScrollableChart.swift */; };
+		OBJ_94 /* OMScrollableLeadingChartRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_39 /* OMScrollableLeadingChartRule.swift */; };
+		OBJ_95 /* Path.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_41 /* Path.swift */; };
+		OBJ_96 /* PathAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_42 /* PathAnimation.swift */; };
+		OBJ_97 /* PathElement.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_43 /* PathElement.swift */; };
+		OBJ_98 /* CubicCurveAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_46 /* CubicCurveAlgorithm.swift */; };
+		OBJ_99 /* PolyLineInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_47 /* PolyLineInterpolation.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		D17A58622559F85C0016A698 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = OBJ_1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart";
+			remoteInfo = OMScrollableChart;
+		};
+		D17A58652559F8650016A698 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = OBJ_1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChartTests";
+			remoteInfo = OMScrollableChartTests;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		D17A586E2559FB580016A698 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
+		OBJ_12 /* OMScrollableChart+Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Animations.swift"; sourceTree = "<group>"; };
+		OBJ_13 /* OMScrollableChart+PathRide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+PathRide.swift"; sourceTree = "<group>"; };
+		OBJ_14 /* Array+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Array+Extensions.swift"; sourceTree = "<group>"; };
+		OBJ_15 /* CAAnimation+Closure.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CAAnimation+Closure.swift"; sourceTree = "<group>"; };
+		OBJ_16 /* CALayer+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CALayer+Extensions.swift"; sourceTree = "<group>"; };
+		OBJ_17 /* CALayerHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CALayerHandler.swift; sourceTree = "<group>"; };
+		OBJ_18 /* CGAffineTransform+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CGAffineTransform+Extensions.swift"; sourceTree = "<group>"; };
+		OBJ_19 /* DiscreteScaledPointsGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscreteScaledPointsGenerator.swift; sourceTree = "<group>"; };
+		OBJ_20 /* Geometry+Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Geometry+Utilities.swift"; sourceTree = "<group>"; };
+		OBJ_22 /* OMGradientShapeClipLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMGradientShapeClipLayer.swift; sourceTree = "<group>"; };
+		OBJ_23 /* OMShapeLayerLinearGradientClipPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMShapeLayerLinearGradientClipPath.swift; sourceTree = "<group>"; };
+		OBJ_24 /* OMShapeLayerRadialGradientClipPath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMShapeLayerRadialGradientClipPath.swift; sourceTree = "<group>"; };
+		OBJ_27 /* FloatPoint+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "FloatPoint+Extension.swift"; sourceTree = "<group>"; };
+		OBJ_28 /* LineSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineSegment.swift; sourceTree = "<group>"; };
+		OBJ_29 /* LineSegment3D.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineSegment3D.swift; sourceTree = "<group>"; };
+		OBJ_31 /* OMBubbleShapeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMBubbleShapeView.swift; sourceTree = "<group>"; };
+		OBJ_32 /* OMBubbleTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMBubbleTextView.swift; sourceTree = "<group>"; };
+		OBJ_33 /* UIView+Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Animations.swift"; sourceTree = "<group>"; };
+		OBJ_34 /* OMScrollableChart+Renders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Renders.swift"; sourceTree = "<group>"; };
+		OBJ_35 /* OMScrollableChart+Rules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Rules.swift"; sourceTree = "<group>"; };
+		OBJ_36 /* OMScrollableChart+Selection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Selection.swift"; sourceTree = "<group>"; };
+		OBJ_37 /* OMScrollableChart+Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Tooltip.swift"; sourceTree = "<group>"; };
+		OBJ_38 /* OMScrollableChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChart.swift; sourceTree = "<group>"; };
+		OBJ_39 /* OMScrollableLeadingChartRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableLeadingChartRule.swift; sourceTree = "<group>"; };
+		OBJ_41 /* Path.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Path.swift; sourceTree = "<group>"; };
+		OBJ_42 /* PathAnimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathAnimation.swift; sourceTree = "<group>"; };
+		OBJ_43 /* PathElement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PathElement.swift; sourceTree = "<group>"; };
+		OBJ_46 /* CubicCurveAlgorithm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CubicCurveAlgorithm.swift; sourceTree = "<group>"; };
+		OBJ_47 /* PolyLineInterpolation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolyLineInterpolation.swift; sourceTree = "<group>"; };
+		OBJ_48 /* UIBezierPath+Interpolation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIBezierPath+Interpolation.swift"; sourceTree = "<group>"; };
+		OBJ_50 /* OMSimplify.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMSimplify.swift; sourceTree = "<group>"; };
+		OBJ_51 /* PolylineDecimation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolylineDecimation.swift; sourceTree = "<group>"; };
+		OBJ_52 /* Visvalingam.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Visvalingam.swift; sourceTree = "<group>"; };
+		OBJ_53 /* RecursiveProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecursiveProtocol.swift; sourceTree = "<group>"; };
+		OBJ_54 /* UIColor+OMSC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIColor+OMSC.swift"; sourceTree = "<group>"; };
+		OBJ_55 /* UIView+Border.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Border.swift"; sourceTree = "<group>"; };
+		OBJ_58 /* OMScrollableChartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChartTests.swift; sourceTree = "<group>"; };
+		OBJ_59 /* XCTestManifests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTestManifests.swift; sourceTree = "<group>"; };
+		OBJ_6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
+		OBJ_63 /* build */ = {isa = PBXFileReference; lastKnownFileType = folder; path = build; sourceTree = SOURCE_ROOT; };
+		OBJ_64 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		OBJ_65 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		OBJ_8 /* ios.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = ios.xcconfig; path = Sources/ios.xcconfig; sourceTree = "<group>"; };
+		"OMScrollableChart::OMScrollableChart::Product" /* OMScrollableChart.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = OMScrollableChart.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		"OMScrollableChart::OMScrollableChartTests::Product" /* OMScrollableChartTests.xctest */ = {isa = PBXFileReference; lastKnownFileType = file; path = OMScrollableChartTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		OBJ_107 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		OBJ_126 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 0;
+			files = (
+				OBJ_127 /* OMScrollableChart.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		OBJ_10 /* OMScrollableChart */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_11 /* Animations */,
+				OBJ_14 /* Array+Extensions.swift */,
+				OBJ_15 /* CAAnimation+Closure.swift */,
+				OBJ_16 /* CALayer+Extensions.swift */,
+				OBJ_17 /* CALayerHandler.swift */,
+				OBJ_18 /* CGAffineTransform+Extensions.swift */,
+				OBJ_19 /* DiscreteScaledPointsGenerator.swift */,
+				OBJ_20 /* Geometry+Utilities.swift */,
+				OBJ_21 /* Layers */,
+				OBJ_25 /* Lines */,
+				OBJ_30 /* OMBubbleTextView */,
+				OBJ_34 /* OMScrollableChart+Renders.swift */,
+				OBJ_35 /* OMScrollableChart+Rules.swift */,
+				OBJ_36 /* OMScrollableChart+Selection.swift */,
+				OBJ_37 /* OMScrollableChart+Tooltip.swift */,
+				OBJ_38 /* OMScrollableChart.swift */,
+				OBJ_39 /* OMScrollableLeadingChartRule.swift */,
+				OBJ_40 /* Path */,
+				OBJ_44 /* Polyline */,
+				OBJ_53 /* RecursiveProtocol.swift */,
+				OBJ_54 /* UIColor+OMSC.swift */,
+				OBJ_55 /* UIView+Border.swift */,
+			);
+			name = OMScrollableChart;
+			path = Sources/OMScrollableChart;
+			sourceTree = SOURCE_ROOT;
+		};
+		OBJ_11 /* Animations */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_12 /* OMScrollableChart+Animations.swift */,
+				OBJ_13 /* OMScrollableChart+PathRide.swift */,
+			);
+			path = Animations;
+			sourceTree = "<group>";
+		};
+		OBJ_21 /* Layers */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_22 /* OMGradientShapeClipLayer.swift */,
+				OBJ_23 /* OMShapeLayerLinearGradientClipPath.swift */,
+				OBJ_24 /* OMShapeLayerRadialGradientClipPath.swift */,
+			);
+			path = Layers;
+			sourceTree = "<group>";
+		};
+		OBJ_25 /* Lines */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_26 /* FloatPoint */,
+				OBJ_28 /* LineSegment.swift */,
+				OBJ_29 /* LineSegment3D.swift */,
+			);
+			path = Lines;
+			sourceTree = "<group>";
+		};
+		OBJ_26 /* FloatPoint */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_27 /* FloatPoint+Extension.swift */,
+			);
+			path = FloatPoint;
+			sourceTree = "<group>";
+		};
+		OBJ_30 /* OMBubbleTextView */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_31 /* OMBubbleShapeView.swift */,
+				OBJ_32 /* OMBubbleTextView.swift */,
+				OBJ_33 /* UIView+Animations.swift */,
+			);
+			path = OMBubbleTextView;
+			sourceTree = "<group>";
+		};
+		OBJ_40 /* Path */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_41 /* Path.swift */,
+				OBJ_42 /* PathAnimation.swift */,
+				OBJ_43 /* PathElement.swift */,
+			);
+			path = Path;
+			sourceTree = "<group>";
+		};
+		OBJ_44 /* Polyline */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_45 /* PolylineInterpolation */,
+				OBJ_49 /* PolylineSimplyfication */,
+			);
+			path = Polyline;
+			sourceTree = "<group>";
+		};
+		OBJ_45 /* PolylineInterpolation */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_46 /* CubicCurveAlgorithm.swift */,
+				OBJ_47 /* PolyLineInterpolation.swift */,
+				OBJ_48 /* UIBezierPath+Interpolation.swift */,
+			);
+			path = PolylineInterpolation;
+			sourceTree = "<group>";
+		};
+		OBJ_49 /* PolylineSimplyfication */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_50 /* OMSimplify.swift */,
+				OBJ_51 /* PolylineDecimation.swift */,
+				OBJ_52 /* Visvalingam.swift */,
+			);
+			path = PolylineSimplyfication;
+			sourceTree = "<group>";
+		};
+		OBJ_5 /*  */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_6 /* Package.swift */,
+				OBJ_7 /* Configs */,
+				OBJ_9 /* Sources */,
+				OBJ_56 /* Tests */,
+				OBJ_60 /* Products */,
+				OBJ_63 /* build */,
+				OBJ_64 /* LICENSE */,
+				OBJ_65 /* README.md */,
+			);
+			name = "";
+			sourceTree = "<group>";
+		};
+		OBJ_56 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_57 /* OMScrollableChartTests */,
+			);
+			name = Tests;
+			sourceTree = SOURCE_ROOT;
+		};
+		OBJ_57 /* OMScrollableChartTests */ = {
+			isa = PBXGroup;
+			children = (
+				D17A586E2559FB580016A698 /* TestUtils.swift */,
+				OBJ_58 /* OMScrollableChartTests.swift */,
+				OBJ_59 /* XCTestManifests.swift */,
+			);
+			name = OMScrollableChartTests;
+			path = Tests/OMScrollableChartTests;
+			sourceTree = SOURCE_ROOT;
+		};
+		OBJ_60 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				"OMScrollableChart::OMScrollableChartTests::Product" /* OMScrollableChartTests.xctest */,
+				"OMScrollableChart::OMScrollableChart::Product" /* OMScrollableChart.framework */,
+			);
+			name = Products;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		OBJ_7 /* Configs */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_8 /* ios.xcconfig */,
+			);
+			name = Configs;
+			sourceTree = "<group>";
+		};
+		OBJ_9 /* Sources */ = {
+			isa = PBXGroup;
+			children = (
+				OBJ_10 /* OMScrollableChart */,
+			);
+			name = Sources;
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		"OMScrollableChart::OMScrollableChart" /* OMScrollableChart */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = OBJ_67 /* Build configuration list for PBXNativeTarget "OMScrollableChart" */;
+			buildPhases = (
+				OBJ_70 /* Sources */,
+				OBJ_107 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OMScrollableChart;
+			productName = OMScrollableChart;
+			productReference = "OMScrollableChart::OMScrollableChart::Product" /* OMScrollableChart.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		"OMScrollableChart::OMScrollableChartTests" /* OMScrollableChartTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = OBJ_120 /* Build configuration list for PBXNativeTarget "OMScrollableChartTests" */;
+			buildPhases = (
+				OBJ_123 /* Sources */,
+				OBJ_126 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				OBJ_128 /* PBXTargetDependency */,
+			);
+			name = OMScrollableChartTests;
+			productName = OMScrollableChartTests;
+			productReference = "OMScrollableChart::OMScrollableChartTests::Product" /* OMScrollableChartTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		"OMScrollableChart::SwiftPMPackageDescription" /* OMScrollableChartPackageDescription */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = OBJ_109 /* Build configuration list for PBXNativeTarget "OMScrollableChartPackageDescription" */;
+			buildPhases = (
+				OBJ_112 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OMScrollableChartPackageDescription;
+			productName = OMScrollableChartPackageDescription;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		OBJ_1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastSwiftMigration = 9999;
+				LastUpgradeCheck = 9999;
+			};
+			buildConfigurationList = OBJ_2 /* Build configuration list for PBXProject "OMScrollableChart" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = OBJ_5 /*  */;
+			productRefGroup = OBJ_60 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				"OMScrollableChart::OMScrollableChart" /* OMScrollableChart */,
+				"OMScrollableChart::SwiftPMPackageDescription" /* OMScrollableChartPackageDescription */,
+				"OMScrollableChart::OMScrollableChartPackageTests::ProductTarget" /* OMScrollableChartPackageTests */,
+				"OMScrollableChart::OMScrollableChartTests" /* OMScrollableChartTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		OBJ_112 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				OBJ_113 /* Package.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		OBJ_123 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				OBJ_124 /* OMScrollableChartTests.swift in Sources */,
+				D17A586F2559FB580016A698 /* TestUtils.swift in Sources */,
+				OBJ_125 /* XCTestManifests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		OBJ_70 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 0;
+			files = (
+				OBJ_71 /* OMScrollableChart+Animations.swift in Sources */,
+				OBJ_72 /* OMScrollableChart+PathRide.swift in Sources */,
+				OBJ_73 /* Array+Extensions.swift in Sources */,
+				OBJ_74 /* CAAnimation+Closure.swift in Sources */,
+				OBJ_75 /* CALayer+Extensions.swift in Sources */,
+				OBJ_76 /* CALayerHandler.swift in Sources */,
+				OBJ_77 /* CGAffineTransform+Extensions.swift in Sources */,
+				OBJ_78 /* DiscreteScaledPointsGenerator.swift in Sources */,
+				OBJ_79 /* Geometry+Utilities.swift in Sources */,
+				OBJ_80 /* OMGradientShapeClipLayer.swift in Sources */,
+				OBJ_81 /* OMShapeLayerLinearGradientClipPath.swift in Sources */,
+				OBJ_82 /* OMShapeLayerRadialGradientClipPath.swift in Sources */,
+				OBJ_83 /* FloatPoint+Extension.swift in Sources */,
+				OBJ_84 /* LineSegment.swift in Sources */,
+				OBJ_85 /* LineSegment3D.swift in Sources */,
+				OBJ_86 /* OMBubbleShapeView.swift in Sources */,
+				OBJ_87 /* OMBubbleTextView.swift in Sources */,
+				OBJ_88 /* UIView+Animations.swift in Sources */,
+				OBJ_89 /* OMScrollableChart+Renders.swift in Sources */,
+				OBJ_90 /* OMScrollableChart+Rules.swift in Sources */,
+				OBJ_91 /* OMScrollableChart+Selection.swift in Sources */,
+				OBJ_92 /* OMScrollableChart+Tooltip.swift in Sources */,
+				OBJ_93 /* OMScrollableChart.swift in Sources */,
+				OBJ_94 /* OMScrollableLeadingChartRule.swift in Sources */,
+				OBJ_95 /* Path.swift in Sources */,
+				OBJ_96 /* PathAnimation.swift in Sources */,
+				OBJ_97 /* PathElement.swift in Sources */,
+				OBJ_98 /* CubicCurveAlgorithm.swift in Sources */,
+				OBJ_99 /* PolyLineInterpolation.swift in Sources */,
+				OBJ_100 /* UIBezierPath+Interpolation.swift in Sources */,
+				OBJ_101 /* OMSimplify.swift in Sources */,
+				OBJ_102 /* PolylineDecimation.swift in Sources */,
+				OBJ_103 /* Visvalingam.swift in Sources */,
+				OBJ_104 /* RecursiveProtocol.swift in Sources */,
+				OBJ_105 /* UIColor+OMSC.swift in Sources */,
+				OBJ_106 /* UIView+Border.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		OBJ_118 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = "OMScrollableChart::OMScrollableChartTests" /* OMScrollableChartTests */;
+			targetProxy = D17A58652559F8650016A698 /* PBXContainerItemProxy */;
+		};
+		OBJ_128 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = "OMScrollableChart::OMScrollableChart" /* OMScrollableChart */;
+			targetProxy = D17A58622559F85C0016A698 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		OBJ_110 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LD = /usr/bin/true;
+				OTHER_SWIFT_FLAGS = "-swift-version 5 -I $(TOOLCHAIN_DIR)/usr/lib/swift/pm/4_2 -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -package-description-version 5.3.0";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		OBJ_111 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				LD = /usr/bin/true;
+				OTHER_SWIFT_FLAGS = "-swift-version 5 -I $(TOOLCHAIN_DIR)/usr/lib/swift/pm/4_2 -sdk /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk -package-description-version 5.3.0";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		OBJ_116 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Debug;
+		};
+		OBJ_117 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = Release;
+		};
+		OBJ_121 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = OBJ_8 /* ios.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = OMScrollableChart.xcodeproj/OMScrollableChartTests_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGET_NAME = OMScrollableChartTests;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		OBJ_122 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = OBJ_8 /* ios.xcconfig */;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = OMScrollableChart.xcodeproj/OMScrollableChartTests_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @loader_path/../Frameworks @loader_path/Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGET_NAME = OMScrollableChartTests;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+		OBJ_3 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_NS_ASSERTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SWIFT_PACKAGE=1",
+					"DEBUG=1",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				ONLY_ACTIVE_ARCH = YES;
+				OTHER_SWIFT_FLAGS = "$(inherited) -DXcode";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator appletvos appletvsimulator watchos watchsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SWIFT_PACKAGE DEBUG";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				USE_HEADERMAP = NO;
+			};
+			name = Debug;
+		};
+		OBJ_4 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GCC_OPTIMIZATION_LEVEL = s;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"SWIFT_PACKAGE=1",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_SWIFT_FLAGS = "$(inherited) -DXcode";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SUPPORTED_PLATFORMS = "macosx iphoneos iphonesimulator appletvos appletvsimulator watchos watchsimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) SWIFT_PACKAGE";
+				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				USE_HEADERMAP = NO;
+			};
+			name = Release;
+		};
+		OBJ_68 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = OBJ_8 /* ios.xcconfig */;
+			buildSettings = {
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = OMScrollableChart.xcodeproj/OMScrollableChart_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) $(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = OMScrollableChart;
+				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGET_NAME = OMScrollableChart;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Debug;
+		};
+		OBJ_69 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = OBJ_8 /* ios.xcconfig */;
+			buildSettings = {
+				ENABLE_TESTABILITY = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
+				);
+				HEADER_SEARCH_PATHS = "$(inherited)";
+				INFOPLIST_FILE = OMScrollableChart.xcodeproj/OMScrollableChart_Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) $(TOOLCHAIN_DIR)/usr/lib/swift/macosx";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				OTHER_CFLAGS = "$(inherited)";
+				OTHER_LDFLAGS = "$(inherited)";
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = OMScrollableChart;
+				PRODUCT_MODULE_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited)";
+				SWIFT_VERSION = 5.0;
+				TARGET_NAME = OMScrollableChart;
+				TVOS_DEPLOYMENT_TARGET = 9.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		OBJ_109 /* Build configuration list for PBXNativeTarget "OMScrollableChartPackageDescription" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				OBJ_110 /* Debug */,
+				OBJ_111 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		OBJ_115 /* Build configuration list for PBXAggregateTarget "OMScrollableChartPackageTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				OBJ_116 /* Debug */,
+				OBJ_117 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		OBJ_120 /* Build configuration list for PBXNativeTarget "OMScrollableChartTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				OBJ_121 /* Debug */,
+				OBJ_122 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		OBJ_2 /* Build configuration list for PBXProject "OMScrollableChart" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				OBJ_3 /* Debug */,
+				OBJ_4 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		OBJ_67 /* Build configuration list for PBXNativeTarget "OMScrollableChart" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				OBJ_68 /* Debug */,
+				OBJ_69 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = OBJ_1 /* Project object */;
+}
