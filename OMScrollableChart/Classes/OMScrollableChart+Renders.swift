@@ -292,16 +292,14 @@ extension OMScrollableChart {
             let path = segmentsPaths[currentPointIndex]
             let shapeSegmentLayer = OMShapeLayerLinearGradientClipPath()
             shapeSegmentLayer.gardientColor   = color
-            shapeSegmentLayer.path            = path.cgPath
-            shapeSegmentLayer.fillColor       = color.cgColor
+            shapeSegmentLayer.path           = path.cgPath
             shapeSegmentLayer.position        = path.bounds.origin
             shapeSegmentLayer.strokeColor     = strokeColor.cgColor
+            shapeSegmentLayer.fillColor       = nil
             shapeSegmentLayer.lineWidth       = lineWidth
             shapeSegmentLayer.anchorPoint     = .zero
-            shapeSegmentLayer.shadowColor     = UIColor.black.cgColor
-            shapeSegmentLayer.shadowOffset    = pointsLayersShadowOffset
-            shapeSegmentLayer.shadowOpacity   = 0.7
-            shapeSegmentLayer.shadowRadius    = 3.0
+            shapeSegmentLayer.lineCap         = .round
+            shapeSegmentLayer.lineJoin       = .round
             shapeSegmentLayer.isHidden        = false
             shapeSegmentLayer.bounds          = shapeSegmentLayer.path!.boundingBoxOfPath
             layers.insert(shapeSegmentLayer, at: currentPointIndex)

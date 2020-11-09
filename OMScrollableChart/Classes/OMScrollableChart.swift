@@ -269,6 +269,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         case hide = 0.0
         case show = 1.0
     }
+    var layersToStroke: [(OMGradientShapeClipLayer, [CGPoint])] = []
     private var pointsLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var polylineLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var dashLineLayers = [OMGradientShapeClipLayer]()
@@ -279,10 +280,33 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     weak var dataSource: OMScrollableChartDataSource?
     weak var renderSource: OMScrollableChartRenderableProtocol?
     weak var renderDelegate: OMScrollableChartRenderableDelegateProtocol?
+    var polylineGradientFadePercentage: CGFloat = 0.4
+    var drawPolylineGradient: Bool =  true
+    var lineColor = UIColor.greyishBlue
+    var lineWidth: CGFloat = 1
+    var footerViewHeight: CGFloat = 30
+    var topViewHeight: CGFloat = 20
+    var ruleLeadingAnchor: NSLayoutConstraint?
+    var ruletopAnchor: NSLayoutConstraint?
+    var rulebottomAnchor: NSLayoutConstraint?
+    var rulewidthAnchor: NSLayoutConstraint?
+    var ruleHeightAnchor: NSLayoutConstraint?
+    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
+    var rulesPoints = [CGPoint]()
+    var animatePolyLine = false
+    var animateDashLines: Bool = false
+    var animatePointsOnSelectionLayers: Bool = false
+    var isAnimateLineSelection: Bool = false
+    var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
+    var selectedColor = UIColor.red
+    var selectedOpacy: Float = 1.0
+    var unselectedOpacy: Float = 0.1
+    var unselectedColor = UIColor.clear
     /// Animate show unselected points
     var showPointsOnSelection: Bool = true
+    var animateOnRenderLayerSelection: Bool = true
     var isAnimatePointsClearOpacity: Bool = true
-
+    var showTooltip: Bool = true
     var rideAnim: CAAnimation? = nil
     var layerToRide: CALayer?
     var ridePath: Path?
@@ -394,11 +418,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var rulesMarks: [Float] {
         return internalRulesMarks.sorted(by: {return !($0 > $1)})
     }
-    var polylineGradientFadePercentage: CGFloat = 0.4
-    var drawPolylineGradient: Bool =  true
-    var lineColor = UIColor.greyishBlue
-    var lineWidth: CGFloat = 1
-    
+   
     var dashPattern: [CGFloat] = [1, 2] {
         didSet {
             dashLineLayers.forEach({($0).lineDashPattern = dashPattern.map{NSNumber(value: Float($0))}})
@@ -441,24 +461,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             topRule?.backgroundColor = footerRuleBackgroundColor
         }
     }
-    var footerViewHeight: CGFloat = 30
-    var topViewHeight: CGFloat = 20
-    var ruleLeadingAnchor: NSLayoutConstraint?
-    var ruletopAnchor: NSLayoutConstraint?
-    var rulebottomAnchor: NSLayoutConstraint?
-    var rulewidthAnchor: NSLayoutConstraint?
-    var ruleHeightAnchor: NSLayoutConstraint?
-    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
-    var rulesPoints = [CGPoint]()
-    var animatePolyLine = false
-    var animateDashLines: Bool = false
-    var animatePointLayers: Bool = false
-    var isAnimateLineSelection: Bool = false
-    var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
-    var selectedColor = UIColor.red
-    var selectedOpacy: Float = 1.0
-    var unselectedOpacy: Float = 0.1
-    var unselectedColor = UIColor.clear
+
     private var contentOffsetKOToken: NSKeyValueObservation?
     // MARK: -  register/unregister notifications and KO
     private func registerNotifications() {
@@ -1333,47 +1336,51 @@ extension OMScrollableChart {
         setupView()
         self.clearsContextBeforeDrawing = true
     }
+    private func onHitTestLayer(at location: CGPoint, _ hitTestLayer: CALayer) {
+        var isSelected: Bool = false
+        // skip polyline layer, start in points
+        for renderIndex in Renders.points.rawValue..<renderLayers.count {
+            // Get the point more near
+            let selectedLayerFromLoc = locationToLayer(location, renderIndex: renderIndex)
+            if let selectedLayer = selectedLayerFromLoc {
+                if hitTestLayer == selectedLayer {
+                    if isAnimateLineSelection {
+                        if let path = self.polylinePath {
+                            let animatiom: CAAnimation? = self.animateLineSelection( with: selectedLayer, path)
+                            print(animatiom)
+                        }
+                    }
+                    selectRenderLayerWithAnimation(selectedLayer,
+                                                   selectedPoint: location,
+                                                   renderIndex: renderIndex)
+                    isSelected = true
+                }
+            }
+        }
+        //
+        if !isSelected {
+            // test the layers
+            if let polylineLayer = locationToLayer(location, renderIndex: Renders.polyline.rawValue, mostNearLayer: true),
+               let selectedLayer = locationToLayer(location, renderIndex: Renders.points.rawValue, mostNearLayer: true) {
+                
+                let point = CGPoint( x: selectedLayer.position.x, y: selectedLayer.position.y )
+                
+                selectRenderLayerWithAnimation(selectedLayer,
+                                               selectedPoint: location,
+                                               animation: true,
+                                               renderIndex: Renders.points.rawValue)
+            }
+        }
+    }
+    
     private func onTouchesBegan(_ touches: Set<UITouch>) {
         let location: CGPoint = locationFromTouchInContentView(touches)
         //updateLineSelectionLayer(location)
         let hitTestLayer: CALayer? = hitTestAsLayer(location) as? CAShapeLayer
         if let hitTestLayer = hitTestLayer {
-            var isSelected: Bool = false
-            // skip polyline layer, start in points
-            for renderIndex in Renders.points.rawValue..<renderLayers.count {
-                // Get the point more near
-                if let selectedLayer = locationToLayer(location, renderIndex: renderIndex) {
-                    if hitTestLayer == selectedLayer {
-                        if isAnimateLineSelection {
-                            if let path = self.polylinePath {
-                                let animatiom: CAAnimation? = self.animateLineSelection( with: selectedLayer, path)
-                                print(animatiom)
-                            }
-                        }
-                        selectRenderLayerWithAnimation(selectedLayer,
-                                                       selectedPoint: location,
-                                                       renderIndex: renderIndex)
-                        isSelected = true
-                    }
-                }
-            }
-            //
-            if !isSelected {
-                // test the layers
-                if let polylineLayer = locationToLayer(location, renderIndex: Renders.polyline.rawValue, mostNearLayer: true),
-                   let selectedLayer = locationToLayer(location, renderIndex: Renders.points.rawValue, mostNearLayer: true) {
-                    
-                    let point = CGPoint( x: selectedLayer.position.x, y: selectedLayer.position.y )
-                    
-                    selectRenderLayerWithAnimation(selectedLayer,
-                                                   selectedPoint: location,
-                                                   animation: true,
-                                                   renderIndex: Renders.points.rawValue)
-                }
-            }
+            onHitTestLayer(at: location, hitTestLayer)
         }
     }
-    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         onTouchesBegan(touches)
@@ -1427,7 +1434,9 @@ extension OMScrollableChart {
             }
         }
     }
-    
+    var renderPointsAllLayers: [OMGradientShapeClipLayer] {
+        return renderLayers[Renders.points.rawValue]
+    }
     /// Animate Points Opacity
     /// - Parameters:
     ///   - opacity: Opacity
@@ -1438,16 +1447,13 @@ extension OMScrollableChart {
         }
         CATransaction.begin()
         CATransaction.setAnimationDuration(duration)
-        for layer in renderLayers[Renders.points.rawValue] {
-            let anim = animationOpacity(layer,
-                                        fromValue: CGFloat(layer.opacity),
-                                        toValue: opacity)
+        for layer in self.renderPointsAllLayers {
+            let anim = animationOpacity(layer, fromValue: CGFloat(layer.opacity), toValue: opacity)
             layer.add(anim,
                       forKey: ScrollChartConfiguration.animationPointsOpacityKey)
         }
         CATransaction.commit()
     }
-
     override var contentOffset: CGPoint {
         get {
             return super.contentOffset
@@ -1485,9 +1491,21 @@ extension OMScrollableChart {
             updateRendersOpacity()
         }
     }
+    
+
     override func draw(_ rect: CGRect) {
         super.draw(rect)
         if let ctx = UIGraphicsGetCurrentContext() {
+            
+            for layer in layersToStroke {
+                strokeGradient(ctx: ctx,
+                               layer: layer.0,
+                               points: layer.1,
+                               color: UIColor.purple,
+                               lineWidth: 1.0,
+                               fadeFactor: polylineGradientFadePercentage)
+            }
+            
             if drawPolylineGradient {
                 strokeGradient(ctx: ctx,
                                layer: polylineLayer,
@@ -1531,7 +1549,6 @@ extension OMScrollableChart {
     }
     
     func viewForZoomingInScrollView(scrollView: UIScrollView) -> UIView? {
-
         return self.contentView
 
     }
@@ -1599,7 +1616,6 @@ extension OMScrollableChart {
 }
 
 class Stadistics {
-    
     class func mean(_ lhs: [Float]) -> Float {
         var result: Float = 0
         vDSP_meanv(lhs, 1, &result, vDSP_Length(lhs.count))

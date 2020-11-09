@@ -25,6 +25,7 @@ extension UIView {
         let endingScale     = layer.transform
         
         boundsOvershootAnimation.duration = duration
+        //boundsOvershootAnimation.beginTime = CACurrentMediaTime() + currentDelay
         
         boundsOvershootAnimation.values = [NSValue(caTransform3D: startingScale),
                                            NSValue(caTransform3D: overshootScale),
@@ -40,6 +41,7 @@ extension UIView {
         ]
         
         boundsOvershootAnimation.fillMode = .forwards
+        
         boundsOvershootAnimation.isRemovedOnCompletion = false
         return boundsOvershootAnimation
         

@@ -299,7 +299,6 @@ extension OMScrollableChart {
                                                                      startAt: index + 1)
         animatePoints(pointBegin.reversed(), duration: duration)
         animatePoints(pointEnd, duration: duration)
-        
     }
 
     

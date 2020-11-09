@@ -149,9 +149,9 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 }
             }
             let layers = chart.createSegmentLayers(paths,
-                                                   lineWidth: 1.0,
-                                                   color:UIColor.darkGreyBlueTwo.withAlphaComponent(0.8),
-                                                   strokeColor:  UIColor.black)
+                                                   lineWidth: 2.0,
+                                                   color: .init(white: 0.78, alpha: 0.7),
+                                                   strokeColor: UIColor.purple.withAlphaComponent(0.9))
             layers.forEach({$0.name = "line segment"})  //debug
             return layers
         default:
@@ -174,8 +174,25 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         case 5:
             let indexOfLayer = chart.renderLayers[renderIndex].index(of: layer)
             //print("indexOfLayer", indexOfLayer)
-            if let indexOfLayer = indexOfLayer,
-               indexOfLayer == selectedSegmentIndex {
+            if let indexOfLayer = indexOfLayer, indexOfLayer == selectedSegmentIndex, let path = layer.path {
+                let path = Path(cgPath: path)
+                var lastPoint = CGPoint.zero
+                var points = [CGPoint]()
+                for ele in path.elements {
+                    switch ele {
+                    case .moveToPoint(point: let point):
+                        lastPoint = point
+                    case .addLineToPoint(point: let point):
+                        lastPoint = point
+                    case .addQuadCurveToPoint(destination: let destination, control: let control):
+                        lastPoint = destination
+                    case .addCurveToPoint(destination: let destination, control1: let control1, control2: let control2):
+                        lastPoint = destination
+                    case .closeSubpathWithLine: break
+                    }
+                    points.append(lastPoint)
+                }
+                chart.layersToStroke.append((layer, points))
                 return 1.0
             } else {
                 return 0
@@ -235,7 +252,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         segmentTypeOfData.insertSegment(withTitle: "regression", at: 3, animated: false)
         segmentTypeOfData.selectedSegmentIndex = 0 // discrete
         
-        chartPointsRandom = randomFloat(64, max: 50000, min: -50)
+        chartPointsRandom = randomFloat(32, max: 50000, min: -50)
         
         toleranceSlider.maximumValue  = 100
         toleranceSlider.minimumValue  = 1
