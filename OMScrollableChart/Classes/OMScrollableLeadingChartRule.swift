@@ -96,6 +96,7 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
                 }
             }
         }
+        return true
     }
             
 //    func createLayout() -> Bool {
@@ -154,9 +155,9 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         super.layoutSubviews()
         if oldFrame != frame {
             if !layoutRule() { // TODO: update layout
-                GCLog.print("Unable to create the rule layout" ,.error)
+                print("Unable to create the rule layout")
             }
-        oldFrame = frame
+            oldFrame = frame
             chart.layoutRules()
             
         }
@@ -208,7 +209,6 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
-    var borders = [UIView]()
     /// create rule layout
     /// - Returns: Bool
     func layoutRule() -> Bool {
@@ -258,7 +258,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         super.layoutSubviews()
         if oldFrame != frame {
             if !layoutRule() { // TODO: update layout
-                GCLog.print("Unable to create the rule layout" ,.error)
+                print("Unable to create the rule layout")
             }
             oldFrame = frame
         }

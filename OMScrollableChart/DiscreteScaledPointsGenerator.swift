@@ -107,16 +107,7 @@ class DiscreteScaledPointsGenerator: ScaledPointsGeneratorProtocol {
         maximumValue = max
         isLimitsDirty = false
     }
-    //var lastPoints: [CGPoint] = []
-    //var lastValueCalc: Int = 0
     func makePoints(data: [Float], size: CGSize) -> [CGPoint] {
-//        let lastValue = data.hashValue ^ Int(size.width) ^ Int(size.height)
-//        if lastValue != lastValueCalc {
-//            lastValueCalc = lastValue
-//        } else {
-//            print("makePoints cache it \(lastValue)")
-//            return lastPoints
-//        }
         if isLimitsDirty {
             updateRangeLimits(data)
         }
@@ -135,24 +126,16 @@ class DiscreteScaledPointsGenerator: ScaledPointsGeneratorProtocol {
         //           scaled[n] = (A[n] + B[n]) * C;
         vDSP_vasm(data, 1, &minusMin, 0, &scale, &scaled, 1, vDSP_Length(data.count))
         let xScale = newSize.width / CGFloat(data.count)
-
-//        lastPoints =  scaled.enumerated().map {
-//            return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX,
-//                           y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
-//        }
-//        return lastPoints
-        
         return scaled.enumerated().map {
-                    return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX
+                    return CGPoint(x: xScale * hScale * CGFloat($0.offset) + insetX,
                                    y: (newSize.height * CGFloat(1.0 - ($0.element.isFinite ? $0.element : 0))) + insetY)
         
-
+        }
     }
 }
 
 
 // MARK:  ScaledPointsGenerator -
-
 class ScaledPointsGenerator: DiscreteScaledPointsGenerator {
     var data: [Float]! {
         didSet {
@@ -230,30 +213,30 @@ class DiscreteLogaritmicScaledPointsGenerator: DiscreteScaledPointsGenerator {
     }
 }
 
-func log_position(value: Double) -> Double {
-    // position will be between 0 and 100
-    var minp = 0.0;
-    var maxp = 100.0;
-    
-    // The result should be between 100 an 10000000
-    var minv = log(100.0)
-    var maxv = log(10000000.9)
-    // calculate adjustment factor
-    var scale = (maxv-minv) / (maxp-minp);
-    
-    return (log(value)-minv) / scale + minp;
-}
-func log_value(position: Double ) -> Double {
-  // position will be between 0 and 100
-    var minp = 0.0;
-    var maxp = 100.0;
-
-  // The result should be between 100 an 10000000
-    var minv = log(100.0)
-    var maxv = log(10000000.9)
-
-  // calculate adjustment factor
-  var scale = (maxv-minv) / (maxp-minp);
-
-  return exp(minv + scale * (position-minp));
-}
+//func log_position(value: Double) -> Double {
+//    // position will be between 0 and 100
+//    var minp = 0.0;
+//    var maxp = 100.0;
+//
+//    // The result should be between 100 an 10000000
+//    var minv = log(100.0)
+//    var maxv = log(10000000.9)
+//    // calculate adjustment factor
+//    var scale = (maxv-minv) / (maxp-minp);
+//
+//    return (log(value)-minv) / scale + minp;
+//}
+//func log_value(position: Double ) -> Double {
+//  // position will be between 0 and 100
+//    var minp = 0.0;
+//    var maxp = 100.0;
+//
+//  // The result should be between 100 an 10000000
+//    var minv = log(100.0)
+//    var maxv = log(10000000.9)
+//
+//  // calculate adjustment factor
+//  var scale = (maxv-minv) / (maxp-minp);
+//
+//  return exp(minv + scale * (position-minp));
+//}

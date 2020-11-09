@@ -824,8 +824,8 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             switch self {
             case .discrete:
                 return generator.makePoints(data: data, size: size)
-            case .mean(let elementsToAverage):
-                if elementsToAverage != 0 {
+            case .mean(let elementsToMean):
+                if elementsToMean != 0 {
                     var result: Float = 0
                     let positives = data.map{$0>0 ? $0: abs($0)}
                     //            let negatives = data.filter{$0<0}
@@ -834,7 +834,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     //               let i = data.indexes(of: negatives)
                     //            }
                     
-                    let chunked = positives.chunked(into: elementsToAverage)
+                    let chunked = positives.chunked(into: elementsToMean)
                     let averagedData: [Float] = chunked.map {
                         vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
                         return result
@@ -882,7 +882,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             return []
         }
         
-        var isAveraged: Bool {
+        var isMean: Bool {
             switch self {
             case .mean(_):
                return true

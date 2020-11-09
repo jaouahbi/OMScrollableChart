@@ -342,7 +342,7 @@ extension OMScrollableChart {
         return nil //dataIndexFromLayers(point, renderIndex: renderIndex)
     }
     func dataIndexFromLayers(_ point: CGPoint, renderIndex: Int) -> Int? {
-        if self.renderType[renderIndex].isAveraged {
+        if self.renderType[renderIndex].isMean {
             if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                 return firstIndex
             }
