@@ -845,12 +845,12 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
                     //            }
                     
                     let chunked = positives.chunked(into: elementsToMean)
-                    let averagedData: [Float] = chunked.map {
+                    let meanData: [Float] = chunked.map {
                         vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
                         return result
                     }
-                    //let averagedData = groupAverage(positives, numberOfElements: positives.count)
-                    return generator.makePoints(data: averagedData, size: size)
+                    //let meanData = groupAverage(positives, numberOfElements: positives.count)
+                    return generator.makePoints(data: meanData, size: size)
                 }
             case .approximation(let tolerance):
                 let points = generator.makePoints(data: data, size: size)
@@ -938,10 +938,23 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
     var pointsRender: [[CGPoint]] = []
     var renderDataPoints: [[Float]] = []
     internal var renderType: [RenderType] = []
-    var averagedData: [ChartData?] = []
+    var meanData: [ChartData?] = []
     var linregressData: [ChartData?] = []
     var discreteData:  [ChartData?] = []
     var approximationData:  [ChartData?] = []
+    var zoomIsActive: Bool = false
+    func zoomRectForScale(scale: CGFloat, center: CGPoint) -> CGRect {
+      var zoomRect = CGRect.zero
+      zoomRect.size.height = contentView.frame.size.height / scale
+      zoomRect.size.width  = contentView.frame.size.width  / scale
+      let newCenter = contentView.convert(center, from: self)
+      zoomRect.origin.x = newCenter.x - (zoomRect.size.width / 2.0)
+      zoomRect.origin.y = newCenter.y - (zoomRect.size.height / 2.0)
+      return zoomRect
+    }
+    
+//    var oldFooterTransform3D: CATransform3D?
+//    var oldRootTransform3D: CATransform3D?
     
     func minPoint(in renderIndex: Int) -> CGPoint? {
         return pointsRender[renderIndex].max(by: {$0.x > $1.x})
@@ -961,12 +974,12 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
             //            }
             
             let chunked = positives.chunked(into: elementsToAverage)
-            let averagedData: [Float] = chunked.map {
+            let meanData: [Float] = chunked.map {
                 vDSP_meanv($0, 1, &result, vDSP_Length($0.count));
                 return result
             }
-            //let averagedData = groupAverage(positives, numberOfElements: positives.count)
-            return generator.makePoints(data: averagedData, size: size)
+            //let meanData = groupAverage(positives, numberOfElements: positives.count)
+            return generator.makePoints(data: meanData, size: size)
         }
         return nil
     }
@@ -995,7 +1008,14 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         }
         return []
     }
+    
+    var approximationType: SimplifyType = .none {
+        didSet {
+            forceLayoutReload()
+        }
+    }
     public enum SimplifyType {
+        case none
         case douglasPeuckerRadial
         case douglasPeuckerDecimate
         case visvalingam
@@ -1076,7 +1096,7 @@ class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAn
         renderLayers.removeAll()
         // data
         discreteData.removeAll()
-        averagedData.removeAll()
+        meanData.removeAll()
         linregressData.removeAll()
         approximationData.removeAll()
         

@@ -54,10 +54,10 @@ extension OMScrollableChart {
             
             let width = rule.ruleSize.width > 0 ?
                 rule.ruleSize.width :
-                contentSize.width
+                contentView.bounds.width
             let height = rule.ruleSize.height > 0 ?
                 rule.ruleSize.height :
-                contentSize.height
+                contentView.bounds.height
             print(height, width)
             ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
             ruletopAnchor      = rule.topAnchor.constraint(equalTo: self.contentView.topAnchor)
@@ -98,10 +98,10 @@ extension OMScrollableChart {
             
             let width = rule.ruleSize.width > 0 ?
                 rule.ruleSize.width :
-                contentSize.width
+                contentView.bounds.width
             let height = rule.ruleSize.height > 0 ?
                 rule.ruleSize.height :
-                contentSize.height
+                contentView.bounds.height
             
             //rule.backgroundColor = UIColor.gray
             rule.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
@@ -200,8 +200,7 @@ extension OMScrollableChart {
             }
             internalRulesMarks.removeAll()
             internalCalcRules()
-            rulesPoints = generator.makePoints(data: rulesMarks,
-                                            size: self.contentView.frame.size)
+            rulesPoints = makeRawPoints(rulesMarks, size: self.contentView.frame.size)
             return true
         }
         return false
@@ -216,7 +215,7 @@ extension OMScrollableChart {
         
         let fontSize = ruleFont.pointSize
         for (index, item) in rulesPoints.enumerated() {
-            var yPos = (item.y + fontSize * 0.5)
+            var yPos = item.y
             if index > 0 {
                 if index < rulesPoints.count - 1 {
                     yPos = item.y

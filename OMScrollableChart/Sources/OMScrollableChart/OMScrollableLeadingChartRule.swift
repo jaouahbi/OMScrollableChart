@@ -28,6 +28,7 @@ protocol ChartRuleProtocol: UIView {
     //var isPointsNeeded: Bool {get set}
     var font: UIFont {get set}
     var fontColor: UIColor {get set}
+    var fontStrokeColor: UIColor {get set}
     var decorationColor: UIColor {get set}
     var leftInset: CGFloat {get set}
     var ruleSize: CGSize {get}
@@ -76,19 +77,28 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
             return false
         }
         if labelViews.isEmpty {
-            let fontSize: CGFloat = font.pointSize
-            
+            let footerHeight: CGFloat = 60
+            let fontSize = font.pointSize
             for (index, item) in chart.rulesPoints.enumerated() {
+                var yPos = item.y - footerHeight
+                if index > 0 {
+                    if index < chart.rulesPoints.count - 1 {
+                        yPos = item.y - (footerHeight * 0.5) - (fontSize * 0.5)
+                    } else {
+                        yPos = item.y + fontSize * 0.5
+                    }
+                }
+                
                 if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                     let string = NSAttributedString(string: stepString,
                                                     attributes: [NSAttributedString.Key.font: self.font,
                                                                  NSAttributedString.Key.foregroundColor: self.fontColor,
-                                                                 NSAttributedString.Key.strokeColor: UIColor.lightGray])
+                                                                 NSAttributedString.Key.strokeColor: self.fontStrokeColor])
                     let label = UILabel()
                     label.attributedText = string
                     label.sizeToFit()
                     label.frame = CGRect(x: leftInset,
-                                         y: (item.y - fontSize),
+                                         y: yPos,
                                          width: label.bounds.width,
                                          height: label.bounds.height)
                     self.addSubview(label)
@@ -98,58 +108,58 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         }
         return true
     }
-            
-//    func createLayout() -> Bool {
-//        guard let chart = chart else {
-//            return false
-//        }
-//        labelViews.forEach({$0.removeFromSuperview()})
-//        labelViews.removeAll()
-//        let fontSize: CGFloat = font.pointSize
-//
-//        let attributes = [NSAttributedString.Key.font: self.font,
-//                          NSAttributedString.Key.foregroundColor: self.fontColor,
-//                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
-//
-//        for (index, item) in chart.rulesPoints.enumerated() {
-//            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
-//                let string = NSAttributedString(string: stepString,
-//                                                attributes: attributes)
-//                let label = UILabel()
-//                label.attributedText = string
-//                label.sizeToFit()
-//
-//                var yPos = (item.y - fontSize)
-//                if index > 0 {
-//                    if index < chart.rulesPoints.count - 1 {
-//                        print(index, item)
-//                        yPos = item.y - fontSize * 0.5
-//                    } else {
-//                        print(index, item)
-//                        yPos = item.y
-//                    }
-//                }
-//                let frame = CGRect(x: leftInset,
-//                                     y: yPos,
-//                                     width: label.bounds.width,
-//                                     height: label.bounds.height)
-//                label.frame = frame
-//                self.addSubview(label)
-//                labelViews.append(label)
-//
-//                chart.flowDelegate?.drawRootRuleText(in: frame,
-//                                                     text: string)
-//            }
-//
-//
-//        return true
-//    }
-                
+    
+    //    func createLayout() -> Bool {
+    //        guard let chart = chart else {
+    //            return false
+    //        }
+    //        labelViews.forEach({$0.removeFromSuperview()})
+    //        labelViews.removeAll()
+    //        let fontSize: CGFloat = font.pointSize
+    //
+    //        let attributes = [NSAttributedString.Key.font: self.font,
+    //                          NSAttributedString.Key.foregroundColor: self.fontColor,
+    //                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
+    //
+    //        for (index, item) in chart.rulesPoints.enumerated() {
+    //            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
+    //                let string = NSAttributedString(string: stepString,
+    //                                                attributes: attributes)
+    //                let label = UILabel()
+    //                label.attributedText = string
+    //                label.sizeToFit()
+    //
+    //                var yPos = (item.y - fontSize)
+    //                if index > 0 {
+    //                    if index < chart.rulesPoints.count - 1 {
+    //                        print(index, item)
+    //                        yPos = item.y - fontSize * 0.5
+    //                    } else {
+    //                        print(index, item)
+    //                        yPos = item.y
+    //                    }
+    //                }
+    //                let frame = CGRect(x: leftInset,
+    //                                     y: yPos,
+    //                                     width: label.bounds.width,
+    //                                     height: label.bounds.height)
+    //                label.frame = frame
+    //                self.addSubview(label)
+    //                labelViews.append(label)
+    //
+    //                chart.flowDelegate?.drawRootRuleText(in: frame,
+    //                                                     text: string)
+    //            }
+    //
+    //
+    //        return true
+    //    }
+    
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         setNeedsLayout()
     }
-        
+    
     var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -163,9 +173,10 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         }
     }
 }
-        
+
 // MARK: - OMScrollableChartRuleFooter -
 class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
+    var fontStrokeColor: UIColor = .black
     var leftInset: CGFloat = 16
     var chart: OMScrollableChart!
     //var isPointsNeeded: Bool  =  false
@@ -238,15 +249,15 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             self.addArrangedSubview(label)
             label.widthAnchor.constraint(equalToConstant: width).isActive = true
             label.heightAnchor.constraint(equalToConstant: height).isActive = true
-
+            
             borders.append( label.setBorder(border: .right(constant: 5),
-                                weight: borderDecorationWidth,
-                                color: decorationColor.withAlphaComponent(0.45)))
+                                            weight: borderDecorationWidth,
+                                            color: decorationColor.withAlphaComponent(0.45)))
         }
         
         borders.append(self.setBorder(border: .top(constant: 10),
-                           weight: borderDecorationWidth,
-                           color: decorationColor.withAlphaComponent(0.45)))
+                                      weight: borderDecorationWidth,
+                                      color: decorationColor.withAlphaComponent(0.45)))
         return true
     }
     override func didMoveToSuperview() {

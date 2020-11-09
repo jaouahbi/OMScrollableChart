@@ -207,14 +207,37 @@ extension OMScrollableChart {
             self.selectRenderLayers(except: layerPoint, renderIndex: renderIndex)
         }
         if animateOnRenderLayerSelection, layerPoint.opacity > 0, animation {
-            animateOnRenderLayerSelection(layerPoint, renderIndex: renderIndex, duration: duration)
+            self.animateOnRenderLayerSelection(layerPoint, renderIndex: renderIndex, duration: duration)
         }
         if showTooltip {
-        self.selectionShowTooltip(animation,
-                                  layerPoint,
-                                  renderIndex,
-                                  selectedPoint,
-                                  duration)
+            self.selectionShowTooltip(animation,
+                                      layerPoint,
+                                      renderIndex,
+                                      selectedPoint,
+                                      duration)
+        }
+    
+        if zoomIsActive {
+            if zoomScale == 1 {
+                CATransaction.begin()
+                CATransaction.setAnimationDuration(1.0)
+                CATransaction.setCompletionBlock( {
+                    CATransaction.setAnimationDuration(duration)
+                    let scale = CATransform3DMakeScale(self.maximumZoomScale, self.maximumZoomScale, 1)
+                    self.zoom(to: self.zoomRectForScale(scale: self.maximumZoomScale, center: selectedPoint), animated: true)
+                    //self.footerRule?.views?.forEach{$0.layer.transform = scale}
+                    
+                    
+//                    self.oldFooterTransform3D = self.footerRule?.transform ?? .init()
+//                    self.oldRootTransform3D = self.rootRule?.transform3D ?? .init()
+//                    self.footerRule?.transform3D = scale
+//                    self.rootRule?.transform3D  = scale
+                    
+                    
+                    //self.zoom(toPoint: selectedPoint, scale: 2.0, animated: true)
+                })
+                CATransaction.commit()
+            }
         }
         CATransaction.commit()
     }
@@ -239,7 +262,7 @@ extension OMScrollableChart {
         case .discrete:
             return discreteData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
         case .mean:
-            return averagedData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
+            return meanData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
         case .approximation:
             return approximationData[renderIndex]?.points.map { $0.distance(to: newPoint) }.indexOfMin
         case .linregress:
@@ -255,7 +278,7 @@ extension OMScrollableChart {
     func dataStringFromPoint(_ point: CGPoint, renderIndex: Int) -> String? {
         switch self.renderType[renderIndex] {
         case .mean:
-            if let render = averagedData[renderIndex],
+            if let render = meanData[renderIndex],
                 let firstIndex = indexForPoint(point, renderIndex: renderIndex)
             {
                 let item = Double(render.data[firstIndex])
@@ -320,7 +343,7 @@ extension OMScrollableChart {
                 }
             }
         case .mean:
-            if let render = self.averagedData[renderIndex] {
+            if let render = self.meanData[renderIndex] {
                 if let firstIndex = indexForPoint(point, renderIndex: renderIndex) {
                     return render.data[firstIndex]
                 }

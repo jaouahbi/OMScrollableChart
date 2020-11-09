@@ -65,6 +65,34 @@ struct Path {
         self.init(elements: [startElement, endElement])
     }
 
+    func pathsFromElements() ->  [UIBezierPath] {
+        var paths = [UIBezierPath]()
+        var lastPoint = CGPoint.zero
+        for ele in elements {
+            switch ele {
+            case .moveToPoint(point: let point):
+                lastPoint = point
+            case .addLineToPoint(point: let point):
+                paths.append(UIBezierPath(pointsForLine: [lastPoint, point]))
+                lastPoint = point
+            case .addQuadCurveToPoint(destination: let destination, control: let control):
+                let path = UIBezierPath()
+                path.move(to: lastPoint)
+                path.addQuadCurve(to: destination, controlPoint: control)
+                paths.append(path)
+                lastPoint = destination
+            case .addCurveToPoint(destination: let destination, control1: let control1, control2: let control2):
+                let path = UIBezierPath()
+                path.move(to: lastPoint)
+                path.addCurve(to: destination, controlPoint1: control1, controlPoint2: control2)
+                paths.append(path)
+                lastPoint = destination
+            case .closeSubpathWithLine: break
+            }
+        }
+        return paths
+    }
+    
     func percentagesWhereYIs(y: Double) -> [Double] {
         var subpathStart: CGPoint?
         var recentPoint: CGPoint?

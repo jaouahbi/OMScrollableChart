@@ -108,6 +108,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     }
     var numberOfRenders: Int { 3 + OMScrollableChart.Renders.base.rawValue }
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] { chartPointsRandom }
+    
     func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
         switch renderIndex {
         case 3:
@@ -123,31 +124,8 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             self.pathsToAnimate.insert(paths, at: 1)
             return layers
         case 5:
-            var paths = [UIBezierPath]()
-            let elements = Path(cgPath: chart.polylinePath!.cgPath)
-            var lastPoint = CGPoint.zero
-            for ele in elements.elements {
-                switch ele {
-                case .moveToPoint(point: let point):
-                    lastPoint = point
-                case .addLineToPoint(point: let point):
-                    paths.append(UIBezierPath(pointsForLine: [lastPoint, point]))
-                    lastPoint = point
-                case .addQuadCurveToPoint(destination: let destination, control: let control):
-                    let path = UIBezierPath()
-                    path.move(to: lastPoint)
-                    path.addQuadCurve(to: destination, controlPoint: control)
-                    paths.append(path)
-                    lastPoint = destination
-                case .addCurveToPoint(destination: let destination, control1: let control1, control2: let control2):
-                    let path = UIBezierPath()
-                    path.move(to: lastPoint)
-                    path.addCurve(to: destination, controlPoint1: control1, controlPoint2: control2)
-                    paths.append(path)
-                    lastPoint = destination
-                case .closeSubpathWithLine: break
-                }
-            }
+            let path = Path(cgPath: chart.polylinePath!.cgPath)
+            let paths = path.pathsFromElements()
             let layers = chart.createSegmentLayers(paths,
                                                    lineWidth: 2.0,
                                                    color: .init(white: 0.78, alpha: 0.7),
@@ -184,9 +162,11 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                         lastPoint = point
                     case .addLineToPoint(point: let point):
                         lastPoint = point
-                    case .addQuadCurveToPoint(destination: let destination, control: let control):
+                    case .addQuadCurveToPoint(destination: let destination, control: _):
+                        //let pt1 = Path.pointOfQuad(t: 1.0, from: lastPoint, to: destination, c: control)
                         lastPoint = destination
-                    case .addCurveToPoint(destination: let destination, control1: let control1, control2: let control2):
+                    case .addCurveToPoint(destination: let destination, control1: _, control2: _):
+                        //let pt2 = Path.pointOfCubic(t: 1.0, from: lastPoint, to: destination, c1: control1, c2: control2)
                         lastPoint = destination
                     case .closeSubpathWithLine: break
                     }
@@ -216,6 +196,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     @IBOutlet var chart: OMScrollableChart!
     @IBOutlet var segmentInterpolation: UISegmentedControl!
     @IBOutlet var segmentTypeOfData: UISegmentedControl!
+    @IBOutlet var segmentTypeOfSimplify: UISegmentedControl!
     @IBOutlet var sliderAverage: UISlider!
     
     @IBOutlet var label1: UILabel!
@@ -251,6 +232,12 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         segmentTypeOfData.insertSegment(withTitle: "simplify", at: 2, animated: false)
         segmentTypeOfData.insertSegment(withTitle: "regression", at: 3, animated: false)
         segmentTypeOfData.selectedSegmentIndex = 0 // discrete
+        
+        segmentTypeOfSimplify.removeAllSegments()
+        segmentTypeOfSimplify.insertSegment(withTitle: "DP radial", at: 0, animated: false)
+        segmentTypeOfSimplify.insertSegment(withTitle: "DP decimation", at: 1, animated: false)
+        segmentTypeOfSimplify.insertSegment(withTitle: "Visvalingam", at: 2, animated: false)
+        segmentTypeOfSimplify.selectedSegmentIndex = 0 // discrete
         
         chartPointsRandom = randomFloat(32, max: 50000, min: -50)
         
@@ -300,6 +287,22 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             }
         }
     }
+    @IBAction  func simplifySegmentChange( _ sender: Any)  {
+        let index = segmentTypeOfSimplify.selectedSegmentIndex
+        if index >= 0 {
+            switch index {
+            case 0:
+                chart.approximationType = .douglasPeuckerRadial
+            case 1:
+                chart.approximationType = .douglasPeuckerDecimate
+            case 2:
+                chart.approximationType = .visvalingam
+            default:
+                chart.approximationType = .none
+            }
+        }
+    }
+    
     @IBAction  func interpolationSegmentChange( _ sender: Any)  {
         switch segmentInterpolation.selectedSegmentIndex  {
         case 0:
