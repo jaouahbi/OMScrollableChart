@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import OMScrollableChart
+@testable import LibControl
 
 class OMScrollableChartTests: XCTestCase {
 
