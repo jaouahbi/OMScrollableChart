@@ -174,7 +174,7 @@ private func douglasPeckerDecimate(_ points: [Point3D],
                               marks: &marks) // polyline v[maxi] to v[k]
         
     } else {
-        print("toleranceSq: \(tol2), error: \(maxDistanceSqFarthestPoint)")
+       // print("toleranceSq: \(tol2), error: \(maxDistanceSqFarthestPoint)")
     }
     
     // else the approximation is OK, so ignore intermediate vertexes

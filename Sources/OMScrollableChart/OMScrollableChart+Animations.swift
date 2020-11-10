@@ -20,6 +20,8 @@
 //
 
 import UIKit
+import LibControl
+
 extension OMScrollableChart {
     public  func animateLineStrokeEnd( _ layer: CAShapeLayer,
                                fromValue: CGFloat = 0,

@@ -14,6 +14,7 @@
 		D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1037ADA255A012A0019E50A /* OMScrollableChart.framework */; };
 		D125876E2558A34600FE25F3 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D125876D2558A34600FE25F3 /* TestUtils.swift */; };
 		D192CD24254AB4230047FBFB /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */; };
+		D1C2CBF1255B2FD1007C3F77 /* LibControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,27 @@
 			remoteGlobalIDString = 7D226A782384C3510074C44E;
 			remoteInfo = Example;
 		};
+		D1C2CBE0255B2FBA007C3F77 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "LibControl::LibControl::Product";
+			remoteInfo = LibControl;
+		};
+		D1C2CBE2255B2FBA007C3F77 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = "LibControl::LibControlTests::Product";
+			remoteInfo = LibControlTests;
+		};
+		D1C2CBEF255B2FCC007C3F77 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = "LibControl::LibControl";
+			remoteInfo = LibControl;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +84,7 @@
 		D192CCC6254AA6090047FBFB /* runcov.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = runcov.sh; sourceTree = "<group>"; };
 		D192CCC7254AA6090047FBFB /* sonar-project.properties */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "sonar-project.properties"; sourceTree = "<group>"; };
 		D192CCEF254AB1D10047FBFB /* ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LibControl.xcodeproj; path = ../../LibControl/LibControl.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,6 +92,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D1C2CBF1255B2FD1007C3F77 /* LibControl.framework in Frameworks */,
 				D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -86,6 +110,7 @@
 		7D226A702384C3510074C44E = {
 			isa = PBXGroup;
 			children = (
+				D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */,
 				D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */,
 				D192CCC5254AA6090047FBFB /* run-sonar-swift.sh */,
 				D192CCC6254AA6090047FBFB /* runcov.sh */,
@@ -144,6 +169,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		D1C2CBDA255B2FB9007C3F77 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */,
+				D1C2CBE3255B2FBA007C3F77 /* LibControlTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -158,6 +192,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				D1C2CBF0255B2FCC007C3F77 /* PBXTargetDependency */,
 				D1037AE4255A01350019E50A /* PBXTargetDependency */,
 			);
 			name = Example;
@@ -220,6 +255,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = D1C2CBDA255B2FB9007C3F77 /* Products */;
+					ProjectRef = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+				},
+				{
 					ProductGroup = D1037AD3255A012A0019E50A /* Products */;
 					ProjectRef = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
 				},
@@ -242,9 +281,23 @@
 		};
 		D1037ADC255A012A0019E50A /* OMScrollableChartTests.xctest */ = {
 			isa = PBXReferenceProxy;
-			fileType = file;
+			fileType = wrapper.cfbundle;
 			path = OMScrollableChartTests.xctest;
 			remoteRef = D1037ADB255A012A0019E50A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = LibControl.framework;
+			remoteRef = D1C2CBE0255B2FBA007C3F77 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		D1C2CBE3255B2FBA007C3F77 /* LibControlTests.xctest */ = {
+			isa = PBXReferenceProxy;
+			fileType = file;
+			path = LibControlTests.xctest;
+			remoteRef = D1C2CBE2255B2FBA007C3F77 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -299,6 +352,11 @@
 			isa = PBXTargetDependency;
 			target = 7D226A782384C3510074C44E /* Example */;
 			targetProxy = D192CCF4254AB1D10047FBFB /* PBXContainerItemProxy */;
+		};
+		D1C2CBF0255B2FCC007C3F77 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = LibControl;
+			targetProxy = D1C2CBEF255B2FCC007C3F77 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -438,7 +496,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9LCWBZHZFL;
 				INFOPLIST_FILE = Classes/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -459,7 +517,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 9LCWBZHZFL;
 				INFOPLIST_FILE = Classes/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -477,7 +535,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KSV579V6RX;
 				INFOPLIST_FILE = ExampleUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -497,7 +555,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = KSV579V6RX;
 				INFOPLIST_FILE = ExampleUITests/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.6;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.5;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

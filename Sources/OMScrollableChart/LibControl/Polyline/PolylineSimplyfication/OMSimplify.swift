@@ -13,6 +13,7 @@
 // limitations under the License.
 // https://pdfs.semanticscholar.org/e46a/c802d7207e0e51b5333456a3f46519c2f92d.pdf?_ga=2.64722092.2053301206.1583599184-578282909.1583599184
 // https://breki.github.io/line-simplify.html
+// https://github.com/keszegrobert/polyline-simplification
 
 import Foundation
 import UIKit
@@ -117,4 +118,64 @@ public class OMSimplify {
         let resultFltr = result.filter { $0.z == 0 || $0.z > limit }
         return resultFltr.map { CGPoint(x: $0.x, y: $0.y) }
     }
+    
+    class func ramerDouglasPeuckerSimplify(_ points: [CGPoint], epsilon: Double) -> [CGPoint] {
+        return ramerDouglasPeucker(points: points, epsilon: epsilon)
+    }
+    
+    // MARK: Iterative version of Ramer–Douglas–Peucker line simplification algorithm
+    
+    // Returns the distance from point p to the line between p1 and p2
+    class private func perpendicularDistance(p: CGPoint, p1: CGPoint, p2: CGPoint) -> Double {
+        let dx = p2.x - p1.x
+        let dy = p2.y - p1.y
+        let d = (p.x * dy - p.y * dx + p2.x * p1.y - p2.y * p1.x)
+        return Double(abs(d)/(dx * dx + dy * dy).squareRoot())
+    }
+    
+    class private func ramerDouglasPeucker(points: [CGPoint], epsilon: Double) -> [CGPoint] {
+        var result : [CGPoint] = []
+        func rdp(begin: Int, end: Int) {
+            guard end > begin else {
+                return
+            }
+            var maxDist = 0.0
+            var index = 0
+            for i in begin+1..<end {
+                let dist = perpendicularDistance(p: points[i], p1: points[begin],
+                                                 p2: points[end])
+                if dist > maxDist {
+                    maxDist = dist
+                    index = i
+                }
+            }
+            if maxDist > epsilon {
+                rdp(begin: begin, end: index)
+                rdp(begin: index, end: end)
+            } else {
+                result.append(points[end])
+            }
+        }
+        if points.count > 0 && epsilon >= 0.0 {
+            result.append(points[0])
+            rdp(begin: 0, end: points.count - 1)
+        }
+        return result
+    }
 }
+//let points = [
+//    Point(x: 0.0, y: 0.0),
+//    Point(x: 1.0, y: 0.1),
+//    Point(x: 2.0, y: -0.1),
+//    Point(x: 3.0, y: 5.0),
+//    Point(x: 4.0, y: 6.0),
+//    Point(x: 5.0, y: 7.0),
+//    Point(x: 6.0, y: 8.1),
+//    Point(x: 7.0, y: 9.0),
+//    Point(x: 8.0, y: 9.0),
+//    Point(x: 9.0, y: 9.0)
+//]
+//print("\(ramerDouglasPeucker(points: points, epsilon: 1.0))")
+//Output:
+//[(0.0, 0.0), (2.0, -0.1), (3.0, 5.0), (7.0, 9.0), (9.0, 9.0)]
+//

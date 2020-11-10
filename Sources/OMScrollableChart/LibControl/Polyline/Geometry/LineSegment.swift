@@ -61,7 +61,7 @@ public struct LineSegment {
         
         var result: [CGPoint] = []
         
-        for ix in 0..<numPoints {
+        for _ in 0..<numPoints {
         //for(var ix = 0; ix < numPoints; ix++) {
             result.append(CGPoint(x: pX, y: pY))
             pX += stepX

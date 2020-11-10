@@ -154,20 +154,20 @@ import UIKit
 //}
 
 public extension CALayer {
-    static var isAnimatingLayers: Int = 0
-    static var debug: [CAAnimation] = []
+//    static var isAnimatingLayers: Int = 0
+//    static var debug: [CAAnimation] = []
     func add(_ anim: CAAnimation,
              forKey key: String?,
              withCompletion completion: ((Bool) -> Void)?) {
-        CALayer.isAnimatingLayers += 1
-        CALayer.debug.append(anim)
+//        CALayer.isAnimatingLayers += 1
+//        CALayer.debug.append(anim)
         anim.completion = {  complete in
             completion?(complete)
             if complete {
-                CALayer.isAnimatingLayers -= 1
-                if let index = CALayer.debug.index(of: anim) {
-                    CALayer.debug.remove(at: index )
-                }
+//                CALayer.isAnimatingLayers -= 1
+//                if let index = CALayer.debug.index(of: anim) {
+//                    CALayer.debug.remove(at: index )
+//                }
             }
         }
         add(anim, forKey: key)

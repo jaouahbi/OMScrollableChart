@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import LibControl
 
 extension OMScrollableChart {
     

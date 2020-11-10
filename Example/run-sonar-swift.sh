@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 # backelite-sonar-swift-plugin - Enables analysis of Swift and Objective-C projects into SonarQube.
@@ -142,20 +141,18 @@ function runCommand() {
 }
 
 ## COMMAND LINE OPTIONS
-vflag="on"
-nflag="on"
+vflag=""
+nflag=""
 unittests="on"
-swiftlint="off"
-tailor="off"
-lizard="off"
-oclint="off"
-fauxpas="off"
+swiftlint="on"
+tailor="on"
+lizard="on"
+oclint="on"
+fauxpas="on"
 sonarscanner=""
-#sonarurl="https://sonar.grupocaminos.net"
-#sonarlogin="4755b9113a96039e3115ffc8e6c3c0dee1049abe"
-sonarurl="http://localhost:9000"
-#sonarpassword=""
-xcodebuildoptions="-UseModernBuildSystem=NO -verbose"
+sonarurl=""
+sonarlogin=""
+sonarpassword=""
 
 while [ "$1" != "" ]; do
   param=$(echo "$1" | awk -F= '{print $1}')
@@ -238,7 +235,6 @@ numVersionFromPlist=`defaults read "${plistFile}" CFBundleShortVersionString`
 
 # Read destination simulator
 destinationSimulator=''; readParameter destinationSimulator 'sonar.swift.simulator'
-destinationDevice=''; readParameter destinationDevice 'sonar.swift.device'
 
 # Read tailor configuration
 tailorConfiguration=''; readParameter tailorConfiguration 'sonar.swift.tailor.config'
@@ -266,8 +262,8 @@ if [ -z "$appScheme" -o "$appScheme" = " " ]; then
     exit 1
 fi
 if [ "$unittests" = "on" ]; then
-    if [ -z "$destinationSimulator" -o "$destinationSimulator" = " " ] && [  -z "$destinationDevice" -o "$destinationDevice" = " " ]; then
-          echo >&2 "ERROR - sonar.swift.simulator or sonar.swift.device parameter is missing in sonar-project.properties. You must specify which simulator or device to use."
+    if [ -z "$destinationSimulator" -o "$destinationSimulator" = " " ]; then
+          echo >&2 "ERROR - sonar.swift.simulator parameter is missing in sonar-project.properties. You must specify which simulator to use."
           exit 1
     fi
 fi
@@ -277,13 +273,15 @@ if [ -z "$appConfiguration" -o "$appConfiguration" = " " ]; then
     appConfiguration="Debug"
 fi
 
+
+
 if [ "$vflag" = "on" ]; then
      echo "Xcode project file is: $projectFile"
     echo "Xcode workspace file is: $workspaceFile"
      echo "Xcode application scheme is: $appScheme"
     echo "Number version from plist is: $numVersionFromPlist"
   if [ -n "$unittests" ]; then
-         echo "Destination simulator is: $"
+         echo "Destination simulator is: $destinationSimulator"
          echo "Excluded paths from coverage are: $excludedPathsFromCoverage"
   else
       echo "Unit surefire are disabled"
@@ -307,7 +305,7 @@ rm -rf sonar-reports
 mkdir sonar-reports
 
 # Build and extract project information needed later
-buildCmd=($XCODEBUILD_CMD clean $xcodebuildoptions build-for-testing)
+buildCmd=($XCODEBUILD_CMD clean build-for-testing)
 echo -n 'Building & extracting Xcode project information'
 if [[ "$workspaceFile" != "" ]] ; then
     buildCmd+=(-workspace "$workspaceFile")
@@ -315,11 +313,8 @@ else
     buildCmd+=(-project "$projectFile")
 fi
 buildCmd+=(-scheme $appScheme)
-
 if [[ ! -z "$destinationSimulator" ]]; then
-    buildCmd+=(-destination "$destinationSimulator" -destination-timeout 60 COMPILER_INDEX_STORE_ENABLE=NO)
-else
-    buildCmd+=(-destination "$destinationDevice" -destination-timeout 60 COMPILER_INDEX_STORE_ENABLE=NO)
+    buildCmd+=(-destination "$destinationSimulator" -destination-timeout 360 COMPILER_INDEX_STORE_ENABLE=NO)
 fi
 runCommand  xcodebuild.log "${buildCmd[@]}"
 #oclint-xcodebuild # Transform the xcodebuild.log file into a compile_command.json file
@@ -348,11 +343,9 @@ if [ "$unittests" = "on" ]; then
     elif [[ ! -z "$projectFile" ]]; then
           buildCmd+=(-project "$projectFile")
     fi
-    buildCmd+=( -scheme "$appScheme" -configuration "$appConfiguration" -enableCodeCoverage YES $xcodebuildoptions)
+    buildCmd+=( -scheme "$appScheme" -configuration "$appConfiguration" -enableCodeCoverage YES)
     if [[ ! -z "$destinationSimulator" ]]; then
         buildCmd+=(-destination "$destinationSimulator" -destination-timeout 60)
-    else
-        buildCmd+=(-destination "$destinationDevice" -destination-timeout 60)
     fi
     if [[ ! -z "$skipTests" ]]; then
         buildCmd+=(-skip-testing:"$skipTests")
@@ -424,7 +417,6 @@ else
 fi
 
 # Tailor
-# tailor --xcode /path/to/demo.xcodeproj/
 if [ "$tailor" = "on" ]; then
     if hash $TAILOR_CMD 2>/dev/null; then
         echo -n 'Running Tailor...'
@@ -433,7 +425,7 @@ if [ "$tailor" = "on" ]; then
         currentDirectory=${PWD##*/}
         echo "$srcDirs" | sed -n 1'p' | tr ',' '\n' > tmpFileRunSonarSh
         while read word; do
-            echo "Tailor "$word""
+
               # Run tailor command
             $TAILOR_CMD $tailorConfiguration "$word" > sonar-reports/"$(echo $word | sed 's/\//_/g')"-tailor.txt
 
@@ -467,7 +459,7 @@ if [ "$oclint" = "on" ] && [ "$hasObjC" = "yes" ]; then
                 echo -n "Path included in oclint analysis is:$includedCommandLineFlags"
             fi
             # Run OCLint with the right set of compiler options
-            runCommand no oclint-json-compilation-database -v $includedCommandLineFlags -- -rc LONG_LINE=$longLineThreshold -max-priority-1 $maxPriority -max-priority-2 $maxPriority -max-priority-3 $maxPriority -report-type pmd -o sonar-reports/$(echo $word | sed 's/\//_/g')-oclint.xml
+            #runCommand no oclint-json-compilation-database -v $includedCommandLineFlags -- -rc LONG_LINE=$longLineThreshold -max-priority-1 $maxPriority -max-priority-2 $maxPriority -max-priority-3 $maxPriority -report-type pmd -o sonar-reports/$(echo $word | sed 's/\//_/g')-oclint.xml
         else
             echo "$word has no Objective-C, skipping..."
         fi
@@ -497,7 +489,7 @@ if [ "$fauxpas" = "on" ] && [ "$hasObjC" = "yes" ]; then
             echo $projectFile | sed -n 1'p' | tr ',' '\n' > tmpFileRunSonarSh
             while read projectName; do
 
-                $XCODEBUILD_CMD -list -project $projectName $xcodebuildoptions | sed -n '/Schemes/,$p' | while read scheme
+                $XCODEBUILD_CMD -list -project $projectName | sed -n '/Schemes/,$p' | while read scheme
                 do
 
                 if [ "$scheme" = "" ]

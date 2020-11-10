@@ -13,6 +13,7 @@
 // limitations under the License.
 import UIKit
 import OMScrollableChart
+import LibControl
 
 //let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
 //    150, -150, 80, -40, 60, 10,110, 10, 30, 10, 10, 30,
@@ -48,10 +49,15 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         }
     }
     func didSelectDataIndex(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, layer: CALayer) {
+        let index: Int = abs(dataIndex - 1)
+        if chart.pointsRender[renderIndex].count <= index {
+            return
+        }
         switch renderIndex {
         case OMScrollableChart.Renders.points.rawValue:
-            chart.renderSelectedPointsLayer?.position = layer.position
-            let previousPoint = chart.pointsRender[renderIndex][abs(dataIndex - 1)]
+            chart.renderSelectedPointsLayer?.position = layer.position // update selection layer.
+            
+            let previousPoint = chart.pointsRender[renderIndex][index]
             selectedSegmentIndex = chart.indexForPoint(previousPoint, renderIndex: renderIndex) ?? 0
             chart.setNeedsLayout()
             chart.setNeedsDisplay()
@@ -86,7 +92,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 return nil
             }
             let animationDuration: TimeInterval = 5.0
-            let sectionIndex = chart.numberOfSections / Int(chart.numberOfPages)
+            let sectionIndex = chart.numberOfSections * Int(chart.numberOfPages)
             return chart.animateLayerPathRideToPoint( polylinePath,
                                                       layerToRide: layer,
                                                       sectionIndex: sectionIndex,
@@ -108,7 +114,6 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     }
     var numberOfRenders: Int { 3 + OMScrollableChart.Renders.base.rawValue }
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] { chartPointsRandom }
-    
     func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
         switch renderIndex {
         case 3:
@@ -124,13 +129,13 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             self.pathsToAnimate.insert(paths, at: 1)
             return layers
         case 5:
-            let path = Path(cgPath: chart.polylinePath!.cgPath)
-            let paths = path.pathsFromElements()
+            let paths = Path(cgPath: chart.polylinePath!.cgPath).pathsFromElements()
             let layers = chart.createSegmentLayers(paths,
-                                                   lineWidth: 2.0,
+                                                   lineWidth: chart.lineWidth,
                                                    color: .init(white: 0.78, alpha: 0.7),
-                                                   strokeColor: UIColor.purple.withAlphaComponent(0.9))
+                                                   strokeColor: UIColor.tan)
             layers.forEach({$0.name = "line segment"})  //debug
+            chart.setNeedsLayout()
             return layers
         default:
             return []
@@ -141,7 +146,9 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? { return nil }
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderType { return renderType }
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? { return nil }
-    func layerRenderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat { currentOpacityTable[renderIndex].rawValue }
+    func layerRenderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
+        currentOpacityTable[renderIndex].rawValue
+    }
     func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat {
         switch renderIndex {
         case 0:break
@@ -153,25 +160,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             let indexOfLayer = chart.renderLayers[renderIndex].index(of: layer)
             //print("indexOfLayer", indexOfLayer)
             if let indexOfLayer = indexOfLayer, indexOfLayer == selectedSegmentIndex, let path = layer.path {
-                let path = Path(cgPath: path)
-                var lastPoint = CGPoint.zero
-                var points = [CGPoint]()
-                for ele in path.elements {
-                    switch ele {
-                    case .moveToPoint(point: let point):
-                        lastPoint = point
-                    case .addLineToPoint(point: let point):
-                        lastPoint = point
-                    case .addQuadCurveToPoint(destination: let destination, control: _):
-                        //let pt1 = Path.pointOfQuad(t: 1.0, from: lastPoint, to: destination, c: control)
-                        lastPoint = destination
-                    case .addCurveToPoint(destination: let destination, control1: _, control2: _):
-                        //let pt2 = Path.pointOfCubic(t: 1.0, from: lastPoint, to: destination, c1: control1, c2: control2)
-                        lastPoint = destination
-                    case .closeSubpathWithLine: break
-                    }
-                    points.append(lastPoint)
-                }
+                let points = Path(cgPath: path).destinationPoints()
                 chart.layersToStroke.append((layer, points))
                 return 1.0
             } else {
@@ -216,6 +205,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         chart.renderDelegate  = self
         chart.backgroundColor = .clear
         chart.isPagingEnabled = true
+        
         currentOpacityTable = opacityTableLine
         
         segmentInterpolation.removeAllSegments()
@@ -239,7 +229,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         segmentTypeOfSimplify.insertSegment(withTitle: "Visvalingam", at: 2, animated: false)
         segmentTypeOfSimplify.selectedSegmentIndex = 0 // discrete
         
-        chartPointsRandom = randomFloat(32, max: 50000, min: -50)
+        chartPointsRandom = randomFloat(16, max: 50000, min: -50)
         
         toleranceSlider.maximumValue  = 100
         toleranceSlider.minimumValue  = 1
@@ -251,10 +241,11 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         
         _ = chart.updateDataSourceData()
         
-        let scaledPointsGenerator = chart.scaledPointsGenerator[0]
+         scaledPointsGenerator = ScaledPointsGenerator(chartPointsRandom,
+                                                 size: chart.contentView.bounds.size)
         
-        sliderLimit.maximumValue  = scaledPointsGenerator.maximumValue
-        sliderLimit.minimumValue  = scaledPointsGenerator.minimumValue
+        sliderLimit.maximumValue  = scaledPointsGenerator?.maximumValue ?? 0
+        sliderLimit.minimumValue  = scaledPointsGenerator?.minimumValue ?? 0
         
         label1.text = "\(roundf(sliderLimit.minimumValue))"
         label2.text = "\(roundf(sliderLimit.maximumValue))"
@@ -264,10 +255,10 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         label6.text = "\(roundf(toleranceSlider.maximumValue))"
         
     }
+    var scaledPointsGenerator: ScaledPointsGenerator?
     @IBAction  func limitsSliderChange( _ sender: UISlider)  {
         if sender == sliderLimit {
-            let generator = chart.scaledPointsGenerator.first
-            generator?.minimum = Float(CGFloat(sliderLimit.value))
+            //scaledPointsGenerator?.minimum = Float(CGFloat(sliderLimit.value))
             _ = chart.updateDataSourceData()
             label1.text = "\(roundf(sender.value))"
         }
@@ -286,6 +277,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 label5.text = text
             }
         }
+        typeOfDataSegmentChange(sender)
     }
     @IBAction  func simplifySegmentChange( _ sender: Any)  {
         let index = segmentTypeOfSimplify.selectedSegmentIndex
@@ -325,7 +317,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         case 0:
             renderType = .discrete
         case 1:
-            renderType = .mean(Int(self.sliderAverage.value))
+            renderType = .mean(CGFloat(self.sliderAverage.value))
         case 2:
             renderType = .approximation(CGFloat(self.toleranceSlider.value))
         case 3:

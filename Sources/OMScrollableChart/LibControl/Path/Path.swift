@@ -64,7 +64,29 @@ public struct Path {
 
         self.init(elements: [startElement, endElement])
     }
-
+    
+    public func destinationPoints() ->  [CGPoint] {
+        var lastPoint = CGPoint.zero
+        var points = [CGPoint]()
+        for ele in elements {
+            switch ele {
+            case .moveToPoint(point: let point):
+                lastPoint = point
+            case .addLineToPoint(point: let point):
+                lastPoint = point
+            case .addQuadCurveToPoint(destination: let destination, control: _):
+                //let pt1 = Path.pointOfQuad(t: 1.0, from: lastPoint, to: destination, c: control)
+                lastPoint = destination
+            case .addCurveToPoint(destination: let destination, control1: _, control2: _):
+                //let pt2 = Path.pointOfCubic(t: 1.0, from: lastPoint, to: destination, c1: control1, c2: control2)
+                lastPoint = destination
+            case .closeSubpathWithLine: break
+            }
+            points.append(lastPoint)
+        }
+        
+        return points
+    }
     public func pathsFromElements() ->  [UIBezierPath] {
         var paths = [UIBezierPath]()
         var lastPoint = CGPoint.zero
@@ -93,7 +115,7 @@ public struct Path {
         return paths
     }
     
-    public  func percentagesWhereYIs(y: Double) -> [Double] {
+    public func percentagesWhereYIs(y: Double) -> [Double] {
         var subpathStart: CGPoint?
         var recentPoint: CGPoint?
         var totalPercentage: Double = 0
@@ -115,7 +137,11 @@ public struct Path {
 
         return answer
     }
-
+    /// pointForPercentage
+    /// - Parameters:
+    ///   - pathPercent: Double
+    ///   - startPoint: CGPoint
+    /// - Returns: CGPoint
     public  func pointForPercentage(pathPercent: Double, startPoint: CGPoint? = nil) -> CGPoint? {
         var subpathStart: CGPoint?
         var recentPoint: CGPoint? = startPoint
@@ -146,7 +172,6 @@ public struct Path {
     }
 
     // MARK: - Internal
-
     public  let elements: [Path.Element]
     public let lengths: [Double]
     public  let length: Double

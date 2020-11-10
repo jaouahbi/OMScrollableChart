@@ -76,18 +76,19 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         guard let chart = chart else {
             return false
         }
-        if labelViews.isEmpty {
-            let footerHeight: CGFloat = 60
+        labelViews.forEach{$0.removeFromSuperview()}
+        //if labelViews.isEmpty {
+//            let footerHeight: CGFloat = 60
             let fontSize = font.pointSize
             for (index, item) in chart.rulesPoints.enumerated() {
-                var yPos = item.y - footerHeight
-                if index > 0 {
-                    if index < chart.rulesPoints.count - 1 {
-                        yPos = item.y - (footerHeight * 0.5) - (fontSize * 0.5)
-                    } else {
-                        yPos = item.y + fontSize * 0.5
-                    }
-                }
+//                var yPos = item.y
+//                if index > 0 {
+//                    if index < chart.rulesPoints.count - 1 {
+//                        yPos = item.y //- (footerHeight * 0.5) - (fontSize * 0.5)
+//                    } else {
+//                        yPos = item.y //+ fontSize * 0.5
+//                    }
+//                }
                 
                 if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                     let string = NSAttributedString(string: stepString,
@@ -98,13 +99,13 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
                     label.attributedText = string
                     label.sizeToFit()
                     label.frame = CGRect(x: leftInset,
-                                         y: yPos,
+                                         y: item.y - fontSize,
                                          width: label.bounds.width,
                                          height: label.bounds.height)
                     self.addSubview(label)
                     labelViews.append(label)
                 }
-            }
+           // }
         }
         return true
     }

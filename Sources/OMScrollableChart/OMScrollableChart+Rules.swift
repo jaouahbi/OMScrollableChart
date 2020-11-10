@@ -157,18 +157,17 @@ extension OMScrollableChart {
         }
     }
     // Calculate the rules marks positions
-    func internalCalcRules() {
+    func internalCalcRules(generator: ScaledPointsGenerator) {
         // Get the polyline generator
-        if let generator  = coreGenerator {
-            // + 2 is the limit up and the limit down
-            let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2 - 1
-            let roundedStep = generator.range / Float(numberOfAllRuleMarks)
-            for ruleMarkIndex in 0..<numberOfAllRuleMarks {
-                let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
-                appendRuleMark(value)
-            }
-            appendRuleMark(generator.maximumValue)
+        // + 2 is the limit up and the limit down
+        let numberOfAllRuleMarks = Int(numberOfRuleMarks) + 2 - 1
+        let roundedStep = generator.range / Float(numberOfAllRuleMarks)
+        for ruleMarkIndex in 0..<numberOfAllRuleMarks {
+            let value = generator.minimumValue + Float(roundedStep) * Float(ruleMarkIndex)
+            appendRuleMark(value)
         }
+        appendRuleMark(generator.maximumValue)
+        
     }
     // Create and add
     func createSuplementaryRules() {
@@ -193,17 +192,33 @@ extension OMScrollableChart {
         //        }
     }
     func makeRulesPoints() -> Bool {
-        if let generator  = coreGenerator {
-            guard numberOfRuleMarks > 0 &&
-                    (generator.range != 0)  else {
-                return false
-            }
-            internalRulesMarks.removeAll()
-            internalCalcRules()
-            rulesPoints = makeRawPoints(rulesMarks, size: self.contentView.frame.size)
-            return true
+        var generator: ScaledPointsGenerator?
+        switch renderType[Renders.polyline.rawValue] {
+        
+        
+        case .discrete:
+             generator  = ScaledPointsGenerator(discreteData[Renders.polyline.rawValue]!.data,
+                                                   size: self.contentView.bounds.size)
+        case .mean(_):
+             generator  = ScaledPointsGenerator(meanData[Renders.polyline.rawValue]!.data,
+                                                   size: self.contentView.bounds.size)
+        case .approximation(_):
+            break
+            
+        case .linregress(_):
+            break
+            
         }
-        return false
+   
+        guard numberOfRuleMarks > 0,
+              let generatorUnwarp = generator,
+              (generatorUnwarp.range != 0)  else {
+            return false
+        }
+        internalRulesMarks.removeAll()
+        internalCalcRules(generator: generatorUnwarp)
+        rulesPoints = generatorUnwarp.makePoints(data: rulesMarks)
+        return true
     }
     
     func addDashLinesToMarksToVerticalRule(_ leadingRule: ChartRuleProtocol) {
@@ -213,7 +228,7 @@ extension OMScrollableChart {
         let leadingRuleWidth: CGFloat = leadingRule.ruleSize.width
         let width: CGFloat = contentView.frame.width
         
-        let fontSize = ruleFont.pointSize
+        //let fontSize = ruleFont.pointSize
         for (index, item) in rulesPoints.enumerated() {
             var yPos = item.y
             if index > 0 {

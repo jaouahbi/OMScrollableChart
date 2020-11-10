@@ -8,7 +8,7 @@
 
 import UIKit
 
-public typealias GradientColors = (UIColor, UIColor)
+//public typealias GradientColors = (UIColor, UIColor)
 
 // Layer with clip path
 public class OMShapeLayerClipPath: CAShapeLayer {
@@ -25,6 +25,10 @@ public class OMShapeLayerClipPath: CAShapeLayer {
     override public func draw(in ctx: CGContext) {
         super.draw(in: ctx)
         addPathAndClipIfNeeded(ctx: ctx)
+//        if let cgImg =  ctx.makeImage() {
+//            let image = UIImage( cgImage: cgImg)
+//            print(image)
+//        }
     }
 }
 

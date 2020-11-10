@@ -134,7 +134,6 @@ public class DiscreteScaledPointsGenerator: ScaledPointsGeneratorProtocol {
     }
 }
 
-
 // MARK:  ScaledPointsGenerator -
 public class ScaledPointsGenerator: DiscreteScaledPointsGenerator {
     public var data: [Float]! {
@@ -159,6 +158,10 @@ public class ScaledPointsGenerator: DiscreteScaledPointsGenerator {
         super.updateRangeLimits(data)
     }
     internal func makePoints() -> [CGPoint] {
+        // claculate the size
+        return self.makePoints(data: data, size: size)
+    }
+    func makePoints(data: [Float]) -> [CGPoint] {
         // claculate the size
         return self.makePoints(data: data, size: size)
     }

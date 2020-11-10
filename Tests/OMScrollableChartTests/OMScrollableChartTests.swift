@@ -30,28 +30,27 @@ class OMScrollableChartTests: XCTestCase {
         var result1 = [CGPoint]()
         var result2 = [CGPoint]()
         var result3 = [CGPoint]()
-        var result4 = [CGPoint]()
+        var decimate = [CGPoint]()
         
         let numberOfItems = 300
         let randomPoints  = (0..<numberOfItems).map { _ in CGPoint(x: .random(min: 0, max: UIScreen.main.bounds.size.width),
                                                                 y: .random(min: 0, max: UIScreen.main.bounds.size.height)) }
-        print("X",
-              "Vis",
-              "DglsHQ",
-              "DglsPc",
-              "Deci")
+        print("#  ",
+              "  Visva",
+              "  DP Rad",
+              "  Ramer DP",
+              "  Decimate")
         
         for index in (0..<numberOfItems) {
             result1 = OMSimplify.visvalingamSimplify(randomPoints, limit: CGFloat(index) )
             result2 = OMSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: true)
-            result3 = OMSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: false)
-            result4 = OMSimplify.simplifyDouglasPeuckerDecimate(randomPoints)
-            
+            decimate = OMSimplify.simplifyDouglasPeuckerDecimate(randomPoints, tolerance:  CGFloat(sqrt(Double(index * 2))) )
+            result3 = OMSimplify.ramerDouglasPeuckerSimplify(randomPoints, epsilon: Double(index) )
             print(index,
-                  result1.count,
-                  result2.count,
-                  result3.count,
-                  result4.count)
+                  "    \(result1.count)",
+                  "    \(result2.count)",
+                  "     \(result3.count)",
+                  "    \(decimate.count)")
         }
     }
     

@@ -20,6 +20,7 @@
 //
 
 import UIKit
+import LibControl
 
 let kDefaultPointSize = CGSize(width: 8, height: 8)
 let kDefaultSelectedPointSize = CGSize(width: 13, height: 13)
@@ -93,14 +94,25 @@ extension OMScrollableChart {
     ///   - data: [Float]]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    public  func makeApproximation(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
+    public  func makeApproximation(_ data: [Float], _ renderIndex: Int,_ tol: CGFloat, _ dataSource: OMScrollableChartDataSource) {
         let discretePoints = makeRawPoints(data, size: contentView.bounds.size)
         if discretePoints.count > 0 {
-            let chartData = (discretePoints, data)
             if let approximationPoints = makeApproximationPoints(points: discretePoints,
                                                                  type: self.approximationType,
-                                                                 tolerance: approximationTolerance)
+                                                                 tolerance: tol)
             {
+                // remove the index from data
+                let difference = approximationPoints.difference(from: discretePoints)
+                var diffedData = data.map({$0})
+                for change in difference {
+                    switch change {
+                    case let .remove(offset, _, _):
+                        diffedData.remove(at: offset)
+                    case let .insert(_, _, _): break
+                        //diffedData.insert(newElement, at: offset)
+                    }
+                }
+                let chartData = (approximationPoints, diffedData)
                 if approximationPoints.count > 0 {
                     self.approximationData.insert(chartData, at: renderIndex)
                     self.pointsRender.insert(approximationPoints, at: renderIndex)
@@ -128,22 +140,21 @@ extension OMScrollableChart {
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    public  func makeMean(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        if let points = makeMeanPoints(data: data,
-                                       size: contentView.bounds.size,
-                                       elementsToMean: numberOfElementsToMean)
-        {
-            let chartData = (points, data)
+    public func makeMean(_ data: [Float], _ renderIndex: Int, _ elementsToMean: CGFloat, _ dataSource: OMScrollableChartDataSource) {
+        let chartData = makeMean(data: data,
+                                size: contentView.bounds.size,
+                                elementsToMean: CGFloat(elementsToMean))
+        if chartData.points.count > 0 {
             self.meanData.insert(chartData, at: renderIndex)
-            self.pointsRender.insert(points, at: renderIndex)
+            self.pointsRender.insert(chartData.points, at: renderIndex)
             var layers = dataSource.dataLayers(chart: self,
                                                renderIndex: renderIndex,
                                                section: 0,
-                                               points: points)
+                                               points: chartData.points)
             // accumulate layers
             if layers.isEmpty {
                 print("Unexpected empty layers, lets use the default renders.")
-                layers = self.renderDefaultLayers(renderIndex, points: points)
+                layers = self.renderDefaultLayers(renderIndex, points: chartData.points)
             }
             // accumulate layers
             self.renderLayers.insert(layers, at: renderIndex)
@@ -151,19 +162,17 @@ extension OMScrollableChart {
             print("Unexpected empty mean points.")
         }
     }
-    
     /// makeDiscrete points
     /// - Parameters:
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
     public  func makeDiscrete(_ data: [Float], _ renderIndex: Int, _ dataSource: OMScrollableChartDataSource) {
-        //                      let linregressData = makeLinregressPoints(data: discreteData,
-        //                                                                size: contentSize,
-        //                                                                numberOfElements: 1)
+
         let points = makeRawPoints(data, size: contentView.bounds.size)
         if points.count > 0 {
             let chartData = (points, data)
+            
             self.discreteData.insert(chartData, at: renderIndex)
             self.pointsRender.insert(points, at: renderIndex)
             
@@ -186,15 +195,22 @@ extension OMScrollableChart {
     
     public  func makeLinregress(_ data: [Float],
                                 _ renderIndex: Int,
+                                _ numberOfElements: Int,
                                 _ dataSource: OMScrollableChartDataSource)
     {
         let points = makeRawPoints(data, size: contentView.bounds.size)
         if points.count > 0 {
             let chartData = (points, data)
+            
             let linregressData = makeLinregressPoints(data: chartData,
                                                       size: contentView.bounds.size,
-                                                      numberOfElements: points.count + 1,
+                                                      numberOfElements: 1,
                                                       renderIndex: renderIndex)
+            
+//            let linregressData = makeLinregressPoints(data: chartData,
+//                                                      size: contentView.bounds.size,
+//                                                      numberOfElements: points.count + 1,
+//                                                      renderIndex: renderIndex)
             self.linregressData.insert(linregressData, at: renderIndex)
             self.pointsRender.insert(linregressData.0, at: renderIndex)
             var layers = dataSource.dataLayers(chart: self,
@@ -207,7 +223,6 @@ extension OMScrollableChart {
                 layers = self.renderDefaultLayers(renderIndex,
                                                   points: linregressData.0)
             }
-            
             // accumulate layers
             self.renderLayers.insert(layers, at: renderIndex)
         } else {
@@ -225,10 +240,10 @@ extension OMScrollableChart {
         }
         let currentRenderData = renderDataPoints[renderIndex]
         switch renderAs {
-        case .approximation: self.makeApproximation(currentRenderData, renderIndex, dataSource)
-        case .mean: self.makeMean(currentRenderData, renderIndex, dataSource)
         case .discrete: self.makeDiscrete(currentRenderData, renderIndex, dataSource)
-        case .linregress: self.makeLinregress(currentRenderData, renderIndex, dataSource)
+        case .approximation(let tol): self.makeApproximation(currentRenderData, renderIndex, tol, dataSource)
+        case .mean(let elements): self.makeMean(currentRenderData, renderIndex, elements, dataSource)
+        case .linregress(let elements): self.makeLinregress(currentRenderData, renderIndex, elements, dataSource)
         }
         self.renderType.insert(renderAs, at: renderIndex)
     }
@@ -371,10 +386,23 @@ extension OMScrollableChart {
             shapeSegmentLayer.anchorPoint = .zero
             shapeSegmentLayer.lineCap = .round
             shapeSegmentLayer.lineJoin = .round
-            shapeSegmentLayer.isHidden = false
+            shapeSegmentLayer.opacity = 0.0
             shapeSegmentLayer.bounds = shapeSegmentLayer.path!.boundingBoxOfPath
             layers.insert(shapeSegmentLayer, at: currentPointIndex)
         }
         return layers
     }
 }
+
+//extension Array {
+//
+//    mutating func remove( indices: [Int]) {
+//        let rmIndices = Set(indices).sorted()
+//        var numRemoved: Int = 0
+//        for index in rmIndices {
+//            let indexToRemove = index - numRemoved
+//            self.remove(at: indexToRemove)
+//            numRemoved += 1
+//        }
+//    }
+//}

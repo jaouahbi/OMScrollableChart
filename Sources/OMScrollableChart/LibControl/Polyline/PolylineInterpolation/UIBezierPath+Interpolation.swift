@@ -16,81 +16,82 @@ import UIKit
 
 let epsilon: CGFloat = 0.01 //0.00001
 
+
 // https://spin.atomicobject.com/2014/05/28/ios-interpolating-points/
 // https://github.com/jnfisher/ios-curve-interpolation/blob/master/Curve%20Interpolation/UIBezierPath%2BInterpolation.m
 
 /*
  import UIKit
  import PlaygroundSupport
-
+ 
  typealias Radians = CGFloat
-
+ 
  extension UIBezierPath {
-
-     static func simonWedge(innerRadius: CGFloat, outerRadius: CGFloat, centerAngle: Radians, gap: CGFloat) -> UIBezierPath {
-         let innerAngle: Radians = CGFloat.pi / 4 - gap / (2 * innerRadius)
-         let outerAngle: Radians = CGFloat.pi / 4 - gap / (2 * outerRadius)
-         let path = UIBezierPath()
-         path.addArc(withCenter: .zero, radius: innerRadius, startAngle: centerAngle - innerAngle, endAngle: centerAngle + innerAngle, clockwise: true)
-         path.addArc(withCenter: .zero, radius: outerRadius, startAngle: centerAngle + outerAngle, endAngle: centerAngle - outerAngle, clockwise: false)
-         path.close()
-         return path
-     }
-
+ 
+ static func simonWedge(innerRadius: CGFloat, outerRadius: CGFloat, centerAngle: Radians, gap: CGFloat) -> UIBezierPath {
+ let innerAngle: Radians = CGFloat.pi / 4 - gap / (2 * innerRadius)
+ let outerAngle: Radians = CGFloat.pi / 4 - gap / (2 * outerRadius)
+ let path = UIBezierPath()
+ path.addArc(withCenter: .zero, radius: innerRadius, startAngle: centerAngle - innerAngle, endAngle: centerAngle + innerAngle, clockwise: true)
+ path.addArc(withCenter: .zero, radius: outerRadius, startAngle: centerAngle + outerAngle, endAngle: centerAngle - outerAngle, clockwise: false)
+ path.close()
+ return path
  }
-
+ 
+ }
+ 
  class SimonWedgeView: UIView {
-     override init(frame: CGRect) {
-         super.init(frame: frame)
-         commonInit()
-     }
-
-     required init?(coder decoder: NSCoder) {
-         super.init(coder: decoder)
-         commonInit()
-     }
-
-     var centerAngle: Radians = 0 { didSet { setNeedsDisplay() } }
-     var color: UIColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1) { didSet { setNeedsDisplay() } }
-
-     override func draw(_ rect: CGRect) {
-         let path = wedgePath()
-         color.setFill()
-         path.fill()
-     }
-
-     private func commonInit() {
-         contentMode = .redraw
-         backgroundColor = .clear
-         isOpaque = false
-     }
-
-     private func wedgePath() -> UIBezierPath {
-         let bounds = self.bounds
-         let outerRadius = min(bounds.size.width, bounds.size.height) / 2
-         let innerRadius = outerRadius / 2
-         let gap = (outerRadius - innerRadius) / 4
-         let path = UIBezierPath.simonWedge(innerRadius: innerRadius, outerRadius: outerRadius, centerAngle: centerAngle, gap: gap)
-         path.apply(CGAffineTransform(translationX: bounds.midX, y: bounds.midY))
-         return path
-     }
+ override init(frame: CGRect) {
+ super.init(frame: frame)
+ commonInit()
  }
-
+ 
+ required init?(coder decoder: NSCoder) {
+ super.init(coder: decoder)
+ commonInit()
+ }
+ 
+ var centerAngle: Radians = 0 { didSet { setNeedsDisplay() } }
+ var color: UIColor = #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1) { didSet { setNeedsDisplay() } }
+ 
+ override func draw(_ rect: CGRect) {
+ let path = wedgePath()
+ color.setFill()
+ path.fill()
+ }
+ 
+ private func commonInit() {
+ contentMode = .redraw
+ backgroundColor = .clear
+ isOpaque = false
+ }
+ 
+ private func wedgePath() -> UIBezierPath {
+ let bounds = self.bounds
+ let outerRadius = min(bounds.size.width, bounds.size.height) / 2
+ let innerRadius = outerRadius / 2
+ let gap = (outerRadius - innerRadius) / 4
+ let path = UIBezierPath.simonWedge(innerRadius: innerRadius, outerRadius: outerRadius, centerAngle: centerAngle, gap: gap)
+ path.apply(CGAffineTransform(translationX: bounds.midX, y: bounds.midY))
+ return path
+ }
+ }
+ 
  let rootView = UIView(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
  rootView.backgroundColor = .white
-
+ 
  func addWedgeView(color: UIColor, angle: Radians) {
-     let wedgeView = SimonWedgeView(frame: rootView.bounds)
-     wedgeView.color = color
-     wedgeView.centerAngle = angle
-     rootView.addSubview(wedgeView)
+ let wedgeView = SimonWedgeView(frame: rootView.bounds)
+ wedgeView.color = color
+ wedgeView.centerAngle = angle
+ rootView.addSubview(wedgeView)
  }
-
+ 
  addWedgeView(color: #colorLiteral(red: 0.8549019694, green: 0.250980407, blue: 0.4784313738, alpha: 1), angle: 0)
  addWedgeView(color: #colorLiteral(red: 0.5843137503, green: 0.8235294223, blue: 0.4196078479, alpha: 1), angle: 0.5 * .pi)
  addWedgeView(color: #colorLiteral(red: 0.2588235438, green: 0.7568627596, blue: 0.9686274529, alpha: 1), angle: .pi)
  addWedgeView(color: #colorLiteral(red: 0.9686274529, green: 0.78039217, blue: 0.3450980484, alpha: 1), angle: 1.5 * .pi)
-
+ 
  PlaygroundPage.current.liveView = rootView
  */
 public enum CatmullRomCurvePrameterization: CGFloat {
@@ -178,7 +179,7 @@ extension UIBezierPath {
             self.close()
         }
     }
-
+    
     // helper func  to test if CGFloat is close enough to zero
     // to be considered zero
     
@@ -439,15 +440,15 @@ extension UIBezierPath {
         let intercept = average(ys) - slope * average(xs)
         return { argument in intercept + slope * argument }
     }
-//    var linearRegression: (Double) -> Double {
-//        let points = self.cgPath.elementsPoints()
-//        let xs = points.map({Double($0.x)})
-//        let ys = points.map({Double($0.y)})
-//        let regression = linearRegression(xs, ys)
-//        return regression
-//        //        let y1 = linearRegression(1) //Result is 1.6
-//        //        let y2 = linearRegression(3) //Result is 2.8
-//    }
+    //    var linearRegression: (Double) -> Double {
+    //        let points = self.cgPath.elementsPoints()
+    //        let xs = points.map({Double($0.x)})
+    //        let ys = points.map({Double($0.y)})
+    //        let regression = linearRegression(xs, ys)
+    //        return regression
+    //        //        let y1 = linearRegression(1) //Result is 1.6
+    //        //        let y2 = linearRegression(3) //Result is 2.8
+    //    }
 }
 
 
