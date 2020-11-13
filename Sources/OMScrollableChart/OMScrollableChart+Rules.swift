@@ -64,7 +64,7 @@ extension OMScrollableChart {
             rulewidthAnchor    = rule.widthAnchor.constraint(equalToConstant: CGFloat(width))
             ruleHeightAnchor    = rule.heightAnchor.constraint(equalToConstant: CGFloat(height))
             
-            if let footerRule = footerRule {
+            if let footerRule = ruleManager.footerRule {
                 rulebottomAnchor =  rule.bottomAnchor.constraint(equalTo: footerRule.bottomAnchor,
                                                                  constant: -footerRule.ruleSize.height)
             }
@@ -180,10 +180,10 @@ extension OMScrollableChart {
         footerRule.chart = self
         footerRule.font  = ruleFont
         footerRule.fontColor = fontFooterRuleColor
-        self.rootRule = rootRule
-        self.footerRule = footerRule
-        self.rules.append(rootRule)
-        self.rules.append(footerRule)
+        ruleManager.rootRule = rootRule
+        ruleManager.footerRule = footerRule
+        ruleManager.rules.append(rootRule)
+        ruleManager.rules.append(footerRule)
         // self.rules.append(topRule)
         
         
@@ -248,7 +248,7 @@ extension OMScrollableChart {
         // rules lines
         
         let oldRulesPoints = rulesPoints
-        guard let leadingRule = rootRule else {
+        guard let leadingRule = ruleManager.rootRule else {
             return
         }
         
@@ -263,7 +263,7 @@ extension OMScrollableChart {
         addDashLinesToMarksToVerticalRule(leadingRule)
 
         // Mark for display the rule.
-        rules.forEach {
+        ruleManager.rules.forEach {
            _ = $0.layoutRule()
             $0.setNeedsDisplay()
         }

@@ -10,7 +10,8 @@ import XCTest
 @testable import OMScrollableChart
 @testable import LibControl
 
-class OMScrollableChartTests: XCTestCase {
+class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol {
+    
 
     static var allTests = [
         ("testSimplification", testSimplification),
@@ -24,13 +25,145 @@ class OMScrollableChartTests: XCTestCase {
         ("testInterpolatePointAtT", testInterpolatePointAtT),
         ("testBounds", testBounds),
         ("testPointsOnLineAtDistance", testPointsOnLineAtDistance),
-        ("testIntersectionPointWithLineSegment", testIntersectionPointWithLineSegment)
-            // test intersection
+        ("testIntersectionPointWithLineSegment", testIntersectionPointWithLineSegment),
+        ("testChartEngine", testChartEngine),
+        ("testPRprovidesExpectedOutput", testPRprovidesExpectedOutput)
+        // test intersection
     ]
+    
+    var polyregress: PolynomialRegression!
+    var xValues: [Double]!
+    var yValues: [Double]!
+    
+    override func setUpWithError() throws {
+        xValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        yValues = [1, 6, 17, 34, 57, 86, 121, 162, 209, 262, 321]
+        
+        polyregress = PolynomialRegression(xValues: xValues, yValues: yValues)
+    }
+    
+    override func tearDownWithError() throws {
+        polyregress = nil
+    }
+    
+    func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] {
+        return randomFloat(25, max: 1000, min: 10)
+    }
+    
+    func numberOfPages(chart: OMScrollableChart) -> CGFloat {
+        2
+    }
+    
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+        []
+    }
+    
+    func footerSectionsText(chart: OMScrollableChart) -> [String]? {
+        []
+    }
+    
+    func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? {
+        nil
+    }
+    
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderType {
+        .discrete
+    }
+    
+    func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? {
+        return nil
+    }
+    
+    func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
+        return 6
+    }
+    
+    func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat {
+        return 1
+    }
+    
+    func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
+        return 1
+    }
+    
+    func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
+        return .none
+    }
+    
+    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: OMGradientShapeClipLayer) -> CAAnimation? {
+        return nil
+    }
+    
+    func testPRprovidesExpectedOutput() throws {
+        let expectedResults: [Double] = [1, 6, 17, 34, 57, 86, 121, 162, 209, 262, 321]
+        for i in 0...10 {
+            if let result = polyregress.predictYValue(at: Double(i)) {
+                XCTAssertEqual(result, expectedResults[i])
+            } else {
+                XCTFail("Result returned nil")
+            }
+        }
+    }
+    
+    func testChartEngine() {
+        
+        let chart = OMScrollableChart(frame: CGRect(x: 0,y: 0, width: 100, height: 100))
+        chart.dataSource = self
+        chart.renderSource = self
+        chart.layoutForFrame()
+        
+        guard let locator = chart as? RenderLocatorProtocol else {
+            XCTAssert(false)
+            return
+        }
+
+        for currentRender in 0..<self.numberOfRenders {
+            
+            let last  = chart.maxPoint(in: currentRender) ?? .zero
+            let first = chart.minPoint(in: currentRender) ?? .zero
+            
+            var indexFirstPoint = locator.indexForPoint(currentRender, point: first)
+            let indexLastPoint  = locator.indexForPoint(currentRender, point: last)
+            
+            let indexFirstPointIndex = locator.pointFromIndex(currentRender, index: indexFirstPoint!)
+            let indexLastPointIndex  = locator.pointFromIndex(currentRender, index: indexLastPoint!)
+            
+            XCTAssertEqual(first, indexFirstPointIndex)
+            XCTAssertEqual(last, indexLastPointIndex)
+            
+            XCTAssert(indexLastPoint != indexFirstPoint)
+            
+            //var dataIndexLast = chart.dataIndexFromLayers( index, point: last)
+            var dataIndexFirst = locator.dataIndexFromPoint( currentRender, point: first)
+            let dataIndexLast  = locator.dataIndexFromPoint( currentRender, point: last)
+            
+            XCTAssert(dataIndexFirst == indexFirstPoint)
+            XCTAssert(indexLastPoint == dataIndexLast)
+            
+            var dataFromLast = locator.dataFromPoint( currentRender, point: last)
+            var dataStringFromFirst = locator.dataStringFromPoint( currentRender, point: first)
+            
+            XCTAssert(dataIndexFirst == indexFirstPoint)
+            
+            for currentPoint in chart.pointsRender[currentRender] {
+            
+                indexFirstPoint = locator.indexForPoint(currentRender, point: currentPoint)
+                let point2 = locator.pointFromIndex(currentRender, index: indexFirstPoint!)
+                XCTAssertEqual(point2, currentPoint)
+                dataIndexFirst = locator.dataIndexFromPoint( currentRender, point: currentPoint)
+                XCTAssert(dataIndexFirst == indexFirstPoint)
+                
+                dataFromLast = locator.dataFromPoint( currentRender, point: currentPoint)
+                dataStringFromFirst = locator.dataStringFromPoint( currentRender, point: currentPoint)
+                XCTAssert(((dataStringFromFirst?.elementsEqual(String(dataFromLast!))) != nil))
+            }
+        }
+    }
+    
     func testSimplification() {
-        var result1 = [CGPoint]()
-        var result2 = [CGPoint]()
-        var result3 = [CGPoint]()
+        var visvalingam = [CGPoint]()
+        var radial = [CGPoint]()
+        var ramer = [CGPoint]()
         var decimate = [CGPoint]()
         
         let numberOfItems = 300
@@ -43,14 +176,14 @@ class OMScrollableChartTests: XCTestCase {
               "  Decimate")
         
         for index in (0..<numberOfItems) {
-            result1 = OMSimplify.visvalingamSimplify(randomPoints, limit: CGFloat(index) )
-            result2 = OMSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: true)
-            decimate = OMSimplify.simplifyDouglasPeuckerDecimate(randomPoints, tolerance:  CGFloat(sqrt(Double(index * 2))) )
-            result3 = OMSimplify.ramerDouglasPeuckerSimplify(randomPoints, epsilon: Double(index) )
+            visvalingam = OMSimplify.visvalingamSimplify(randomPoints, limit: CGFloat(index) )
+            radial = OMSimplify.douglasPeuckerRadialSimplify(randomPoints, tolerance: CGFloat(index), highestQuality: true)
+            decimate = OMSimplify.douglasPeuckerDecimateSimplify(randomPoints, tolerance:  CGFloat(sqrt(Double(index * 2))) )
+            ramer = OMSimplify.ramerDouglasPeuckerSimplify(randomPoints, epsilon: Double(index) )
             print(index,
-                  "    \(result1.count)",
-                  "    \(result2.count)",
-                  "     \(result3.count)",
+                  "    \(visvalingam.count)",
+                  "    \(radial.count)",
+                  "    \(ramer.count)",
                   "    \(decimate.count)")
         }
     }

@@ -98,7 +98,7 @@ public protocol OMScrollableChartDataSource: class {
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? 
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
     func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat
-    func layerRenderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
+    func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming
     func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int ,layer: OMGradientShapeClipLayer) -> CAAnimation?
     
@@ -119,7 +119,7 @@ public protocol OMScrollableChartRenderableProtocol: class {
 public  extension OMScrollableChartRenderableProtocol {
     // Default renders, polyline and points
     var numberOfRenders: Int {
-        return 2
+        return 3
     }
 }
 
@@ -174,10 +174,11 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
     private var pointsLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var polylineLayer: OMGradientShapeClipLayer =  OMGradientShapeClipLayer()
     var dashLineLayers = [OMGradientShapeClipLayer]()
-    var rootRule: ChartRuleProtocol?
-    var footerRule: ChartRuleProtocol?
-    var topRule: ChartRuleProtocol?
-    var rules = [ChartRuleProtocol]() // todo
+//    var rootRule: ChartRuleProtocol?
+//    var footerRule: ChartRuleProtocol?
+//    var topRule: ChartRuleProtocol?
+//    var rules = [ChartRuleProtocol]() // todo
+    var ruleManager: RuleManager = .init()
     public weak var dataSource: OMScrollableChartDataSource?
     public weak var renderSource: OMScrollableChartRenderableProtocol?
     public weak var renderDelegate: OMScrollableChartRenderableDelegateProtocol?
@@ -338,28 +339,28 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
     // MARK: - Footer -
     public var decorationFooterRuleColor = UIColor.black {
         didSet {
-            footerRule?.decorationColor = decorationFooterRuleColor
+            ruleManager.footerRule?.decorationColor = decorationFooterRuleColor
         }
     }
     // MARK: - Font color -
     public var fontFooterRuleColor = UIColor.black {
         didSet {
-            footerRule?.fontColor = fontFooterRuleColor
+            ruleManager.footerRule?.fontColor = fontFooterRuleColor
         }
     }
     public var fontRootRuleColor = UIColor.black {
         didSet {
-            rootRule?.fontColor = fontRootRuleColor
+            ruleManager.rootRule?.fontColor = fontRootRuleColor
         }
     }
     public var fontTopRuleColor = UIColor.black {
         didSet {
-            topRule?.fontColor = fontTopRuleColor
+            ruleManager.topRule?.fontColor = fontTopRuleColor
         }
     }
     public var footerRuleBackgroundColor = UIColor.black {
         didSet {
-            topRule?.backgroundColor = footerRuleBackgroundColor
+            ruleManager.topRule?.backgroundColor = footerRuleBackgroundColor
         }
     }
 
@@ -602,7 +603,7 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
         if let dataSource = dataSource {
             // get the data points
             renderDataPoints = queryDataSourceForRenderDataPoints(dataSource)
-            if let footerRule = self.footerRule as? OMScrollableChartRuleFooter {
+            if let footerRule = ruleManager.footerRule as? OMScrollableChartRuleFooter {
                 if let texts = dataSource.footerSectionsText(chart: self) {
                     if texts != footerRule.footerSectionsText {
                         footerRule.footerSectionsText = texts
@@ -970,11 +971,20 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
             forceLayoutReload()
         }
     }
+    
+    internal var renderSourceNumberOfRenders: Int {
+        if let render = self.renderSource {
+           return  render.numberOfRenders
+        }
+        return 0
+    }
+    
     public enum SimplifyType {
         case none
         case douglasPeuckerRadial
         case douglasPeuckerDecimate
         case visvalingam
+        case ramerDouglasPeucker
     }
     func makeApproximationPoints( points: [CGPoint], type: SimplifyType, tolerance: CGFloat) -> [CGPoint]? {
         guard tolerance != 0, points.isEmpty == false else {
@@ -984,11 +994,13 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
         case .none:
             return nil
         case .douglasPeuckerRadial:
-            return  OMSimplify.simplifyDouglasPeuckerRadial(points, tolerance: CGFloat(tolerance), highestQuality: true)
+            return  OMSimplify.douglasPeuckerRadialSimplify(points, tolerance: CGFloat(tolerance), highestQuality: true)
         case .douglasPeuckerDecimate:
-            return OMSimplify.simplifyDouglasPeuckerDecimate(points, tolerance: tolerance )
+            return OMSimplify.douglasPeuckerDecimateSimplify(points, tolerance: tolerance )
         case .visvalingam:
             return OMSimplify.visvalingamSimplify(points, limit: tolerance * tolerance)
+        case .ramerDouglasPeucker:
+            return OMSimplify.ramerDouglasPeuckerSimplify(points, epsilon: Double(tolerance * tolerance))
         }
     }
     private func removeAllLayers() {
@@ -1101,7 +1113,7 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
     /// - Returns: <#description#>
     func rendersIsVisible(renderIndex: Int) -> Bool {
         if let dataSource = dataSource {
-            return dataSource.layerRenderOpacity(chart: self,
+            return dataSource.renderOpacity(chart: self,
                                                  renderIndex: renderIndex) == Opacity.show.rawValue
         }
         return false
@@ -1129,7 +1141,7 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
         // update with animation
         for renderIndex in 0..<numberOfRenders {
             // Get the opacity
-            let layerOpacity = dataSource.layerRenderOpacity(chart: self, renderIndex: renderIndex)
+            let layerOpacity = dataSource.renderOpacity(chart: self, renderIndex: renderIndex)
             // update it
             updateRenderLayersOpacity(for: renderIndex, layerOpacity: layerOpacity)
             let timing = dataSource.queryAnimation(chart: self, renderIndex: renderIndex)
@@ -1307,8 +1319,8 @@ public class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtoco
             if ignoreLayoutCache {
                 print("Regenerating the layer tree. for: \(self.contentView.bounds) \(ignoreLayoutCache)")
                 removeAllLayers()
-                addLeadingRuleIfNeeded(rootRule, view: self)
-                addFooterRuleIfNeeded(footerRule)
+                addLeadingRuleIfNeeded(ruleManager.rootRule, view: self)
+                addFooterRuleIfNeeded(ruleManager.footerRule)
                 rulebottomAnchor?.isActive = true
  
                 if let render = self.renderSource,
@@ -1332,12 +1344,28 @@ extension OMScrollableChart {
         self.clearsContextBeforeDrawing = true
         setupView()
     }
+    
+    func renderResolution(with type: RenderType, renderIndex: Int) -> CGFloat {
+        var total: Int = 0
+        switch type {
+        case .discrete:
+            total = discreteData[renderIndex]?.data.count ?? 0
+        case .mean(_):
+            total = meanData[renderIndex]?.data.count ?? 0
+        case .approximation(_):
+            total = approximationData[renderIndex]?.data.count ?? 0
+        case .linregress(_):
+            total = linregressData[renderIndex]?.data.count ?? 0
+        }
+        return CGFloat(total) / CGFloat(numberOfSections)
+    }
+
     private func onHitTestLayer(at location: CGPoint, _ hitTestLayer: CALayer) {
         var isSelected: Bool = false
         // skip polyline layer, start in points
         for renderIndex in Renders.points.rawValue..<renderLayers.count {
             // Get the point more near
-            let selectedLayerFromLoc = locationToLayer(location, renderIndex: renderIndex)
+            let selectedLayerFromLoc = locationToLayer(renderIndex, location: location)
             if let selectedLayer = selectedLayerFromLoc {
                 if hitTestLayer == selectedLayer ||
                     hitTestLayer.position == selectedLayer.position {
@@ -1358,8 +1386,12 @@ extension OMScrollableChart {
         //
         if !isSelected {
             // test the layers
-            let polylineLayer = locationToLayer(location, renderIndex: Renders.polyline.rawValue,mostNearLayer: true)
-            let pointsLayers = locationToLayer(location, renderIndex: Renders.points.rawValue,mostNearLayer: true)
+            let polylineLayer = locationToLayer(Renders.polyline.rawValue,
+                                                location: location,
+                                                mostNearLayer: true)
+            let pointsLayers = locationToLayer(Renders.points.rawValue,
+                                               location: location,
+                                               mostNearLayer: true)
             
             if let polylineLayerUnwarp = polylineLayer,
                let selectedLayer = pointsLayers {
@@ -1405,11 +1437,13 @@ extension OMScrollableChart {
     }
     private func updateRendersOpacity() {
         // Create the points from the discrete data using the renders
-        if allDataPointsRender.isEmpty == false {
+        guard renderLayers.flatMap({$0}).isEmpty == false else {
+            return
+        }
             if let render = self.renderSource,
                 let dataSource = dataSource, render.numberOfRenders > 0  {
                 for renderIndex in 0..<render.numberOfRenders {
-                    let opacity = dataSource.layerRenderOpacity(chart: self, renderIndex: renderIndex)
+                    let opacity = dataSource.renderOpacity(chart: self, renderIndex: renderIndex)
                     if opacity == 1.0 {
                         // query the layers
                         updateRendersLayerOpacity()
@@ -1419,18 +1453,18 @@ extension OMScrollableChart {
                     }
                 }
             }
-        }
+        
     }
     private func updateRendersLayerOpacity() {
-        if allDataPointsRender.isEmpty == false {
-            if let render = self.renderSource,
-                let dataSource = dataSource, render.numberOfRenders > 0  {
-                for renderIndex in 0..<render.numberOfRenders {
-                    renderLayers[renderIndex].enumerated().forEach { layerIndex, layer  in
-                        let opacity = dataSource.layerOpacity(chart: self, renderIndex: renderIndex, layer: layer)
-                        // layout renders opacity
-                        layer.opacity = Float(opacity)
-                    }
+        guard renderLayers.flatMap({$0}).isEmpty == false else {
+            return
+        }
+        if let render = self.renderSource, let dataSource = dataSource, render.numberOfRenders > 0  {
+            for renderIndex in 0..<render.numberOfRenders {
+                renderLayers[renderIndex].enumerated().forEach { layerIndex, layer  in
+                    let opacity = dataSource.layerOpacity(chart: self, renderIndex: renderIndex, layer: layer)
+                    // layout renders opacity
+                    layer.opacity = Float(opacity)
                 }
             }
         }
@@ -1474,7 +1508,7 @@ extension OMScrollableChart {
         get { return super.frame }
     }
     public func forceLayoutReload() { self.updateLayout(ignoreLayoutCache: true) }
-    private func layoutForFrame() {
+    internal func layoutForFrame() {
         if self.updateDataSourceData() {
             self.forceLayoutReload()
         } else {
@@ -1613,3 +1647,20 @@ extension OMScrollableChart {
         return linFunction.slope * index + linFunction.intercept
     }
 }
+
+public struct RuleManager {
+    var rootRule: ChartRuleProtocol?
+    var footerRule: ChartRuleProtocol?
+    var topRule: ChartRuleProtocol?
+    var rules = [ChartRuleProtocol]()
+}
+
+public protocol UpdateProtocol {
+    func updateContentSize()
+    func updateDataSourceData() -> Bool
+    func updateRules()
+    func updateNumberOfPages() -> Bool
+    func updateRenderDataPoints()
+    func updateRendersLayers()
+}
+

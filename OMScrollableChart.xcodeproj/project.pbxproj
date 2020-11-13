@@ -22,8 +22,10 @@
 
 /* Begin PBXBuildFile section */
 		D12B7A8D255B30C600CC29D8 /* LibControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D12B7A7D255B30AE00CC29D8 /* LibControl.framework */; };
+		D137840C255F4E9800C8426E /* OMScrollableChart+Render.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137840A255F4E9800C8426E /* OMScrollableChart+Render.swift */; };
+		D137840D255F4E9800C8426E /* OMScrollableChart+RenderLocatorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D137840B255F4E9800C8426E /* OMScrollableChart+RenderLocatorProtocol.swift */; };
+		D1378436255F52D200C8426E /* PolynomialRegression.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1378435255F52D200C8426E /* PolynomialRegression.swift */; };
 		D17A586F2559FB580016A698 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A586E2559FB580016A698 /* TestUtils.swift */; };
-		OBJ_106 /* UIView+Border.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_55 /* UIView+Border.swift */; };
 		OBJ_113 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_124 /* OMScrollableChartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_58 /* OMScrollableChartTests.swift */; };
 		OBJ_125 /* XCTestManifests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_59 /* XCTestManifests.swift */; };
@@ -82,6 +84,9 @@
 
 /* Begin PBXFileReference section */
 		D12B7A75255B30AE00CC29D8 /* LibControl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LibControl.xcodeproj; path = ../LibControl/LibControl.xcodeproj; sourceTree = "<group>"; };
+		D137840A255F4E9800C8426E /* OMScrollableChart+Render.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Render.swift"; sourceTree = "<group>"; };
+		D137840B255F4E9800C8426E /* OMScrollableChart+RenderLocatorProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+RenderLocatorProtocol.swift"; sourceTree = "<group>"; };
+		D1378435255F52D200C8426E /* PolynomialRegression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PolynomialRegression.swift; sourceTree = "<group>"; };
 		D17A586E2559FB580016A698 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		OBJ_12 /* OMScrollableChart+Animations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Animations.swift"; sourceTree = "<group>"; };
 		OBJ_13 /* OMScrollableChart+PathRide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+PathRide.swift"; sourceTree = "<group>"; };
@@ -95,7 +100,6 @@
 		OBJ_37 /* OMScrollableChart+Tooltip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Tooltip.swift"; sourceTree = "<group>"; };
 		OBJ_38 /* OMScrollableChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChart.swift; sourceTree = "<group>"; };
 		OBJ_39 /* OMScrollableLeadingChartRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableLeadingChartRule.swift; sourceTree = "<group>"; };
-		OBJ_55 /* UIView+Border.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Border.swift"; sourceTree = "<group>"; };
 		OBJ_58 /* OMScrollableChartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChartTests.swift; sourceTree = "<group>"; };
 		OBJ_59 /* XCTestManifests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTestManifests.swift; sourceTree = "<group>"; };
 		OBJ_6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -145,6 +149,9 @@
 		OBJ_10 /* OMScrollableChart */ = {
 			isa = PBXGroup;
 			children = (
+				D1378435255F52D200C8426E /* PolynomialRegression.swift */,
+				D137840A255F4E9800C8426E /* OMScrollableChart+Render.swift */,
+				D137840B255F4E9800C8426E /* OMScrollableChart+RenderLocatorProtocol.swift */,
 				OBJ_12 /* OMScrollableChart+Animations.swift */,
 				OBJ_13 /* OMScrollableChart+PathRide.swift */,
 				OBJ_19 /* DiscreteScaledPointsGenerator.swift */,
@@ -155,7 +162,6 @@
 				OBJ_37 /* OMScrollableChart+Tooltip.swift */,
 				OBJ_38 /* OMScrollableChart.swift */,
 				OBJ_39 /* OMScrollableLeadingChartRule.swift */,
-				OBJ_55 /* UIView+Border.swift */,
 			);
 			name = OMScrollableChart;
 			path = Sources/OMScrollableChart;
@@ -326,7 +332,7 @@
 		};
 		D12B7A7F255B30AE00CC29D8 /* LibControlTests.xctest */ = {
 			isa = PBXReferenceProxy;
-			fileType = file;
+			fileType = wrapper.cfbundle;
 			path = LibControlTests.xctest;
 			remoteRef = D12B7A7E255B30AE00CC29D8 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -356,11 +362,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 0;
 			files = (
+				D137840D255F4E9800C8426E /* OMScrollableChart+RenderLocatorProtocol.swift in Sources */,
 				OBJ_71 /* OMScrollableChart+Animations.swift in Sources */,
 				OBJ_72 /* OMScrollableChart+PathRide.swift in Sources */,
 				OBJ_78 /* DiscreteScaledPointsGenerator.swift in Sources */,
 				OBJ_86 /* OMBubbleShapeView.swift in Sources */,
 				OBJ_87 /* OMBubbleTextView.swift in Sources */,
+				D1378436255F52D200C8426E /* PolynomialRegression.swift in Sources */,
+				D137840C255F4E9800C8426E /* OMScrollableChart+Render.swift in Sources */,
 				OBJ_88 /* UIView+Animations.swift in Sources */,
 				OBJ_89 /* OMScrollableChart+Renders.swift in Sources */,
 				OBJ_90 /* OMScrollableChart+Rules.swift in Sources */,
@@ -368,7 +377,6 @@
 				OBJ_92 /* OMScrollableChart+Tooltip.swift in Sources */,
 				OBJ_93 /* OMScrollableChart.swift in Sources */,
 				OBJ_94 /* OMScrollableLeadingChartRule.swift in Sources */,
-				OBJ_106 /* UIView+Border.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

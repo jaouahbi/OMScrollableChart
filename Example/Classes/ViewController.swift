@@ -58,7 +58,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             chart.renderSelectedPointsLayer?.position = layer.position // update selection layer.
             
             let previousPoint = chart.pointsRender[renderIndex][index]
-            selectedSegmentIndex = chart.indexForPoint(previousPoint, renderIndex: renderIndex) ?? 0
+            selectedSegmentIndex = chart.indexForPoint(renderIndex, point: previousPoint) ?? 0
             chart.setNeedsLayout()
             chart.setNeedsDisplay()
         default:
@@ -146,7 +146,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? { return nil }
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderType { return renderType }
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? { return nil }
-    func layerRenderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
+    func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
         currentOpacityTable[renderIndex].rawValue
     }
     func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat {
