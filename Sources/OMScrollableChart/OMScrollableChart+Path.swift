@@ -12,37 +12,42 @@ import LibControl
 extension OMScrollableChart {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer,
                                   shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        let isScrollPan = NSStringFromClass(otherGestureRecognizer.classForCoder).contains("UIScrollViewPanGestureRecognizer")
-        print("isScrollPan = \(isScrollPan)")
         return true
     }
     
     public override func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        allowedPan
+        if isAllowedPathDebug {
+            return true
+        }
+        return false
     }
     @objc public func handlePan(_ recognizer: UIPanGestureRecognizer) {
-
-        guard ![UIGestureRecognizer.State.ended, .cancelled, .failed].contains(recognizer.state) else {
-            lineShapeLayer.path = nil
-            startPointShapeLayer.path = nil
-            allowedPan = true
+        guard ![.ended, .cancelled, .failed].contains(recognizer.state) else {
+            if isAllowedPathDebug {
+                lineShapeLayer.path = nil
+                startPointShapeLayer.path = nil
+//                shouldBeginGestureRecognizer = true
+            }
             return
         }
-
-        allowedPan = false
-        let location = recognizer.location(in: contentView)
-        layoutBezierPath()
-        if let closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
-            drawLine(fromPoint: location, toPoint: closestPoint)
+        
+        if isAllowedPathDebug {
+//          shouldBeginGestureRecognizer = false
+            layoutBezierPath()
+            let location = recognizer.location(in: contentView)
+            if let closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
+                drawLine(fromPoint: location, toPoint: closestPoint)
+            }
         }
     }
     
     public var elementWidthPerSectionPerPage: Double {
         Double(sectionWidth) / Double(numberOfSectionsPerPage)
     }
-    
+
     public var numberOfElements: Int {
-        self.dataSource?.dataPoints(chart: self, renderIndex: Renders.points.rawValue, section: 0).count ?? 0
+        self.dataSource?.dataPoints(chart: self,
+                                    renderIndex: RenderIdentify.points.rawValue, section: 0).count ?? 0
     }
     
     public var elementsPerSectionPerPage: Double {
@@ -74,6 +79,7 @@ extension OMScrollableChart {
     
     
     
+    
     // MARK: - Drawing
     public func layoutBezierPath() {
         
@@ -88,25 +94,26 @@ extension OMScrollableChart {
 
                     contentOffset \(self.contentOffset)
                     contentSize \(self.contentSize)
+                    bounds \(contentView.bounds) \(bounds)
             """)
         
         
         
-        if isAllowedPathDebug {
-            guard  let bezier = bezier else { return }
-            if polylineLayer.path != bezier.cgPath {
-                if let path = polylineLayer.path {
-                    let regenerated = makeDebugBezierPath(with: path)
-                    print("regenerated = \(regenerated) box: \(path.boundingBoxOfPath)")
-                    
-                }
-            }
-            if showPolylineNearPoints {
-                pathDots.forEach{$0.removeFromSuperlayer()}
-                pathDots.removeAll()
-                bezier.lookupTable.forEach { drawDot(onLayer: self.contentView.layer, atPoint: $0) }
+        
+        guard  let bezier = bezier else { return }
+        if polylineLayer.path != bezier.cgPath {
+            if let path = polylineLayer.path {
+                let regenerated = makeDebugBezierPath(with: path)
+                print("regenerated = \(regenerated) box: \(path.boundingBoxOfPath)")
+                
             }
         }
+        if showPolylineNearPoints {
+            pathDots.forEach{$0.removeFromSuperlayer()}
+            pathDots.removeAll()
+            bezier.lookupTable.forEach { drawDot(onLayer: self.contentView.layer, atPoint: $0) }
+        }
+        
     }
     
     func drawLine(fromPoint: CGPoint, toPoint: CGPoint) {

@@ -8,6 +8,7 @@
 import UIKit
 import LibControl
 
+
 extension OMScrollableChart {
     
     /// pathRideToPointAnimation
@@ -99,7 +100,7 @@ extension OMScrollableChart {
                                      duration: TimeInterval = 10.0) -> CAAnimation {
         self.layerToRide = layerToRide
         self.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath, sectionIndex: sectionIndex, duration: duration)
-        let anim = CABasicAnimation(keyPath: "rideProgress")
+        let anim = CABasicAnimation(keyPath: AnimationKeyPaths.rideProgresAnimationsKey)
         anim.fromValue = NSNumber(value: 0)
         anim.toValue   = NSNumber(value: 1.0)
         anim.fillMode = .forwards
@@ -110,3 +111,4 @@ extension OMScrollableChart {
         return anim
     }
 }
+

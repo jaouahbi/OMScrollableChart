@@ -57,11 +57,11 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         return randomFloat(25, max: 1000, min: 10)
     }
     
-    func numberOfPages(chart: OMScrollableChart) -> CGFloat {
+    func numberOfPages(chart: OMScrollableChart) -> Int {
         4
     }
     
-    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [OMGradientShapeClipLayer] {
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [GradientShapeLayer] {
         []
     }
     
@@ -85,7 +85,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         return 6
     }
     
-    func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: OMGradientShapeClipLayer) -> CGFloat {
+    func layerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat {
         return 1
     }
     
@@ -97,7 +97,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         return .none
     }
     
-    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: OMGradientShapeClipLayer) -> CAAnimation? {
+    func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: GradientShapeLayer) -> CAAnimation? {
         return nil
     }
     

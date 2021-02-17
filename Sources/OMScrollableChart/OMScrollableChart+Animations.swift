@@ -14,17 +14,15 @@
 
 //
 //  OMScrollableChart+Animations
-//  CanalesDigitalesGCiOS
 //
 //  Created by Jorge Ouahbi on 16/08/2020.
-
 //
 
 import UIKit
 import LibControl
 
 extension OMScrollableChart {
-    public  func animateLineStrokeEnd( _ layer: CAShapeLayer,
+    public func performAnimateLineStrokeEnd( _ layer: CAShapeLayer,
                                fromValue: CGFloat = 0,
                                toValue: CGFloat = 1.0,
                                duration: TimeInterval = 0.4) -> CAAnimation {
@@ -38,7 +36,7 @@ extension OMScrollableChart {
         growAnimation.isRemovedOnCompletion = false
         return growAnimation
     }
-    public func animateLineStrokeStartStrokeEnd( _ layer: CAShapeLayer,
+    public func performAnimateLineStrokeStartStrokeEnd( _ layer: CAShapeLayer,
                                           fromValue: CGFloat = 0,
                                           toValue: CGFloat = 1.0,
                                           rangeValue: CGFloat = 0.2,
@@ -64,11 +62,11 @@ extension OMScrollableChart {
         return animGroup
     }
     
-    public func animateLayerPath( _ shapeLayer: CAShapeLayer,
+    public func perfromAnimateLayerPath( _ shapeLayer: CAShapeLayer,
                            pathStart: UIBezierPath,
                            pathEnd: UIBezierPath,
                            duration: TimeInterval = 0.5) -> CAAnimation {
-        let animation = CABasicAnimation(keyPath: "path")
+        let animation = CABasicAnimation(keyPath: AnimationKeyPaths.pathAnimationKey)
         animation.fromValue     = pathStart.cgPath
         animation.toValue       = pathEnd.cgPath
         animation.duration      = duration
@@ -126,11 +124,11 @@ extension OMScrollableChart {
 //        return animation
 //    }
     
-    func animateLineSelection(with shapeLayer: CAShapeLayer,
+    func perfromAnimateLineSelection(with shapeLayer: CAShapeLayer,
                               _ newPath: UIBezierPath,
                               _ duration: TimeInterval = 0.4) -> CAAnimation {
         // the new origin of the CAShapeLayer within its view
-        let animation = CABasicAnimation(keyPath: "path")
+        let animation = CABasicAnimation(keyPath: AnimationKeyPaths.pathAnimationKey)
         animation.fromValue =  shapeLayer.path
         animation.toValue = newPath
         animation.duration = duration
@@ -147,11 +145,18 @@ extension OMScrollableChart {
         return animation
     }
     
-    func animationOpacity(_ layer: CALayer,
+    /// performAnimationOpacity
+    /// - Parameters:
+    ///   - layer: layer description
+    ///   - fromValue: fromValue description
+    ///   - toValue: toValue description
+    ///   - duration: duration description
+    /// - Returns: description
+    func performAnimationOpacity(_ layer: CALayer,
                             fromValue: CGFloat = 0,
                             toValue: CGFloat = 1.0,
                             duration: TimeInterval = 4.0) -> CAAnimation {
-        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+        let fadeAnimation = CABasicAnimation(keyPath:AnimationKeyPaths.opacityAnimationsKey)
         fadeAnimation.toValue    = toValue
         fadeAnimation.fromValue  = fromValue
         fadeAnimation.fillMode   = .forwards
@@ -164,14 +169,22 @@ extension OMScrollableChart {
         }
         return fadeAnimation
     }
-        
-    func animationWithFadeGroup(_ layer: CALayer,
+    
+    /// performAnimationWithFadeGroup
+    /// - Parameters:
+    ///   - layer: layer description
+    ///   - fromValue: fromValue description
+    ///   - toValue: toValue description
+    ///   - animations: animations description
+    ///   - duration: duration description
+    /// - Returns: description
+    func performAnimationWithFadeGroup(_ layer: CALayer,
                                 fromValue: CGFloat = 0,
                                 toValue: CGFloat = 1.0,
                                 animations: [CAAnimation],
                                 duration: TimeInterval = 1.0) -> CAAnimation {
         let duration = duration
-        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+        let fadeAnimation = CABasicAnimation(keyPath: AnimationKeyPaths.opacityAnimationsKey)
         fadeAnimation.toValue  = toValue
         fadeAnimation.fromValue  = fromValue
         fadeAnimation.fillMode = .forwards
@@ -195,11 +208,18 @@ extension OMScrollableChart {
         }
         return animGroup
     }
-    func animationWithFade(_ layer: CALayer,
+    /// performAnimationWithFade
+    /// - Parameters:
+    ///   - layer: layer description
+    ///   - fromValue: fromValue description
+    ///   - toValue: toValue description
+    ///   - duration: duration description
+    /// - Returns: description
+    func performAnimationWithFade(_ layer: CALayer,
                            fromValue: CGFloat = 0,
                            toValue: CGFloat = 1.0,
                            duration: TimeInterval = 0.4) -> CAAnimation {
-        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+        let fadeAnimation = CABasicAnimation(keyPath: AnimationKeyPaths.opacityAnimationsKey)
         fadeAnimation.toValue  = toValue
         fadeAnimation.fromValue  = fromValue
         fadeAnimation.fillMode = .forwards
@@ -214,85 +234,18 @@ extension OMScrollableChart {
         return fadeAnimation
     }
     
-    
-//var kUpY: CGFloat = 115
-//var kDownY: CGFloat = 310
-
-
-    
-//    func touchDown() {
-//        animateTouchLayer(layer: self.layer, toY:kDownY, baseY:kUpY)
-//    }
-//
-//    func touchUp(){
-//        animateTouchLayer(layer: self.layer, toY:kUpY, baseY:kDownY)
-//    }
-//
-//    func animateTouchLayer(layer: CALayer, toY: CGFloat, baseY: CGFloat)  {
-//        let fromValue = layer.presentation()?.position ?? .zero
-//        let toValue = CGPoint(x:fromValue.x,y:toY)
-//
-//        layer.position = toValue
-//
-//        let animation = CABasicAnimation()
-//        animation.fromValue = NSValue(cgPoint: fromValue)
-//        animation.toValue = NSValue(cgPoint: toValue)
-//        animation.duration = CFTimeInterval(2.0 * (toValue.y - fromValue.y) / (toY - baseY))
-//        layer.add(animation, forKey:animation.keyPath)
-//
-//    }
-    /// animatePoints
-    /// - Parameters:
-    ///   - layers: CAShapeLayer
-    ///   - delay: TimeInterval delay [0.1]
-    ///   - duration: TimeInterval duration [ 2.0]
-//    func animatePoints(_ layers: [OMGradientShapeClipLayer],
-//                       delay: TimeInterval = 0.1,
-//                       duration: TimeInterval = 2.0) {
-//        var currentDelay = delay
-//        for point in layers {
-//            point.opacity = 1
-//            let fadeAnimation = CABasicAnimation(keyPath: "opacity")
-//            fadeAnimation.toValue = 0.3
-//            fadeAnimation.beginTime = CACurrentMediaTime() + currentDelay
-//            fadeAnimation.duration = duration
-//            fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-//            fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
-//            fadeAnimation.isRemovedOnCompletion = false
-//            point.add(fadeAnimation, forKey: nil)
-//            currentDelay += 0.05
-//        }
-//    }
-//    
-//    func animateLayerOpacy( _ layer: CALayer,
-//                            fromValue: CGFloat,
-//                            toValue: CGFloat,
-//                            duration: TimeInterval = 1.0) {
-//        //layer.removeAllAnimations()
-//        //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
-//        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
-//        fadeAnimation.toValue = toValue
-//        fadeAnimation.fromValue = fromValue
-//        fadeAnimation.beginTime = CACurrentMediaTime() + 0.5
-//        fadeAnimation.duration = duration
-//        fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-//        fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
-//        fadeAnimation.isRemovedOnCompletion = true
-//        layer.add(fadeAnimation, forKey: nil)
-//    }
-    
     /// animateOnRenderLayerSelection
     /// - Parameters:
     ///   - render: <#render description#>
-    ///   - selectedLayer: OMGradientShapeClipLayer
+    ///   - selectedLayer: GradientShapeLayer
     ///   - renderIndex: render index
     ///   - duration: TimeInterval [2.0]
     func animateOnRenderLayerSelection( _ render: BaseRender,
-                                       _ selectedLayer: OMGradientShapeClipLayer?,
+                                       _ selectedLayer: ShapeLayer?,
                                        _ duration: TimeInterval = 2.0) {
         var index: Int = 0
         guard render.layers.count > 0 else { return }
-        if let selectedLayer = selectedLayer {
+        if let selectedLayer = selectedLayer as? GradientShapeLayer {
             index = render.layers.firstIndex(of: selectedLayer) ?? 0
         }
         let count = render.layers.count - 1

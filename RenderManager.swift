@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import LibControl
 
 /*
  
@@ -26,7 +27,7 @@ public enum RenderIdent: Int {
     case polyline       = 0
     case points         = 1
     case selectedPoint   = 2
-    case renderBase     = 3  //  public renders base index
+    case base     = 3  //  public renders base index
 }
 
 public enum SimplifyType {
@@ -105,7 +106,7 @@ public struct DataRender  {
     ///   - point: CGPoint
     ///   - renderIndex: Int
     /// - Returns: Int?
-    public func index(from point: CGPoint) -> Int? {
+    public func index(withPoint point: CGPoint) -> Int? {
         switch type {
         case .discrete:
             return points.map { $0.distance(point) }.mini
@@ -117,15 +118,67 @@ public struct DataRender  {
             return points.map { $0.distance(point) }.mini
         }
     }
+    /// data from point
+    /// - Parameter point: point description
+    /// - Returns: description
+    public func data(withPoint point: CGPoint) -> Float? {
+        switch dataType {
+        case .discrete:
+            if let firstIndex = points.firstIndex(of: point) {
+                return data[firstIndex]
+            }
+        case .stadistics:
+            if let firstIndex = points.map({ $0.distance(point) }).mini {
+                return data[firstIndex]
+            }
+        case .simplify:
+            if let firstIndex = points.firstIndex(of: point) {
+                return data[firstIndex]
+            }
+        case .regress:
+            if let firstIndex = points.firstIndex(of: point) {
+                return data[firstIndex]
+            }
+        }
+        return nil
+        // return dataIndexFromLayers(point, renderIndex: renderIndex)
+    }
+    
+    public func dataIndex(withPoint point: CGPoint) -> Int? {
+        switch dataType {
+        case .discrete:
+            if let firstIndex = points.firstIndex(of: point) {
+                return firstIndex
+            }
+
+        case .stadistics:
+            if let firstIndex = index(withPoint: point) {
+                return firstIndex
+            }
+        case .simplify:
+
+            if let firstIndex = points.firstIndex(of: point) {
+                return firstIndex
+            }
+
+        case .regress:
+
+            if let firstIndex = points.firstIndex(of: point) {
+                return firstIndex
+            }
+
+        }
+        return nil // dataIndexFromLayers(point, renderIndex: renderIndex)
+    }
 }
 
 // MARK: RenderProtocol
 public protocol RenderProtocol {
     associatedtype DataRender
     var data: DataRender {get set} // Points and data
-    var layers: [OMGradientShapeClipLayer] {get set}
+    var layers: [GradientShapeLayer] {get set}
     var index: Int {get set}
-    func locationToLayer(_ location: CGPoint, mostNearLayer: Bool ) -> OMGradientShapeClipLayer?
+    func locationToLayer(_ location: CGPoint, mostNearLayer: Bool ) -> GradientShapeLayer?
     func layerPointFromPoint(_ point: CGPoint ) -> CGPoint
     func layerFrameFromPoint(_ point: CGPoint ) -> CGRect
     func makePoints(_ size: CGSize) -> [CGPoint]
@@ -135,21 +188,25 @@ public protocol RenderProtocol {
 public class BaseRender: RenderProtocol {
     public var index: Int = 0
     public var data: DataRender = .empty
-    public var layers: [OMGradientShapeClipLayer] = []
+    public var layers: [GradientShapeLayer] = []
     init(index: Int) {
         self.index = index
     }
     init() {
         
-        
     }
     
-    func allOtherLayers(layer: OMGradientShapeClipLayer ) -> [OMGradientShapeClipLayer] {
-        layers.filter { $0 != layer }
+    public func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
+        if !layers.contains(layer) { return [] }
+        return layers.filter { $0 != layer }
     }
     
-    public func locationToLayer(_ location: CGPoint, mostNearLayer: Bool = true) -> OMGradientShapeClipLayer? {
-        
+    /// locationToLayer
+    /// - Parameters:
+    ///   - location: CGPoint
+    ///   - mostNearLayer: Bool
+    /// - Returns: GradientShapeLayer
+    public func locationToLayer(_ location: CGPoint, mostNearLayer: Bool = true) -> GradientShapeLayer? {
         let mapped = layers.map {  (layer: CALayer) in
             layer.frame.origin.distance(location)
         }
@@ -165,7 +222,9 @@ public class BaseRender: RenderProtocol {
             return layers[index]
         }
     }
-    
+    /// layerPointFromPoint
+    /// - Parameter point: CGPoint
+    /// - Returns: CGPoint
     public func layerPointFromPoint(_ point: CGPoint ) -> CGPoint{
         /// Select the last point if the render is not hidden.
         guard let layer = locationToLayer(point, mostNearLayer: true) else {
@@ -173,6 +232,10 @@ public class BaseRender: RenderProtocol {
         }
         return layer.position
     }
+    
+    /// layerFrameFromPoint
+    /// - Parameter point: point description
+    /// - Returns: CGRect
     public func layerFrameFromPoint(_ point: CGPoint ) -> CGRect{
         /// Select the last point if the render is not hidden.
         guard let layer = locationToLayer(point, mostNearLayer: true) else {
@@ -181,10 +244,16 @@ public class BaseRender: RenderProtocol {
         return layer.frame
     }
     
+    /// makePoints
+    /// - Parameter size: CGSize
+    /// - Returns: [CGPoint]
     public func makePoints(_ size: CGSize) -> [CGPoint] {
         assert(size != .zero)
         return DiscreteScaledPointsGenerator().makePoints(data: self.data.data, size: size)
     }
+    
+   
+    
 }
 
 public class PolylineRender: BaseRender {
@@ -236,7 +305,7 @@ public class RenderManager {
         }
     }
     
-    public var layers: [[OMGradientShapeClipLayer]] {
+    public var layers: [[GradientShapeLayer]] {
         get {
             return RenderManager.shared.renders.reduce([[]]) { $0 + [$1.layers] }
         }

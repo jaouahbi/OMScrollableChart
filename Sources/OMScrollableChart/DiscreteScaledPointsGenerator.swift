@@ -252,10 +252,8 @@
 
 //
 //  DiscreteScaledPOint.swift
-//  CanalesDigitalesGCiOS
 //
 //  Created by Jorge Ouahbi on 22/08/2020.
-//  Copyright © 2020 Banco Caminos. All rights reserved.
 //
 
 import Accelerate
