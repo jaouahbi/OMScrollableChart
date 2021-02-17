@@ -71,7 +71,10 @@ extension OMScrollableChart {
         return nil
     }
     
-    func performFooterRuleAnimation(_ sectionIndex: Int) -> Bool {
+    /// performFooterRuleAnimation
+    /// - Parameter sectionIndex: sectionIndex
+    /// - Returns: Bool
+    func performFooterRuleAnimation(onSection sectionIndex: Int) -> Bool {
         guard numberOfSections > 0 else {
             return false
         }
@@ -89,10 +92,10 @@ extension OMScrollableChart {
     ///   - layer: CALayer
     ///   - renderIndex: Int
     ///   - dataIndex: Int
-    func didSelectedRenderLayerSection(_ render: BaseRender, sectionIndex: Int, layer: CALayer) {
+    func didSelectedRenderLayerSectionNotify(_ render: BaseRender, sectionIndex: Int, layer: CALayer) {
         // lets animate the footer rule
         if isFooterRuleAnimated {
-            let isFooterRuleAnimationDone = performFooterRuleAnimation(sectionIndex)
+            let isFooterRuleAnimationDone = performFooterRuleAnimation(onSection: sectionIndex)
             if !isFooterRuleAnimationDone {
                 print("Unable to animate section \(sectionIndex) render: \(render.index) layer: \(layer.name ?? "unnamed")")
             }
@@ -109,7 +112,7 @@ extension OMScrollableChart {
     ///   - renderIndex: renderIndex description
     ///   - dataIndex: dataIndex description
     ///   - layer: layer description
-    func didSelectedRenderLayerIndex(_ render: BaseRender,
+    func didSelectedRenderLayerIndexNotify(_ render: BaseRender,
                                      dataIndex: Int,
                                      layer: CALayer) {
         renderDelegate?.didSelectDataIndex(chart: self,
@@ -230,6 +233,24 @@ extension OMScrollableChart {
         return zoomRect
     }
     
+//    func zoomRectForScale(scale: CGFloat, center:CGPoint ) -> CGRect {
+//
+//        var zoomRect = CGRect.zero
+//
+//        // the zoom rect is in the content view's coordinates.
+//        //    At a zoom scale of 1.0, it would be the size of the imageScrollView's bounds.
+//        //    As the zoom scale decreases, so more content is visible, the size of the rect grows.
+//        zoomRect.size.height =  contentView.frame.size.height / scale;
+//        zoomRect.size.width  =  contentView.frame.size.width / scale;
+//
+//
+//        // choose an origin so as to get the right center.
+//        zoomRect.origin.x = (center.x * (2 - self.minimumZoomScale) - (zoomRect.size.width  / 2.0));
+//        zoomRect.origin.y = (center.y * (2 - self.minimumZoomScale) - (zoomRect.size.height / 2.0));
+//
+//        return zoomRect
+//    }
+    
     func performZoomOnSelection(_ selectedPoint: CGPoint, _ animation: Bool, _ duration: TimeInterval) {
         if zoomScale == 1 {
             CATransaction.begin()
@@ -264,6 +285,7 @@ extension OMScrollableChart {
                                         _ selectedPoint: CGPoint,
                                         _ animation: Bool = false,
                                         _ duration: TimeInterval = 0.5) {
+        print("[HHS] selectRenderLayerWithAnimation = \(render.index)")
         let needAnimation: Bool = showPointsOnSelection || animateOnRenderLayerSelection || animation
         if needAnimation {
             CATransaction.setAnimationDuration(duration)
@@ -280,19 +302,22 @@ extension OMScrollableChart {
         let selectionDataIndexFromPointLayerLocation = render.data.index(withPoint: layerPoint.position)
         // Get the selection data index
         if let dataIndex = selectionDataIndexFromPointLayerLocation {
+            
+            print("Selected data point index: \(dataIndex) type: \(render.data.dataType)")
+            // notify the data index selection.
+            self.didSelectedRenderLayerIndexNotify( render,
+                                              dataIndex: Int(dataIndex),
+                                              layer: layerPoint)
+            
             let sectionIndex = sectionFromPoint(render: render, layer: layerPoint)
             if sectionIndex != Index.bad.rawValue {
                 print("Selected data point index: \(dataIndex) section: \(sectionIndex) type: \(render.data.dataType)")
                 // notify and animate footer if the animation is actived
-                self.didSelectedRenderLayerSection( render,
-                                                   sectionIndex: Int(sectionIndex),
-                                                   layer: layerPoint)
+                self.didSelectedRenderLayerSectionNotify( render,
+                                                          sectionIndex: Int(sectionIndex),
+                                                          layer: layerPoint)
             } else {
-                print("Selected data point index: \(dataIndex) type: \(render.data.dataType)")
-                // notify the data index selection.
-                self.didSelectedRenderLayerIndex( render,
-                                                  dataIndex: Int(dataIndex),
-                                                  layer: layerPoint)
+                print("Unexpected \(dataIndex) type: \(render.data.dataType)")
             }
         }
         // Show tooltip

@@ -24,6 +24,7 @@ import UIKit
 // swiftlint:disable file_length
 // swiftlint:disable type_body_length
 
+
 struct AnimationKeyPaths {
     static var rideProgresAnimationsKey: String = "rideProgress"
     static var opacityAnimationsKey: String = "opacity"
@@ -37,9 +38,7 @@ public enum Opacity: CGFloat {
     case hide = 0.0
 }
 
-enum ScrollableChartConfig {
-    static let animationPointsClearOpacityKey: String = "animationPointsClearOpacityKey"
-}
+
 
 // public typealias ChartData = (points: [CGPoint], data: [Float])
 
@@ -143,6 +142,7 @@ public protocol OMScrollableChartDataSource: class {
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
     func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
     func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat?
+    func zPositionForLayer(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat?
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming
     func animateLayers(chart: OMScrollableChart, renderIndex: Int, layerIndex: Int, layer: GradientShapeLayer) -> CAAnimation?
 }
@@ -164,6 +164,15 @@ extension OMScrollableChartRenderableProtocol {
     }
 }
 
+public struct LayerStroker {
+    public var layer: GradientShapeLayer
+    public var points: [CGPoint]
+    public init( layer: GradientShapeLayer, points: [CGPoint]) {
+        self.layer = layer
+        self.points = points
+    }
+}
+
 @objcMembers
 public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartProtocol, CAAnimationDelegate, UIGestureRecognizerDelegate {
     private var pointsLayer = GradientShapeLayer()
@@ -181,10 +190,10 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
     var isScrollAnimnationDone: Bool = false
     let scrollingProgressDuration: TimeInterval = 1.2
     
-    public var pathDots = [CAShapeLayer]()
-    public var layersToStroke: [(GradientShapeLayer, [CGPoint])] = []
+    public var dotPathLayers = [ShapeRadialGradientLayer]()
     
-    var showPolylineNearPoints: Bool = true
+    
+    public var layersToStroke: [LayerStroker] = []
     
     var animatePointLayers: Bool = false
     var animateLineSelection: Bool = false
@@ -195,7 +204,7 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
     public weak var renderDelegate: OMScrollableChartRenderableDelegateProtocol?
     var polylineGradientFadePercentage: CGFloat = 0.4
     var drawPolylineGradient: Bool = true
-    var drawPolylineSegmentFill: Bool = true
+    var drawPolylineSegmentFill: Bool = false
     public var isFooterRuleAnimated: Bool = false
     public var lineColor = UIColor.greyishBlue
     public var selectedPointColor: UIColor = .darkGreyBlueTwo
@@ -227,7 +236,7 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
     var layerToRide: CALayer?
     var ridePath: Path?
     var bezier: OMBezierPath?
-    var isAllowedPathDebug: Bool = true
+    var showPolylineNearPoints: Bool = true
     
     // MARK: - Layout Cache -
     
@@ -248,20 +257,22 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
     }()
     
     // Debug polyline path
+    var lineShapeLayerLineWidth: CGFloat = 2.0
     public lazy var lineShapeLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
-        layer.lineWidth = 1.0
-        layer.strokeColor = UIColor.red.cgColor
+        layer.lineWidth = lineShapeLayerLineWidth
+        layer.strokeColor = UIColor.black.cgColor
         layer.fillColor = UIColor.clear.cgColor
         self.contentView.layer.addSublayer(layer)
         return layer
     }()
     
+    var startPointShapeLayerineWidth: CGFloat = 4.0
     // Debug polyline path
     public lazy var startPointShapeLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
-        layer.lineWidth = 3.0
-        layer.strokeColor = UIColor.red.cgColor
+        layer.lineWidth = startPointShapeLayerineWidth
+        layer.strokeColor = UIColor.black.cgColor
         layer.fillColor = UIColor.clear.cgColor
         self.contentView.layer.addSublayer(layer)
         return layer
@@ -333,6 +344,12 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
             forceLayoutReload() // force layout
         }
     }
+    
+    var startColor = UIColor.greyishBlue { didSet { setNeedsDisplay(bounds) } }
+    var endColor = UIColor.clear   { didSet { setNeedsDisplay(bounds) } }
+    var startAngle: CGFloat = 0    { didSet { setNeedsDisplay(bounds) } }
+    var endAngle: CGFloat = 360   { didSet { setNeedsDisplay(bounds) } }
+    
     
     lazy var numberFormatter: NumberFormatter = {
         let currencyFormatter = NumberFormatter()
@@ -441,11 +458,13 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
     
     public func forceLayoutReload() { updateLayout(ignoreLayoutCache: true) }
     
-    lazy var recognizer: UIPanGestureRecognizer = {
-        let rev = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-        rev.delegate = self
-        return rev
-    }()
+    //    lazy var recognizer: UIPanGestureRecognizer = {
+    //        let rev = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+    ////        rev.cancelsTouchesInView = true
+    //        rev.delegate = self
+    ////       rev.shouldRequireFailure(of: self.panGestureRecognizer)
+    //        return rev
+    //    }()
     
     var linFunction: (slope: Float, intercept: Float)?
     
@@ -542,6 +561,11 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
         updateContentSize()
     }
     
+    lazy var bezierPathLayer: CAShapeLayer = {
+        let shape = CAShapeLayer()
+        contentView.layer.addSublayer(shape)
+        return shape
+    }()
     // Setup all the view/subviews
     func setupView() {
         registerNotifications()
@@ -553,10 +577,7 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
         createSuplementaryRules()
         configureTooltip()
         
-        if isAllowedPathDebug {
-            contentView.layer.addSublayer(startPointShapeLayer)
-            contentView.addGestureRecognizer(recognizer)
-        }
+        addPanGestureRecognizer()
         
         //        if isScreenLine {
         //            self.setupTouchScreenLineLayer()
@@ -730,6 +751,77 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
         ctx.restoreGState()
     }
     
+    
+    func stroke(in ctx: CGContext,
+                path: CGPath?,
+                lineWidth: CGFloat,
+                startPoint: CGPoint,
+                endPoint: CGPoint,
+                startRadius: CGFloat,
+                endRadius: CGFloat,
+                strokeColor: UIColor,
+                lowColor: UIColor,
+                fadeFactor: CGFloat = 0.8,
+                axial: Bool = true) {
+        
+        
+        ctx.saveGState()
+        
+        
+        let locations = [0, fadeFactor, 1 - fadeFactor, 1]
+        let gradient = CGGradient(colorsSpace: nil,
+                                  colors: [lowColor.withAlphaComponent(0.1).cgColor,
+                                           strokeColor.cgColor,
+                                           strokeColor.withAlphaComponent(fadeFactor).cgColor,
+                                           lowColor.withAlphaComponent(0.8).cgColor] as CFArray,
+                                  locations: locations)!
+        
+        var start = CGPoint(x: startPoint.x * self.bounds.size.width, y: startPoint.y * self.bounds.size.height)
+        var end   =  CGPoint(x: endPoint.x * self.bounds.size.width, y: endPoint.y * self.bounds.size.height)
+        // The context must be clipped before scale the matrix.
+        if let path = path {
+            ctx.addPath(path)
+            ctx.setLineWidth(lineWidth)
+            ctx.replacePathWithStrokedPath()
+            ctx.clip()
+        }
+        
+        // if we are using the stroke, we offset the from and to points
+        // by half the stroke width away from the center of the stroke.
+        // Otherwise we tend to end up with fills that only cover half of the
+        // because users set the start and end points based on the center
+        // of the stroke.
+        let hw = lineWidth * 0.5;
+        start  = end.projectLine(start,length: hw)
+        
+        
+        ctx.scaleBy(x: self.bounds.size.width,
+                    y: self.bounds.size.height );
+        
+        start = CGPoint(x: start.x / self.bounds.size.width, y: start.y / self.bounds.size.height)
+        end   =  CGPoint(x: end.x / self.bounds.size.width, y: end.y / self.bounds.size.height)
+        
+        
+        let minimumRadius = minRadius(self.bounds.size)
+        
+        
+        if axial {
+            ctx.drawLinearGradient(gradient,
+                                   start: start ,
+                                   end: end,
+                                   options: [])
+        } else {
+            ctx.drawRadialGradient(gradient,
+                                   startCenter: start ,
+                                   startRadius: startRadius * minimumRadius,
+                                   endCenter:end ,
+                                   endRadius: endRadius * minimumRadius,
+                                   options: [])
+        }
+        ctx.restoreGState();
+        
+    }
+    
     /// strokeGradient
     /// - Parameters:
     ///   - ctx: ctx description
@@ -742,23 +834,25 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
                                 layer: CAShapeLayer,
                                 points: [CGPoint]?,
                                 color: UIColor,
-                                lineWidth: CGFloat,
+                                lowColor: UIColor = UIColor.white,
+                                lineWidth: CGFloat = 1.0,
                                 fadeFactor: CGFloat = 0.4)
     {
         if let ctx = ctx {
             let locations = [0, fadeFactor, 1 - fadeFactor, 1]
             let gradient = CGGradient(colorsSpace: nil,
-                                      colors: [UIColor.white.withAlphaComponent(0.1).cgColor,
+                                      colors: [lowColor.withAlphaComponent(0.1).cgColor,
                                                color.cgColor,
                                                color.withAlphaComponent(fadeFactor).cgColor,
-                                               UIColor.white.withAlphaComponent(0.8).cgColor] as CFArray,
+                                               lowColor.withAlphaComponent(0.8).cgColor] as CFArray,
                                       locations: locations)!
             // Clip to the path, stroke and enjoy.
             if let path = layer.path {
                 color.setStroke()
                 let curPath = UIBezierPath(cgPath: path)
                 curPath.lineWidth = lineWidth
-                curPath.stroke()
+                //                curPath.stroke()
+                ctx.replacePathWithStrokedPath()
                 curPath.addClip()
                 // if we are using the stroke, we offset the from and to points
                 // by half the stroke width away from the center of the stroke.
@@ -980,10 +1074,13 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
             print("adding \(RenderManager.shared.allRendersLayers.count) layers")
             // add layers
             for (renderIndex, render) in RenderManager.shared.renders.enumerated() {
+                
                 // Insert the render layers
                 print("adding \(render.layers.count) layers for render \(renderIndex)")
                 render.layers.forEach {
                     self.contentView.layer.insertSublayer($0, at: UInt32(renderIndex))
+                    // Query and set the zPosition
+                    $0.zPosition = dataSource.zPositionForLayer(chart: self, renderIndex: renderIndex, layer: $0) ?? CGFloat(renderIndex)
                     numberOfLayerAdded += 1
                 }
             }
@@ -1001,13 +1098,15 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
         polylineLayerBezierPathDidLoad(layer)
     }
     
-    let minVisibleOpacy: CGFloat = 0.5
-    func rendersIsVisible(renderIndex: Int) -> Bool {
+    let minimunRenderOpacity: CGFloat = 0.5
+    private func rendersIsVisible(renderIndex: Int) -> Bool {
         if let dataSource = dataSource {
-            return dataSource.renderOpacity(chart: self, renderIndex: renderIndex) >= minVisibleOpacy
+            return dataSource.renderOpacity(chart: self, renderIndex: renderIndex) >= minimunRenderOpacity
         }
         return false
     }
+    
+    func rendersIsVisible(render: BaseRender) -> Bool { rendersIsVisible(renderIndex: render.index) }
     
     /// layoutRenders
     
@@ -1019,24 +1118,28 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
             let numberOfLayers = queryDataAndRegenerateRendersLayers()
             print("Regenerated \(numberOfLayers) layers for \(render.numberOfRenders) renders.")
             // update with animation
-            for renderIndex in 0..<render.numberOfRenders {
+            for render in RenderManager.shared.renders {
                 // Get the opacity
-                if rendersIsVisible(renderIndex: renderIndex) {
-                    let CNT = RenderManager.shared.renders[renderIndex].layers.count
-                    let timing = dataSource.queryAnimation(chart: self, renderIndex: renderIndex)
+                if rendersIsVisible(render: render) {
+                    let CNT = render.layers.count
+                    let timing = dataSource.queryAnimation(chart: self, renderIndex: render.index)
                     if timing == .repe {
-                        print("Animating the render: \(renderIndex) layers: \(CNT).")
-                        performAnimateRenderLayers(renderIndex,
+                        print("Animating the render: \(render.index) layers: \(CNT).")
+                        performAnimateRenderLayers(render.index,
                                                    layerOpacity: Opacity.show.rawValue)
                     } else {
-                        print("The render \(renderIndex) dont want animate its \(CNT) layers.")
+                        print("The render \(render.index) dont want animate its \(CNT) layers.")
                     }
                 }
             }
         }
     }
     
-    private func scrollingProgressAnimatingToPage(_ duration: TimeInterval, page: Int) {
+    /// scrollingProgressAnimatingToPage
+    /// - Parameters:
+    ///   - duration: TimeInterval
+    ///   - page: Int
+    private func scrollingProgressAnimatingToPage(_ duration: TimeInterval, page: Int, completion: (() -> Void)? = nil) {
         let delay: TimeInterval = 0.5
         let preTimeOffset: TimeInterval = 1.0
         let duration: TimeInterval = duration + delay - preTimeOffset
@@ -1055,7 +1158,7 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
                         }
                         
                         if completed {
-                            
+                            completion?()
                         }
                        })
     }
@@ -1069,7 +1172,9 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
                     layerRide.transform = CATransform3DIdentity
                 }
                 if scrollAnimation {
-                    scrollingProgressAnimatingToPage(anim.duration, page: page)
+                    scrollingProgressAnimatingToPage(anim.duration, page: page) {
+                        
+                    }
                 }
                 
                 layerRide.add(anim, forKey: AnimationKeyPaths.aroundAnimationKey, withCompletion: { _ in
@@ -1189,12 +1294,15 @@ public final class OMScrollableChart: UIScrollView, UIScrollViewDelegate, ChartP
         if !isScrollAnimnationDone, isScrollAnimation {
             isScrollAnimnationDone = true
             scrollingProgressAnimatingToPage(scrollingProgressDuration,
-                                             page: numberOfPages - 1)
+                                             page: numberOfPages - 1) {
+                
+            }
         } else {
             // Only animate if the points if the render its visible (hidden).
             if rendersIsVisible(renderIndex: RenderIdentify.points.rawValue) {
                 animatePointsClearOpacity()
             }
+            
         }
     }
     
@@ -1252,6 +1360,14 @@ extension OMScrollableChart {
                                        location)
     }
     
+    private func printLayersInSections() {
+        // all renders
+        print("layer\t\tsection")
+        for render in RenderManager.shared.renders.reversed() {
+            render.layers.forEach {print("\(String(describing: $0.name))\t\t\(sectionFromPoint(render: render, layer: $0))")}
+        }
+    }
+    
     override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         let location: CGPoint = locationFromTouchInContentView(touches)
@@ -1259,13 +1375,14 @@ extension OMScrollableChart {
         let hitTestLayer = hitTestAsLayer(location)
         if let hitTestShapeLayer = hitTestLayer {
             var isSelected: Bool = false
-            // all renders
-            let allRenders = RenderManager.shared.renders
-            for render in allRenders {
+            
+            printLayersInSections()
+            
+            for render in RenderManager.shared.renders.reversed() {
+                
+           
                 // skip polyline layer for touch
                 guard render.index != RenderIdentify.polyline.rawValue else { continue }
-            
-          
                 // Get the point more near for this render
                 let selectedLayerInCurrentRender = render.locationToLayer(location)
                 if dataSource?.renderOpacity(chart: self, renderIndex: render.index ) ?? 0 > 0 {
@@ -1352,15 +1469,15 @@ extension OMScrollableChart {
             print("layout is 1")
         }
     }
+    /// updateRendersOpacity
     
     private func updateRendersOpacity() {
         // Create the points from the discrete data using the renders
         print("Updating \(RenderManager.shared.allRendersLayers.count) renders layers opacity ")
         if RenderManager.shared.allRendersLayers.isEmpty == false {
-            if let render = renderSource, let dataSource = dataSource, render.numberOfRenders > 0
-            {
+            if let render = renderSource, let dataSource = dataSource, render.numberOfRenders > 0 {
                 for render in RenderManager.shared.renders {
-                    
+                    print("Check if layers want opacity.")
                     let layerOpacityResult = render.layers.map {
                         return dataSource.renderLayerOpacity(chart: self,
                                                              renderIndex: render.index,
@@ -1369,6 +1486,7 @@ extension OMScrollableChart {
                     
                     print("Render \(render.index) count: \(render.layers.count) result: \(layerOpacityResult)")
                     if layerOpacityResult.isEmpty {
+                        print("Check if render want opacity.")
                         let layerOpacity = dataSource.renderOpacity(chart: self, renderIndex: render.index)
                         // layout renders opacity
                         updateRenderLayersOpacity(for: render.index,
@@ -1376,13 +1494,18 @@ extension OMScrollableChart {
                     } else {
                         assert(layerOpacityResult.count == render.layers.count)
                         render.layers.enumerated().forEach {
-                            $1.opacity = Float(layerOpacityResult[$0] ?? Opacity.hide.rawValue)
+                            if layerOpacityResult[$0] != nil {
+                                $1.opacity =  Float(layerOpacityResult[$0] ?? Opacity.hide.rawValue)
+                            }
                         }
                     }
                 }
             }
+            print("Layers visibles \(RenderManager.shared.visibleLayers.count) no visibles \(RenderManager.shared.invisibleLayers.count)")
+        } else {
+            print("unexpected empty allRendersLayers")
         }
-        print("Layers visibles \(RenderManager.shared.visibleLayers.count) no visibles \(RenderManager.shared.invisibleLayers.count)")
+        
     }
     
     private func animatePointsClearOpacity(duration: TimeInterval = 4.0) {
@@ -1396,7 +1519,7 @@ extension OMScrollableChart {
                                                fromValue: CGFloat(layer.opacity),
                                                toValue: 0.0)
             layer.add(anim,
-                      forKey: ScrollableChartConfig.animationPointsClearOpacityKey)
+                      forKey: ScrollableRendersConfiguration.animationPointsClearOpacityKey)
         }
         CATransaction.commit()
     }
@@ -1409,50 +1532,89 @@ extension OMScrollableChart {
         } else {
             updateRendersOpacity()
         }
-        layoutBezierPath()
+        
+        //        layoutBezierPath()
     }
+    
+    
+    
     
     override public func draw(_ rect: CGRect) {
         super.draw(rect)
         if let ctx = UIGraphicsGetCurrentContext() {
             if drawPolylineGradient {
-                for layer in layersToStroke {
-                    strokeGradient(ctx: ctx,
-                                   layer: layer.0,
-                                   points: layer.1,
-                                   color: lineColor.darker,
-                                   lineWidth: lineWidth,
-                                   fadeFactor: 0.8)
-                }
-                
-                strokeGradient(ctx: ctx,
-                               layer: polylineLayer,
-                               points: polylinePoints,
-                               color: lineColor,
-                               lineWidth: lineWidth,
-                               fadeFactor: polylineGradientFadePercentage)
-            } else {
-                if drawPolylineSegmentFill {
-                    ctx.saveGState()
-                    // Clip to the path
-                    let paths = polylineSubpaths
-                    for (index, path) in paths.enumerated() {
-                        let pathToFill = UIBezierPath(cgPath: path.cgPath)
-                        pathToFill.lineWidth = 0.5
-                        lineColor.withAlphaComponent(1.0 - CGFloat(CGFloat(paths.count) / 1.0) * CGFloat(index)).setFill()
-                        pathToFill.fill()
+                if layersToStroke.count > 0 {
+                    for stroker in layersToStroke {
+                        let lineWidth_2 = lineWidth * 2
+                        let darkerColor = lineColor.darker
+                        strokeGradient(ctx: ctx,
+                                       layer: stroker.layer,
+                                       points: stroker.points,
+                                       color: darkerColor,
+                                       lowColor: darkerColor.complementaryColor,
+                                       lineWidth: lineWidth_2,
+                                       fadeFactor: 0.8)
                     }
                     
-                    ctx.restoreGState()
+                    strokeGradient(ctx: ctx,
+                                   layer: polylineLayer,
+                                   points: polylinePoints,
+                                   color: lineColor,
+                                   lineWidth: lineWidth,
+                                   fadeFactor: polylineGradientFadePercentage)
+                } else {
+                    
+                    guard let path = polylinePath, let point = polylinePoints?.first, let lastPoint = polylinePoints?.last else { return }
+                    let st = CGPoint(x: point.x * bounds.width,
+                                     y: point.y * bounds.height)
+                    let ls = CGPoint(x: lastPoint.x * bounds.width,
+                                     y: lastPoint.y * bounds.height)
+                    stroke(in: ctx,
+                           path: path.cgPath,
+                           lineWidth: lineWidth,
+                           startPoint: st,
+                           endPoint: ls,
+                           startRadius: 0,
+                           endRadius: Swift.max(path.bounds.width, path.bounds.height),
+                           strokeColor: .white,
+                           lowColor: .black,
+                           axial: false)
+                    
+                    stroke(in: ctx,
+                           path: path.cgPath,
+                           lineWidth: lineWidth,
+                           startPoint: st,
+                           endPoint: ls,
+                           startRadius: 0,
+                           endRadius: Swift.max(path.bounds.width,path.bounds.height),
+                           strokeColor: .white,
+                           lowColor: .black,
+                           axial: true)
+                    
                 }
+                //                else {
+                //                if drawPolylineSegmentFill {
+                //                    ctx.saveGState()
+                //                    // Clip to the path
+                //                    let paths = polylineSubpaths
+                //                    for (index, path) in paths.enumerated() {
+                //                        let pathToFill = UIBezierPath(cgPath: path.cgPath)
+                //                        pathToFill.lineWidth = 0.5
+                //                        lineColor.withAlphaComponent(1.0 - CGFloat(CGFloat(paths.count) / 1.0) * CGFloat(index)).setFill()
+                //                        pathToFill.fill()
+                //                    }
+                //
+                //                    ctx.restoreGState()
+                //                }
+                //            }
             }
+            // drawVerticalGridLines()
+            // drawHorizalGridLines()
+            // Specify a border (stroke) color.
+            // UIColor.black.setStroke()
+            // pathVertical.stroke()
+            // pathHorizontal.stroke()
         }
-        // drawVerticalGridLines()
-        // drawHorizalGridLines()
-        // Specify a border (stroke) color.
-        // UIColor.black.setStroke()
-        // pathVertical.stroke()
-        // pathHorizontal.stroke()
     }
     
     // MARK: Scroll Delegate

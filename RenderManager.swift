@@ -149,22 +149,30 @@ public struct DataRender  {
         case .discrete:
             if let firstIndex = points.firstIndex(of: point) {
                 return firstIndex
+            } else {
+                return points.map({ $0.distance(point) }).mini
             }
 
         case .stadistics:
             if let firstIndex = index(withPoint: point) {
                 return firstIndex
+            } else {
+                return points.map({ $0.distance(point) }).mini
             }
         case .simplify:
 
             if let firstIndex = points.firstIndex(of: point) {
                 return firstIndex
+            } else {
+                return points.map({ $0.distance(point) }).mini
             }
 
         case .regress:
 
             if let firstIndex = points.firstIndex(of: point) {
                 return firstIndex
+            } else {
+                return points.map({ $0.distance(point) }).mini
             }
 
         }

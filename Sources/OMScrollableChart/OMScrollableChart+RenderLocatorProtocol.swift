@@ -126,21 +126,21 @@ extension OMScrollableChart: RenderLocatorProtocol {
         // Get the selection data index
         if let dataIndex = dataIndexLayer {
             let data = render.data
-            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
+//            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
             let pointPerSectionRelation = floor(renderResolution(with: data.dataType, renderIndex: render.index))
             let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
-            print(
-                """
-                        Render index: \(Int(render.index))
-                        Data index: \(Int(dataIndex))
-
-                        \((ruleManager.footerRule?.views?[sectionIndex] as? UILabel)?.text ?? "")
-
-                        Point to section relation \(pointPerSectionRelation)
-                        Section index: \(Int(sectionIndex))
-                """)
+//            print(
+//                """
+//                        Render index: \(Int(render.index))
+//                        Data index: \(Int(dataIndex))
+//
+//                        \((ruleManager.footerRule?.views?[Int(sectionIndex)] as? UILabel)?.text ?? "")
+//
+//                        Point to section relation \(pointPerSectionRelation)
+//                        Section index: \(Int(sectionIndex))
+//                """)
             
-            return sectionIndex
+            return Int(sectionIndex)
         }
         return Index.bad.rawValue
     }

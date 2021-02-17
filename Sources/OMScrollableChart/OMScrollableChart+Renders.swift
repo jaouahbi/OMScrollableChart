@@ -16,10 +16,12 @@
 import UIKit
 import LibControl
 
-struct OMScrollableRendersConfiguration {
+struct ScrollableRendersConfiguration {
     static let defaultPointSize = CGSize(width: 8, height: 8)
+    static let defaultPathPointSize = CGSize(width: 10, height: 10)
     static let defaultSelectedPointSize = CGSize(width: 13, height: 13)
-    static let kDefaultLineWidth: CGFloat = 4
+    static let defaultLineWidth: CGFloat = 4
+    static let animationPointsClearOpacityKey: String = "animationPointsClearOpacityKey"
 }
 
 extension OMScrollableChart {
@@ -58,7 +60,7 @@ extension OMScrollableChart {
                     // accumulate layers
                     if layers.isEmpty {
                         print("Unexpected empty layers, lets use the default renders.")
-                        layers = self.renderDefaultLayers(render.index, data: data)
+                        layers = self.renderDefaultLayers(render, data: data)
                     }
                     render.layers.append(contentsOf: layers)
                 } else  {
@@ -101,7 +103,7 @@ extension OMScrollableChart {
             // accumulate layers
             if layers.isEmpty {
                 print("Unexpected empty render layers, let's use the default renders.")
-                layers = self.renderDefaultLayers(render.index, data: renderData)
+                layers = self.renderDefaultLayers(render, data: renderData)
             }
             render.data = renderData
             render.layers.append( contentsOf: layers)
@@ -131,7 +133,7 @@ extension OMScrollableChart {
             //  use the default renders
             if layers.isEmpty {
                 print("Unexpected empty layers render \(render.index), lets use the default renders.")
-                layers = self.renderDefaultLayers(render.index, data: datRebuilded)
+                layers = self.renderDefaultLayers(render, data: datRebuilded)
             }
             // accumulate layers
             print("Accumulating \(layers.count) layers.")
@@ -165,7 +167,7 @@ extension OMScrollableChart {
             // accumulate layers
             if layers.isEmpty {
                 print("Unexpected empty layers render \(render.index), lets use the default renders.")
-                layers = self.renderDefaultLayers(render.index,
+                layers = self.renderDefaultLayers(render,
                                                   data: linregressData)
             }
             // accumulate layers
@@ -183,8 +185,8 @@ extension OMScrollableChart {
     // 0 - Polyline
     // 1 - Discrete points
     // 2 - Selected point
-    internal func renderDefaultLayers(_ renderIndex: Int, data: DataRender) -> [GradientShapeLayer] {
-        switch renderIndex {
+    internal func renderDefaultLayers(_ render: BaseRender, data: DataRender) -> [GradientShapeLayer] {
+        switch render.index {
         case RenderIdent.polyline.rawValue:
             // let color = UIColor.greyishBlue
             let layers = self.updatePolylineLayer()
@@ -195,7 +197,8 @@ extension OMScrollableChart {
             #endif
             return layers
         case RenderIdent.points.rawValue:
-            let layers = self.createPointsLayers(data.points, size: OMScrollableRendersConfiguration.defaultPointSize,
+            let layers = self.createPointsLayers(data.points,
+                                                 size: ScrollableRendersConfiguration.defaultPointSize,
                                                  color: lineColor)
             
             #if DEBUG
@@ -205,9 +208,9 @@ extension OMScrollableChart {
             #endif
             return layers
         case RenderIdent.selectedPoint.rawValue:
-            if let point =  RenderManager.shared.renders[renderIndex].data.maxPoint {
-                let layer = self.createPointLayer(point, size: OMScrollableRendersConfiguration.defaultSelectedPointSize,
-                                                  color: selectedPointColor)
+            if let point = render.data.maxPoint {
+                let layer = self.createPointLayer(point, size: ScrollableRendersConfiguration.defaultSelectedPointSize,
+                                                  color: selectedPointColor, shadowOffset: pointsLayersShadowOffset)
                 #if DEBUG
                 layer.name = "selectedPointDefault"
                 #endif
@@ -239,9 +242,11 @@ extension OMScrollableChart {
         return polylinePath
     }
     
+    /// updatePolylinePath
+    /// - Parameter polylinePath: UIBezierPath
     private func updatePolylinePath(_ polylinePath: UIBezierPath) {
-        let path = polylinePath.cgPath
-        polylineLayer.path = path
+        // update path
+        polylineLayer.path = polylinePath.cgPath
         polylineLayerPathDidChange(layer: polylineLayer)
     }
     
@@ -278,7 +283,7 @@ extension OMScrollableChart {
             print("Unexpected out of renderIndex.")
             return
         }
-        // get the data poiunts
+        // get the data points
         let render = RenderManager.shared.renders[renderIndex]
         switch renderAs {
         case .discrete:
@@ -298,6 +303,10 @@ extension OMScrollableChart {
         }
     }
     
+    /// renderLayers
+    /// - Parameters:
+    ///   - render: render description
+    ///   - size: size description
     public func renderLayers(with render: BaseRender, size: CGSize) {
         // get the data poiunt
         switch render.data.dataType {
@@ -319,7 +328,10 @@ extension OMScrollableChart {
     ///   - color: UIColor
     /// - Returns:  [ShapeRadialGradientLayer]
     public func createPointsLayers(_ points: [CGPoint], size: CGSize, color: UIColor) -> [ShapeRadialGradientLayer] {
-        return points.map { createPointLayer($0, size: size, color: color) }
+        return points.map { createPointLayer($0,
+                                             size: size,
+                                             color: color,
+                                             shadowOffset: pointsLayersShadowOffset) }
     }
     
     /// Create a point layer
@@ -328,7 +340,7 @@ extension OMScrollableChart {
     ///   - size: CGSize
     ///   - color: UIColor
     /// - Returns: ShapeRadialGradientLayer
-    public  func createPointLayer(_ point: CGPoint, size: CGSize, color: UIColor) -> ShapeRadialGradientLayer {
+    public  func createPointLayer(_ point: CGPoint, size: CGSize, color: UIColor, shadowOffset: CGSize) -> ShapeRadialGradientLayer {
         let circleLayer = ShapeRadialGradientLayer()
         circleLayer.bounds = CGRect(x: 0,
                                     y: 0,
@@ -343,10 +355,10 @@ extension OMScrollableChart {
         circleLayer.lineWidth = 0.5
         
         circleLayer.shadowColor = UIColor.black.cgColor
-        circleLayer.shadowOffset = pointsLayersShadowOffset
+        circleLayer.shadowOffset = shadowOffset
         circleLayer.shadowOpacity = 0.7
         circleLayer.shadowRadius = 3.0
-        circleLayer.opacity = 0.0
+        circleLayer.opacity =  0.0
         circleLayer.bounds = circleLayer.path!.boundingBoxOfPath
         
         return circleLayer
@@ -437,9 +449,10 @@ extension OMScrollableChart {
     ///   - strokeColor: UIColor
     /// - Returns: [GradientShapeLayer]
     public func createSegmentLayers(_ segmentsPaths: [UIBezierPath],
-                                    _  lineWidth: CGFloat = 1.0,
+                                    _ lineWidth: CGFloat = 0.5,
                                     _ gardientColor: UIColor = .red,
-                                    _  strokeColor: UIColor = .black) -> [ShapeLinearGradientLayer] {
+                                    _ fillColor: UIColor? = .black,
+                                    _ strokeColor: UIColor? = nil) -> [ShapeLinearGradientLayer] {
         var layers = [ShapeLinearGradientLayer]()
         for currentPointIndex in 0..<segmentsPaths.count - 1 {
             let path = segmentsPaths[currentPointIndex]
@@ -447,23 +460,23 @@ extension OMScrollableChart {
             shapeSegmentLayer.gardientColor = gardientColor
             shapeSegmentLayer.path = path.cgPath
             shapeSegmentLayer.position = path.bounds.origin
-            shapeSegmentLayer.strokeColor = strokeColor.cgColor
-            shapeSegmentLayer.fillColor = nil
+            shapeSegmentLayer.strokeColor = strokeColor?.cgColor
+            shapeSegmentLayer.fillColor = fillColor?.cgColor
             shapeSegmentLayer.lineWidth = lineWidth
             shapeSegmentLayer.anchorPoint = .zero
             shapeSegmentLayer.lineCap = .round
             shapeSegmentLayer.lineJoin = .round
-            shapeSegmentLayer.opacity = 0.0
+            shapeSegmentLayer.opacity = 1.0
             shapeSegmentLayer.bounds = shapeSegmentLayer.path!.boundingBoxOfPath
             layers.insert(shapeSegmentLayer, at: currentPointIndex)
         }
         return layers
     }
     
-    public func createSegmentLayers( _ lineWidth: CGFloat = 0.5,  _ gardientColor: UIColor = .red, _ strokeColor: UIColor = .black) -> [GradientShapeLayer] {
-        return createSegmentLayers(polylineSubpaths,
-                                   lineWidth,
-                                    gardientColor,
-                                   strokeColor)
+    public func createSegmentLayers( _ lineWidth: CGFloat = 0.5,
+                                     _ gardientColor: UIColor = .red,
+                                     _ fillColor: UIColor = .black,
+                                     _ strokeColor: UIColor? = .black) -> [GradientShapeLayer] {
+        return createSegmentLayers(polylineSubpaths, lineWidth,  gardientColor, fillColor,strokeColor)
     }
 }

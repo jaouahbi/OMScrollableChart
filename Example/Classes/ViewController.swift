@@ -33,7 +33,13 @@ public protocol RenderClientProtocol {
 }
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol, OMScrollableChartRenderableDelegateProtocol, RenderClientProtocol {
-    var selectedSegmentIndex: Int = 0
+    
+    var selectedSegmentIndex: Int = 0 {
+        didSet {
+            chart.setNeedsLayout()
+            chart.setNeedsDisplay()
+        }
+    }
     var chartPointsRandom: [Float] =  []
     
     // RenderClientProtocol
@@ -69,13 +75,16 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         return timingTable[renderIndex]
     }
     func didSelectSection(chart: OMScrollableChart, renderIndex: Int, sectionIndex: Int, layer: CALayer) {
+        print("didSelectSection \(renderIndex) section index: \(sectionIndex) name: \(String(describing: layer.name))")
         switch renderIndex {
         case 0:break
         case 1:break
         case 2:break
         case 3:break
         case 4:break
-        case 5:break
+        case 5:
+            layer.opacity = 1.0
+            break
         default: break
         }
     }
@@ -90,11 +99,9 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         switch renderIndex {
         case RenderIdent.points.rawValue:
             chart.renderSelectedPointsLayer?.position = layer.position // update selection layer.
-            
             let previousPoint = points[index]
-            selectedSegmentIndex = chart.indexForPoint(renderIndex, point: previousPoint) ?? 0
-            chart.setNeedsLayout()
-            chart.setNeedsDisplay()
+            let indexOfPOint = chart.indexForPoint(renderIndex, point: previousPoint) ?? 0
+            selectedSegmentIndex = indexOfPOint
         default:
             break
         }
@@ -165,16 +172,13 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             self.pathsToAnimate.insert(paths, at: 1)
             return layers
         case 5:
-            let strokeColor: UIColor = UIColor.paleGrey
-            let gradientColor: UIColor = UIColor.paleGreyThree
-            let layers = chart.createSegmentLayers( 0.25, gradientColor, strokeColor)
-//            } else {
-//                segmentLayers.forEach{
-//                    $0.gardientColor = gradientColor
-//                    $0.strokeColor = strokeColor.cgColor
-//                }
-//            }
-//            let layers =  segmentLayers
+            let strokeColor: UIColor = UIColor.crayolaTurquoiseBlueColor
+            let fillColor: UIColor = UIColor.greyishBlue
+            let gradientColor: UIColor = UIColor.darkGreyBlueTwo
+            let layers = chart.createSegmentLayers( chart.lineWidth,
+                                                    gradientColor,
+                                                    strokeColor.withAlphaComponent(0.88),
+                                                    fillColor)
             layers.forEach({$0.name = "line segment"})  //debug
             chart.setNeedsLayout()
             return layers
@@ -189,6 +193,10 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? { return nil }
     func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderDataType { return renderType }
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? { nil }
+    func zPositionForLayer(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat? {
+        // the last render at top
+        return CGFloat(RenderManager.shared.renders.count - renderIndex)
+    }
     func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
         opacityTable[renderIndex].rawValue
     }
@@ -200,13 +208,19 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     /// - Returns: <#description#>
     private func layerOpacityForSegmentRender( _ chart: OMScrollableChart, _ renderIndex: Int, _ layer: GradientShapeLayer) -> CGFloat? {
         let renders = RenderManager.shared.renders[renderIndex]
+        let contains: Bool = renders.layers.contains(layer)
+        print("[HHS] render: \(renderIndex) contains: \(contains), layer: \(String(describing: layer.name)) ")
         let indexOfLayer = renders.layers.index(of: layer)
-        print("[TTY] layerOpacity for render:\(renderIndex) layer: \(String(describing: layer.name)) #\(indexOfLayer ?? 0) selected: \(selectedSegmentIndex)")
+        print("[HHS] layerOpacity for render: \(renderIndex) layer: \(String(describing: layer.name)) #\(indexOfLayer ?? 0) selected: \(selectedSegmentIndex)")
         if let indexOfLayer = indexOfLayer {
             if indexOfLayer == selectedSegmentIndex {
                 if let path = layer.path {
                     let points = Path(cgPath: path).destinationPoints()
-                    chart.layersToStroke.append((layer, points))
+                    let stroker = LayerStroker(layer: layer, points: points)
+                    layer.opacity = 1.0
+                    chart.layersToStroke.append(stroker)
+                    chart.setNeedsLayout()
+                    chart.setNeedsDisplay()
                     // show it
                     return Opacity.show.rawValue
                 }

@@ -259,6 +259,17 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                        color: decorationColor.withAlphaComponent(0.24)))
         return true
     }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        if let touch = touches.first {
+            let location = touch.location(in: self)
+            let hit = hitTest(location, with: event)
+            print(hit)
+        }
+    
+    }
+    
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         if !layoutRule() { // TODO: update layout
