@@ -15,6 +15,12 @@
 import Foundation
 import UIKit
 
+public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle = Bundle.main, value: String = "", comment: String = "") -> String
+
+{
+    Foundation.NSLocalizedString(key, tableName: tableName,bundle: bundle,value: value,comment: comment)
+}
+
 enum ChartRuleType: Int {
     case leading = 0
     case footer = 1
@@ -70,26 +76,17 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
             views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
-    var leftInset: CGFloat = 16
     var ruleSize: CGSize = CGSize(width: 60, height: 0)
+    var leftInset: CGFloat = 15
     func layoutRule() -> Bool {
         guard let chart = chart else {
             return false
         }
-        labelViews.forEach{$0.removeFromSuperview()}
-        //if labelViews.isEmpty {
-//            let footerHeight: CGFloat = 60
-            let fontSize = font.pointSize
-            for (index, item) in chart.rulesPoints.enumerated() {
-//                var yPos = item.y
-//                if index > 0 {
-//                    if index < chart.rulesPoints.count - 1 {
-//                        yPos = item.y //- (footerHeight * 0.5) - (fontSize * 0.5)
-//                    } else {
-//                        yPos = item.y //+ fontSize * 0.5
-//                    }
-//                }
+        labelViews.forEach({$0.removeFromSuperview()})
+        labelViews.removeAll()
+        let fontSize: CGFloat = font.pointSize
                 
+        for (index, item) in chart.rulesPoints.enumerated() {
                 if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                     let string = NSAttributedString(string: stepString,
                                                     attributes: [NSAttributedString.Key.font: self.font,
@@ -99,13 +96,12 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
                     label.attributedText = string
                     label.sizeToFit()
                     label.frame = CGRect(x: leftInset,
-                                         y: item.y - fontSize,
+                                     y: (item.y - fontSize),
                                          width: label.bounds.width,
                                          height: label.bounds.height)
                     self.addSubview(label)
                     labelViews.append(label)
                 }
-           // }
         }
         return true
     }
@@ -164,13 +160,8 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
     var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
-        if oldFrame != frame {
-            if !layoutRule() { // TODO: update layout
-                print("Unable to create the rule layout")
-            }
-            oldFrame = frame
-            chart.layoutRules()
-            
+        if !layoutRule() { // TODO: update layout
+           // Log.print("Unable to create the rule layout",.error)
         }
     }
 }
@@ -185,8 +176,6 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var views: [UIView]? {
         return arrangedSubviews
     }
-    var borders: [UIView] = []
-    
     var footerRuleHeight: CGFloat = 30 {
         didSet {
             setNeedsLayout()
@@ -197,13 +186,14 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     required init(chart: OMScrollableChart!) {
         super.init(frame: .zero)
         self.chart = chart
+        self.alignment = .top
         backgroundColor = .clear
     }
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    var ruleSize: CGSize { return CGSize(width: 0, height: footerRuleHeight)}
-    var fontColor = UIColor.black {
+    var ruleSize: CGSize { return CGSize(width: 0, height: self.chart.footerViewHeight)}
+    var fontColor = UIColor.darkGreyBlueTwo {
         didSet {
             views?.forEach({($0 as? UILabel)?.textColor = fontColor})
         }
@@ -213,25 +203,33 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             views?.forEach({($0 as? UILabel)?.font = font})
         }
     }
-    var footerSectionsText = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"] {
+    // Sections text.
+    var footerSectionsText = [NSLocalizedString("Ene"), NSLocalizedString("Feb"), NSLocalizedString("Mar"),
+                                                                          NSLocalizedString("Abr"),
+                                                                          NSLocalizedString("May"), NSLocalizedString("Jun"), NSLocalizedString("Jul"), NSLocalizedString("Ago"), NSLocalizedString("Sep"), NSLocalizedString("Oct"), NSLocalizedString("Nov"), NSLocalizedString("Dic")] {
         didSet {
+            #if DEBUG
+            if footerSectionsText.count > 0 {
+                assert(footerSectionsText.count == Int(chart.numberOfSections))
+            }
+            #endif
             setNeedsLayout()
         }
     }
     /// Border decoration.
     var borderDecorationWidth: CGFloat = 0.5
     var decorationColor: UIColor = UIColor.darkGreyBlueTwo
+    var  borderViews = [UIView]()
     /// create rule layout
     /// - Returns: Bool
     func layoutRule() -> Bool {
         guard !self.frame.isEmpty else {
             return false
         }
-        borders.forEach({ $0.removeFromSuperview()})
-        borders = []
+        self.borderViews.forEach({ $0.removeFromSuperview()})
         self.subviews.forEach({ $0.removeFromSuperview()})
         let width  = chart.sectionWidth
-        let height = ruleSize.height
+        let height = ruleSize.height * 0.5
         let numOfSections = Int(chart.numberOfSections)
         let month = Calendar.current.dateComponents([.day, .month, .year], from: Date()).month ?? 0
         //if let month = startIndex {
@@ -245,34 +243,33 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             label.textAlignment = .center
             label.font = font
             label.sizeToFit()
-            label.backgroundColor = UIColor.white
+                label.backgroundColor = .clear
             label.textColor = fontColor
             self.addArrangedSubview(label)
             label.widthAnchor.constraint(equalToConstant: width).isActive = true
+                //label.topAnchor.constraint(equalTo: self.topAnchor).isActive = true
             label.heightAnchor.constraint(equalToConstant: height).isActive = true
-            
-            borders.append( label.setBorder(border: .right(constant: 5),
+            borderViews.append(label.setBorder(border: .right(inset: 5),
                                             weight: borderDecorationWidth,
-                                            color: decorationColor.withAlphaComponent(0.45)))
+                                color: decorationColor.withAlphaComponent(0.24)))
         }
-        
-        borders.append(self.setBorder(border: .top(constant: 10),
+       // }
+        borderViews.append(self.setBorder(border: .top(inset: 10),
                                       weight: borderDecorationWidth,
-                                      color: decorationColor.withAlphaComponent(0.45)))
+                       color: decorationColor.withAlphaComponent(0.24)))
         return true
     }
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
-        setNeedsLayout()
+        if !layoutRule() { // TODO: update layout
+           // Log.print("Unable to create the rule layout", .error)
+        }
     }
-    var oldFrame: CGRect = .zero
     override func layoutSubviews() {
         super.layoutSubviews()
-        if oldFrame != frame {
-            if !layoutRule() { // TODO: update layout
-                print("Unable to create the rule layout")
-            }
-            oldFrame = frame
+//        backgroundColor = .surfaceDark
+         if !layoutRule() { // TODO: update layout
+            //Log.print("Unable to create the rule layout" ,.error)
         }
     }
 }

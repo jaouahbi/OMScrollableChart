@@ -31,7 +31,7 @@ extension OMScrollableChart {
                       height: estimatedTooltipHeight > 0 ? estimatedTooltipHeight : 37.0)
     }
     /// Setup it
-    func setupTooltip() {
+    func configureTooltip() {
         tooltip.frame = estimatedTooltipFrame
         tooltip.alpha = tooltipAlpha
         tooltip.font = tooltipFont

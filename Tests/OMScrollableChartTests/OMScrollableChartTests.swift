@@ -34,12 +34,19 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
     var polyregress: PolynomialRegression!
     var xValues: [Double]!
     var yValues: [Double]!
+    var chart: OMScrollableChart!
     
     override func setUpWithError() throws {
         xValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         yValues = [1, 6, 17, 34, 57, 86, 121, 162, 209, 262, 321]
         
         polyregress = PolynomialRegression(xValues: xValues, yValues: yValues)
+        
+        
+        chart = OMScrollableChart(frame: CGRect(x: 0,y: 0, width: 100, height: 100))
+        chart.dataSource = self
+        chart.renderSource = self
+        chart.layoutForFrame()
     }
     
     override func tearDownWithError() throws {
@@ -51,10 +58,10 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
     }
     
     func numberOfPages(chart: OMScrollableChart) -> CGFloat {
-        2
+        4
     }
     
-    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [OMGradientShapeClipLayer] {
         []
     }
     
@@ -66,7 +73,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         nil
     }
     
-    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> OMScrollableChart.RenderType {
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderType {
         .discrete
     }
     
@@ -106,11 +113,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
     }
     
     func testChartEngine() {
-        
-        let chart = OMScrollableChart(frame: CGRect(x: 0,y: 0, width: 100, height: 100))
-        chart.dataSource = self
-        chart.renderSource = self
-        chart.layoutForFrame()
+
         
         guard let locator = chart as? RenderLocatorProtocol else {
             XCTAssert(false)
@@ -119,8 +122,8 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
 
         for currentRender in 0..<self.numberOfRenders {
             
-            let last  = chart.maxPoint(in: currentRender) ?? .zero
-            let first = chart.minPoint(in: currentRender) ?? .zero
+            let last  = chart.currentRender.data.maxPoint() ?? .zero
+            let first = chart.currentRender.data.minPoint() ?? .zero
             
             var indexFirstPoint = locator.indexForPoint(currentRender, point: first)
             let indexLastPoint  = locator.indexForPoint(currentRender, point: last)
@@ -160,13 +163,95 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         }
     }
     
+    func testStadistic() {
+        let numberOfItems = 6
+        let sizes = randomSize(bounded: UIScreen.main.bounds, numberOfItems: numberOfItems)
+        let data = randomFloat(numberOfItems, max: 10, min: 0)
+        for size in sizes {
+            
+            let test: [Float] = data //[1,2,3,4,5,6,7,8,9,10]
+            let mean = test.mean()
+            let measq = test.measq()
+            let rmsq = test.rmsq()
+            let meamg = test.meamg()
+            let sumv = test.sumv()
+            let sum = test.sum()
+            let asum = test.asum()
+            let min = test.minv()
+            let max = test.maxv()
+            let mini = test.mini()
+            let maxi = test.maxi()
+            let svesq = test.svesq()
+            let cen2 = test.centralMoment(order: 2)
+            let cen3 = test.centralMoment(order: 3)
+            let med = test.median()
+            let freq = test.frequencies()
+            let coffva = test.coefficientOfVariationSample()
+            let rankaverage = test.rank(.average)
+            let rankfirst = test.rank(.first)
+            let r3 = test.rank(.last)
+            let r4 = test.rank(.max)
+            let r5 = test.rank(.min)
+            let average = test.average()
+            let vari = test.varianceSample()
+            let varippl = test.variancePopulation()
+            let covari = test.covarianceSample(y: test)
+            let covarippl = test.covariancePopulation(y: test )
+            
+            let stdDev = test.standardDeviation()
+            let stdDevPopulation = test.standardDeviationPopulation()
+            let coffPearson = test.pearson(y: test)
+            
+           print("mean", mean,
+                 "average", average,
+                 "median", med,
+                 "measq", measq,
+                 "meamg", meamg,
+                 "stdDev", stdDev,
+                 "stdDevPPL", stdDevPopulation,
+                 "variance", vari,
+                 "variancePPL", varippl,
+                 "covariance" ,covari,
+                 "covariancePPL", covarippl,
+                 "rmsq", rmsq,
+                 "sum", sum, sumv,
+                 "asum", asum,
+                 "min", min,
+                 "index", mini,
+                 "max", max,
+                 "index", maxi,
+                 "svesq", svesq,
+                 "freq", freq,
+                 "coffva", coffva,
+                 "pearson", coffPearson,
+                 "rankaverage", rankaverage,
+                 "rankfirst", rankfirst,
+                 "r3", r3,
+                 "r4", r4,
+                 "r5", r5,
+                 "cent", cen2,cen3)
+            
+            
+//            let m2 = [1,2,3,4,5,6,7,8,9,10].mean()
+//            let m3 = [1,2,3,4,5,6,7,8,9,10].measq()
+//            let m4 = [1,2,3,4,5,6,7,8,9,10].rmsqv()
+//
+//           let ve =  chart.makeMeanVectorPoints( data: data, size: size, groping: 3)
+//           let ve2 = chart.makeMeanPoints( data: data, size: size, grouping: 3)
+//           let ve3 = chart.makeMeanCentroidPoints( data: data, size: size, grouping: 3)
+//           let ve4 = chart.makeMeanRender( data: data, size: size, grouping: 3)
+
+//            print(ve,ve2,ve3,ve4)
+        }
+    }
+    
     func testSimplification() {
         var visvalingam = [CGPoint]()
         var radial = [CGPoint]()
         var ramer = [CGPoint]()
         var decimate = [CGPoint]()
         
-        let numberOfItems = 300
+        let numberOfItems = 600
         let randomPoints  = (0..<numberOfItems).map { _ in CGPoint(x: .random(min: 0, max: UIScreen.main.bounds.size.width),
                                                                 y: .random(min: 0, max: UIScreen.main.bounds.size.height)) }
         print("#  ",
@@ -189,7 +274,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
     }
     
     func testScaledPointsGenerator() {
-        let numberOfItems = 300
+        let numberOfItems = 600
         let sizes = randomSize(bounded: UIScreen.main.bounds, numberOfItems: numberOfItems)
         let scaler = DiscreteScaledPointsGenerator()
         for size in sizes {

@@ -20,6 +20,15 @@
 import UIKit
 import Accelerate
 
+
+public struct RuleManager {
+    var rootRule: ChartRuleProtocol?
+    var footerRule: ChartRuleProtocol?
+    var topRule: ChartRuleProtocol?
+    var rules = [ChartRuleProtocol]()
+}
+
+
 /*
  [topRule]
  ---------------------
@@ -51,7 +60,6 @@ extension OMScrollableChart {
             } else {
                 self.insertSubview(rule, at: rule.type.rawValue)
             }
-            
             let width = rule.ruleSize.width > 0 ?
                 rule.ruleSize.width :
                 contentView.bounds.width
@@ -193,21 +201,20 @@ extension OMScrollableChart {
     }
     func makeRulesPoints() -> Bool {
         var generator: ScaledPointsGenerator?
-        switch renderType[Renders.polyline.rawValue] {
-        
-        
+        switch RenderManager.shared.polyline.data.dataType {
         case .discrete:
-             generator  = ScaledPointsGenerator(discreteData[Renders.polyline.rawValue]!.data,
-                                                   size: self.contentView.bounds.size)
-        case .mean(_):
-             generator  = ScaledPointsGenerator(meanData[Renders.polyline.rawValue]!.data,
-                                                   size: self.contentView.bounds.size)
-        case .approximation(_):
+             let data = RenderManager.shared.polyline.data
+            generator  = DiscreteScaledPointsGenerator(data: data.data)
+            
+        case .stadistics(_):
+             let data = RenderManager.shared.polyline.data
+            generator  = DiscreteScaledPointsGenerator(data: data.data)
+            
+        case .simplify(_,_):
             break
             
-        case .linregress(_):
+        case .regress(_):
             break
-            
         }
    
         guard numberOfRuleMarks > 0,
@@ -217,7 +224,7 @@ extension OMScrollableChart {
         }
         internalRulesMarks.removeAll()
         internalCalcRules(generator: generatorUnwarp)
-        rulesPoints = generatorUnwarp.makePoints(data: rulesMarks)
+        rulesPoints = generatorUnwarp.makePoints(data: rulesMarks, size: drawableFrame.size)
         return true
     }
     
@@ -243,25 +250,20 @@ extension OMScrollableChart {
             addDashLineLayerFromRuleMark(point: markPointLeft, endPoint: markPointRight)
         }
     }
-    
+    ///
     func layoutRules() {
         // rules lines
-        
         let oldRulesPoints = rulesPoints
         guard let leadingRule = ruleManager.rootRule else {
             return
         }
-        
         guard makeRulesPoints() else {
             return
         }
-        
         if rulesPoints == oldRulesPoints {
             return
         }
-        
         addDashLinesToMarksToVerticalRule(leadingRule)
-
         // Mark for display the rule.
         ruleManager.rules.forEach {
            _ = $0.layoutRule()

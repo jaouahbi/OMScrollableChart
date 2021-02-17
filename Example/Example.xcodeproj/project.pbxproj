@@ -11,34 +11,12 @@
 		7D226A812384C3510074C44E /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D226A802384C3510074C44E /* ViewController.swift */; };
 		7D226A842384C3510074C44E /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A822384C3510074C44E /* Main.storyboard */; };
 		7D226A862384C3550074C44E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A852384C3550074C44E /* Assets.xcassets */; };
-		D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1037ADA255A012A0019E50A /* OMScrollableChart.framework */; };
 		D125876E2558A34600FE25F3 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D125876D2558A34600FE25F3 /* TestUtils.swift */; };
 		D192CD24254AB4230047FBFB /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */; };
-		D1C2CBF1255B2FD1007C3F77 /* LibControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */; };
+		D1D16D7325DC5637007FEDD3 /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1D16D4025DC559E007FEDD3 /* OMScrollableChart.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		D1037AD9255A012A0019E50A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart::Product";
-			remoteInfo = OMScrollableChart;
-		};
-		D1037ADB255A012A0019E50A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = "OMScrollableChart::OMScrollableChartTests::Product";
-			remoteInfo = OMScrollableChartTests;
-		};
-		D1037AE3255A01350019E50A /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart";
-			remoteInfo = OMScrollableChart;
-		};
 		D192CCF4254AB1D10047FBFB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 7D226A712384C3510074C44E /* Project object */;
@@ -46,26 +24,26 @@
 			remoteGlobalIDString = 7D226A782384C3510074C44E;
 			remoteInfo = Example;
 		};
-		D1C2CBE0255B2FBA007C3F77 /* PBXContainerItemProxy */ = {
+		D1D16D3F25DC559E007FEDD3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			containerPortal = D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = "LibControl::LibControl::Product";
-			remoteInfo = LibControl;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart::Product";
+			remoteInfo = OMScrollableChart;
 		};
-		D1C2CBE2255B2FBA007C3F77 /* PBXContainerItemProxy */ = {
+		D1D16D4125DC559E007FEDD3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			containerPortal = D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = "LibControl::LibControlTests::Product";
-			remoteInfo = LibControlTests;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChartTests::Product";
+			remoteInfo = OMScrollableChartTests;
 		};
-		D1C2CBEF255B2FCC007C3F77 /* PBXContainerItemProxy */ = {
+		D1D16D7125DC5633007FEDD3 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
+			containerPortal = D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = "LibControl::LibControl";
-			remoteInfo = LibControl;
+			remoteGlobalIDString = "OMScrollableChart::OMScrollableChart";
+			remoteInfo = OMScrollableChart;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -78,13 +56,12 @@
 		7D226A8A2384C3550074C44E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleUITests.swift; sourceTree = "<group>"; };
 		7DBAA404253A7FF9000EE535 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OMScrollableChart.xcodeproj; path = ../OMScrollableChart.xcodeproj; sourceTree = "<group>"; };
 		D125876D2558A34600FE25F3 /* TestUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		D192CCC5254AA6090047FBFB /* run-sonar-swift.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = "run-sonar-swift.sh"; sourceTree = "<group>"; };
 		D192CCC6254AA6090047FBFB /* runcov.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = runcov.sh; sourceTree = "<group>"; };
 		D192CCC7254AA6090047FBFB /* sonar-project.properties */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "sonar-project.properties"; sourceTree = "<group>"; };
 		D192CCEF254AB1D10047FBFB /* ExampleUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LibControl.xcodeproj; path = ../../LibControl/LibControl.xcodeproj; sourceTree = "<group>"; };
+		D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OMScrollableChart.xcodeproj; path = ../OMScrollableChart.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,8 +69,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D1C2CBF1255B2FD1007C3F77 /* LibControl.framework in Frameworks */,
-				D1037AE6255A013C0019E50A /* OMScrollableChart.framework in Frameworks */,
+				D1D16D7325DC5637007FEDD3 /* OMScrollableChart.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -110,8 +86,7 @@
 		7D226A702384C3510074C44E = {
 			isa = PBXGroup;
 			children = (
-				D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */,
-				D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */,
+				D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */,
 				D192CCC5254AA6090047FBFB /* run-sonar-swift.sh */,
 				D192CCC6254AA6090047FBFB /* runcov.sh */,
 				D192CCC7254AA6090047FBFB /* sonar-project.properties */,
@@ -153,15 +128,6 @@
 			path = ExampleUITests;
 			sourceTree = "<group>";
 		};
-		D1037AD3255A012A0019E50A /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				D1037ADA255A012A0019E50A /* OMScrollableChart.framework */,
-				D1037ADC255A012A0019E50A /* OMScrollableChartTests.xctest */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		D1037AE5255A013C0019E50A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -169,11 +135,11 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		D1C2CBDA255B2FB9007C3F77 /* Products */ = {
+		D1D16D3725DC559E007FEDD3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */,
-				D1C2CBE3255B2FBA007C3F77 /* LibControlTests.xctest */,
+				D1D16D4025DC559E007FEDD3 /* OMScrollableChart.framework */,
+				D1D16D4225DC559E007FEDD3 /* OMScrollableChartTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -192,8 +158,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				D1C2CBF0255B2FCC007C3F77 /* PBXTargetDependency */,
-				D1037AE4255A01350019E50A /* PBXTargetDependency */,
+				D1D16D7225DC5633007FEDD3 /* PBXTargetDependency */,
 			);
 			name = Example;
 			packageProductDependencies = (
@@ -255,12 +220,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = D1C2CBDA255B2FB9007C3F77 /* Products */;
-					ProjectRef = D1C2CBD9255B2FB9007C3F77 /* LibControl.xcodeproj */;
-				},
-				{
-					ProductGroup = D1037AD3255A012A0019E50A /* Products */;
-					ProjectRef = D1037AD2255A012A0019E50A /* OMScrollableChart.xcodeproj */;
+					ProductGroup = D1D16D3725DC559E007FEDD3 /* Products */;
+					ProjectRef = D1D16D3625DC559E007FEDD3 /* OMScrollableChart.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -272,32 +233,18 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		D1037ADA255A012A0019E50A /* OMScrollableChart.framework */ = {
+		D1D16D4025DC559E007FEDD3 /* OMScrollableChart.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = OMScrollableChart.framework;
-			remoteRef = D1037AD9255A012A0019E50A /* PBXContainerItemProxy */;
+			remoteRef = D1D16D3F25DC559E007FEDD3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		D1037ADC255A012A0019E50A /* OMScrollableChartTests.xctest */ = {
+		D1D16D4225DC559E007FEDD3 /* OMScrollableChartTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = OMScrollableChartTests.xctest;
-			remoteRef = D1037ADB255A012A0019E50A /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D1C2CBE1255B2FBA007C3F77 /* LibControl.framework */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.framework;
-			path = LibControl.framework;
-			remoteRef = D1C2CBE0255B2FBA007C3F77 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		D1C2CBE3255B2FBA007C3F77 /* LibControlTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = file;
-			path = LibControlTests.xctest;
-			remoteRef = D1C2CBE2255B2FBA007C3F77 /* PBXContainerItemProxy */;
+			remoteRef = D1D16D4125DC559E007FEDD3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -343,20 +290,15 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		D1037AE4255A01350019E50A /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = OMScrollableChart;
-			targetProxy = D1037AE3255A01350019E50A /* PBXContainerItemProxy */;
-		};
 		D192CCF5254AB1D10047FBFB /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 7D226A782384C3510074C44E /* Example */;
 			targetProxy = D192CCF4254AB1D10047FBFB /* PBXContainerItemProxy */;
 		};
-		D1C2CBF0255B2FCC007C3F77 /* PBXTargetDependency */ = {
+		D1D16D7225DC5633007FEDD3 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = LibControl;
-			targetProxy = D1C2CBEF255B2FCC007C3F77 /* PBXContainerItemProxy */;
+			name = OMScrollableChart;
+			targetProxy = D1D16D7125DC5633007FEDD3 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

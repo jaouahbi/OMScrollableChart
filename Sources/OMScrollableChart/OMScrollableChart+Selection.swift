@@ -29,62 +29,84 @@ extension OMScrollableChart {
     ///   - point: point
     func selectNearestRenderLayer(_ renderIndex: Int, point: CGPoint ) {
         /// Select the last point if the render is not hidden.
-        guard let layer = locationToLayer(renderIndex,
-                                              location: point,
-                                              mostNearLayer: true)
-        else {
+        selectNearestRenderLayer( RenderManager.shared.renders[renderIndex], point: point)
+    }
+    
+    func selectNearestRenderLayer(_ render: BaseRender, point: CGPoint ) {
+        /// Select the last point if the render is not hidden.
+      
+        guard let layer = render.locationToLayer(point) else {
             return
         }
-        self.selectRenderLayerWithAnimation(layer,
-                                            selectedPoint: point,
-                                            renderIndex: renderIndex)
+        self.selectRenderLayerWithAnimation(render,
+                                            layer,
+                                            point)
     }
+    
+    
     /// selectRenderLayer
     /// - Parameters:
     ///   - layer: layer
     ///   - renderIndex: Int
-    func selectRenderLayers(except layer: OMGradientShapeClipLayer, renderIndex: Int) {
-        let allUnselectedRenderLayers = self.renderLayers[renderIndex].filter { $0 != layer }
-        print("allUnselectedRenderLayers = \(allUnselectedRenderLayers.count)")
-        allUnselectedRenderLayers.forEach { (layer: OMGradientShapeClipLayer) in
+    func selectRenderLayers(render: BaseRender, layer: OMGradientShapeClipLayer) -> OMGradientShapeClipLayer {
+        let unselected = render.allOtherLayers(layer: layer)
+        print("allUnselectedRenderLayers = \(unselected.count)")
+        unselected.forEach { (layer: OMGradientShapeClipLayer) in
             layer.gardientColor = self.unselectedColor
             layer.opacity = self.unselectedOpacy
         }
         layer.gardientColor = self.selectedColor
         layer.opacity = self.selectedOpacy
+        print("Selected Render Layers = \(layer.name)")
+        return layer
     }
 
     /// Get the layer in the point using render
-    /// - Parameters:
+    /// - Parameters:v
     ///   - location: CGPoint
     ///   - renderIndex: renderIndex
     ///   - mostNearLayer: Bool
     /// - Returns: OMGradientShapeClipLayer
-    func locationToLayer(_ renderIndex: Int, location: CGPoint, mostNearLayer: Bool = true) -> OMGradientShapeClipLayer? {
-        let mapped = renderLayers[renderIndex].map {
-            $0.frame.origin.distance(from: location)
-        }
-        if mostNearLayer {
-            guard let index = mapped.indexOfMin else {
-                return nil
-            }
-            return renderLayers[renderIndex][index]
-        } else {
-            guard let index = mapped.indexOfMax else {
-                return nil
-            }
-            return renderLayers[renderIndex][index]
-        }
-    }
+//    func locationToLayer(_ renderIndex: Int, location: CGPoint, mostNearLayer: Bool = true) -> OMGradientShapeClipLayer? {
+//
+//        let xlayers = RenderManager.shared.layers[renderIndex]
+//        let mapped = xlayers.map {  (layer: CALayer) in
+//            layer.frame.origin.distance(location)
+//        }
+//        if mostNearLayer {
+//            guard let index = mapped.mini else {
+//                return nil
+//            }
+//            return xlayers[index]
+//        } else {
+//            guard let index = mapped.maxi else {
+//                return nil
+//            }
+//            return xlayers[index]
+//        }
+//    }
     
     /// hitTestAsLayer
-    /// - Parameter location: <#location description#>
+    /// - Parameter location: location description
     /// - Returns: CALayer
     func hitTestAsLayer(_ location: CGPoint) -> CALayer? {
         if let layer = contentView.layer.hitTest(location) { // If you hit a layer and if its a Shapelayer
             return layer
         }
         return nil
+    }
+    
+    func performFooterRuleAnimation(_ sectionIndex: Int) -> Bool {
+        guard numberOfSections > 0 else {
+            return false
+        }
+        if let footer = ruleManager.footerRule as? OMScrollableChartRuleFooter,
+           let sectionsViews = footer.views {
+            print("circular section index", sectionIndex % numberOfSections)
+            // shake section view at safe index
+            sectionsViews[sectionIndex % numberOfSections].shakeGrow(duration: 1.0)
+        }
+        return true
     }
     
     /// didSelectedRenderLayerIndex
@@ -94,12 +116,13 @@ extension OMScrollableChart {
     ///   - dataIndex: Int
     func didSelectedRenderLayerSection(_ renderIndex: Int, sectionIndex: Int, layer: CALayer) {
         // lets animate the footer rule
-        if let footer = ruleManager.footerRule as? OMScrollableChartRuleFooter, let views = footer.views {
-            print("circular section index", sectionIndex % numberOfSections)
-            // shake section
-            views[sectionIndex % numberOfSections].shakeGrow(duration: 1.0)
+        if isFooterRuleAnimated {
+            if !performFooterRuleAnimation(sectionIndex) {
+                print("Unable to animate section \(sectionIndex) render: \(renderIndex) layer: \(layer.name ?? "unnamed")")
+            }
         }
-        renderDelegate?.didSelectSection(chart: self,
+        guard let delegate = renderDelegate else {return }
+        delegate.didSelectSection(chart: self,
                                          renderIndex: renderIndex,
                                          sectionIndex: sectionIndex,
                                          layer: layer)
@@ -107,17 +130,28 @@ extension OMScrollableChart {
     
     /// didSelectedRenderLayerIndex
     /// - Parameters:
-    ///   - renderIndex: <#renderIndex description#>
-    ///   - dataIndex: <#dataIndex description#>
-    ///   - layer: <#layer description#>
+    ///   - renderIndex: renderIndex description
+    ///   - dataIndex: dataIndex description
+    ///   - layer: layer description
     func didSelectedRenderLayerIndex(_ renderIndex: Int, dataIndex: Int, layer: CALayer) {
-        assert(renderIndex < renderType.count)
+        assert(renderIndex < RenderManager.shared.renders.count)
         renderDelegate?.didSelectDataIndex(chart: self,
                                            renderIndex: renderIndex,
                                            dataIndex: dataIndex,
                                            layer: layer)
     }
-
+    fileprivate func calculateManually(_ render: BaseRender, _ dataIndex: Int, _ dataSection: String, _ layerPoint: OMGradientShapeClipLayer) {
+        // then calculate manually
+        let amount: Double = Double(render.data.data[dataIndex])
+        if let dataString = currencyFormatter.string(from: NSNumber(value: amount)) {
+            tooltip.string = "\(dataSection) \(dataString)"
+        } else if let string = dataStringFromPoint(render.index, point: layerPoint.position) {
+            tooltip.string = "\(dataSection) \(string)"
+        } else {
+            print("FIXME: unexpected render | data \(render.index) | \(dataIndex)")
+        }
+    }
+    
     /// Build the tooltip text to show.
     /// - Parameters:
     ///   - renderIndex: Index
@@ -126,7 +160,7 @@ extension OMScrollableChart {
     ///   - layerPoint: layer point
     ///   - selectedPoint: selected point
     ///   - duration: TimeInterval
-    private func buildTooltipText(_ renderIndex: Int,
+    private func buildTooltipText(_ render: BaseRender,
                                   _ dataIndex: Int,
                                   _ tooltipPosition: inout CGPoint,
                                   _ layerPoint: OMGradientShapeClipLayer,
@@ -135,42 +169,28 @@ extension OMScrollableChart {
     {
         // grab the tool tip text
         let tooltipText = dataSource?.dataPointTootipText(chart: self,
-                                                          renderIndex: renderIndex,
+                                                          renderIndex: render.index,
                                                           dataIndex: dataIndex,
                                                           section: 0)
-        // grab the section
+        // grab the section string
         let dataSection = dataSource?.dataSectionForIndex(chart: self,
                                                           dataIndex: dataIndex,
                                                           section: 0) ?? ""
         tooltipPosition = CGPoint(x: layerPoint.position.x, y: selectedPoint.y)
         
         if let tooltipText = tooltipText { // the dataSource was priority
+            // set the data source text
             tooltip.string = "\(dataSection) \(tooltipText)"
-            tooltip.displayTooltip(tooltipPosition, duration: duration)
         } else {
-            // then calculate manually
-            let amount = Double(renderDataPoints[renderIndex][dataIndex])
-            if let dataString = currencyFormatter.string(from: NSNumber(value: amount)) {
-                tooltip.string = "\(dataSection) \(dataString)"
-            } else if let string = dataStringFromPoint(renderIndex, point: layerPoint.position) {
-                tooltip.string = "\(dataSection) \(string)"
-            } else {
-                print("FIXME: unexpected render | data \(renderIndex) | \(dataIndex)")
-            }
-            tooltip.displayTooltip(tooltipPosition, duration: duration)
+            // calculate manually
+            calculateManually(render, dataIndex, dataSection, layerPoint)
+            
+            print("displaying tooltip: \(String(describing: tooltip.string)) at \(tooltipPosition)")
         }
+        tooltip.displayTooltip(tooltipPosition,
+                               duration: duration)
     }
     
-    private func notifySectionSelection(_ renderIndex: Int, _ dataIndex: Int, _ layerPoint: OMGradientShapeClipLayer) {
-        let pointPerSectionRelation = self.renderResolution(with: renderType[renderIndex], renderIndex: renderIndex)
-        let sectionIndex: Int = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
-       // print("Selected section: \(Int(sectionIndex)) \((footerRule?.views?[sectionIndex] as? UILabel)?.text)")
-        
-        // notify the section selection
-        self.didSelectedRenderLayerSection( renderIndex,
-                                           sectionIndex: Int(sectionIndex),
-                                           layer:layerPoint)
-    }
     /// Show tooltip
     /// - Parameters:
     ///   - layerPoint: OMGradientShapeClipLayer
@@ -178,8 +198,11 @@ extension OMScrollableChart {
     ///   - selectedPoint: CGPoint
     ///   - animation: Bool
     ///   - duration: TimeInterval
-    private func selectionShowTooltip( _ layerPoint: OMGradientShapeClipLayer,
-                                       _ renderIndex: Int,
+    ///   - render: render
+    ///   - dataIndex: <#dataIndex description#>
+    private func selectionShowTooltip( _ render: BaseRender,
+                                       _ layerPoint: OMGradientShapeClipLayer,
+                                       _ dataIndex: Int? = nil,
                                        _ selectedPoint: CGPoint,
                                        _ animation: Bool,
                                        _ duration: TimeInterval) {
@@ -189,24 +212,19 @@ extension OMScrollableChart {
             tooltipPositionFix = layerPoint.position
         }
         // Get the selection data index
-        if let dataIndex = dataIndexFromPoint( renderIndex, point: layerPoint.position) {
-            print("Selected data point index: \(dataIndex) type: \(renderType[renderIndex])")
-            // notify the data index selection
-            self.didSelectedRenderLayerIndex( renderIndex, dataIndex: Int(dataIndex), layer: layerPoint)
-            self.notifySectionSelection(renderIndex,
-                                        dataIndex,
-                                        layerPoint)
+        if let dataIndex = dataIndex {
             // Create the text and show the
-            self.buildTooltipText(renderIndex,
+            self.buildTooltipText(render,
                                   dataIndex,
                                   &tooltipPosition,
                                   layerPoint,
                                   selectedPoint,
                                   duration)
         }
+        
         if animation {
-            let distance = tooltipPositionFix.distance(from: tooltipPosition)
-            let factor = TimeInterval(1 / (self.contentView.bounds.size.height / distance))
+            let distance = tooltipPositionFix.distance(tooltipPosition)
+            let factor = TimeInterval(1.0 / (self.contentView.bounds.size.height / distance))
             let after: TimeInterval = 0.5
             DispatchQueue.main.asyncAfter(deadline: .now() + after) {
                 self.tooltip.moveTooltip(tooltipPositionFix,
@@ -215,57 +233,100 @@ extension OMScrollableChart {
         }
     }
     
+    func zoomRectForScale(scale: CGFloat, center: CGPoint) -> CGRect {
+        var zoomRect = CGRect.zero
+        zoomRect.size.height = contentView.frame.size.height / scale
+        zoomRect.size.width = contentView.frame.size.width / scale
+        let newCenter = contentView.convert(center, from: self)
+        zoomRect.origin.x = newCenter.x - (zoomRect.size.width / 2.0)
+        zoomRect.origin.y = newCenter.y - (zoomRect.size.height / 2.0)
+        return zoomRect
+    }
+    
+    func performZoomOnSelection(_ selectedPoint: CGPoint, _ animation: Bool, _ duration: TimeInterval) {
+        if zoomScale == 1 {
+            CATransaction.begin()
+            CATransaction.setAnimationDuration(1.0)
+            CATransaction.setCompletionBlock( {
+                CATransaction.setAnimationDuration(duration)
+                let scale = CATransform3DMakeScale(self.maximumZoomScale, self.maximumZoomScale, 1)
+                self.zoom(to: self.zoomRectForScale(scale: self.maximumZoomScale, center: selectedPoint), animated: true)
+                //self.footerRule?.views?.forEach{$0.layer.transform = scale}
+                
+                
+                //                    self.oldFooterTransform3D = self.footerRule?.transform ?? .init()
+                //                    self.oldRootTransform3D = self.rootRule?.transform3D ?? .init()
+                //                    self.footerRule?.transform3D = scale
+                //                    self.rootRule?.transform3D  = scale
+                
+                
+                //self.zoom(toPoint: selectedPoint, scale: 2.0, animated: true)
+            })
+            CATransaction.commit()
+        }
+    }
+
     /// selectRenderLayerWithAnimation
     /// - Parameters:
     ///   - layerPoint: OMGradientShapeClipLayer
     ///   - selectedPoint: CGPoint
     ///   - animation: Bool
     ///   - renderIndex: Int
-    func selectRenderLayerWithAnimation(_ layerPoint: OMGradientShapeClipLayer,
-                                        selectedPoint: CGPoint,
-                                        animation: Bool = false,
-                                        renderIndex: Int,
-                                        duration: TimeInterval = 0.5) {
-        CATransaction.setAnimationDuration(duration)
-        CATransaction.begin()
-    
+    func selectRenderLayerWithAnimation(_ render: BaseRender,
+                                        _ layerPoint: OMGradientShapeClipLayer,
+                                        _ selectedPoint: CGPoint,
+                                        _ animation: Bool = false,
+                                        
+                                        _ duration: TimeInterval = 0.5) {
+        let needAnimation: Bool = showPointsOnSelection || animateOnRenderLayerSelection || animation
+        if needAnimation {
+            CATransaction.setAnimationDuration(duration)
+            CATransaction.begin()
+        }
         if showPointsOnSelection {
-            self.selectRenderLayers(except: layerPoint, renderIndex: renderIndex)
+            let selectedRenderLayer = selectRenderLayers( render: render, layer: layerPoint)
+            print("selectedRenderLayer = \(selectedRenderLayer)")
         }
         if animateOnRenderLayerSelection, layerPoint.opacity > 0, animation {
-            self.animateOnRenderLayerSelection(layerPoint, renderIndex: renderIndex, duration: duration)
+            self.animateOnRenderLayerSelection(render, layerPoint,  duration)
         }
-        if showTooltip {
-            self.selectionShowTooltip( layerPoint,
-                                      renderIndex,
-                                      selectedPoint,
-                                      animation,
-                                      duration)
-        }
-    
-        if zoomIsActive {
-            if zoomScale == 1 {
-                CATransaction.begin()
-                CATransaction.setAnimationDuration(1.0)
-                CATransaction.setCompletionBlock( {
-                    CATransaction.setAnimationDuration(duration)
-                    let scale = CATransform3DMakeScale(self.maximumZoomScale, self.maximumZoomScale, 1)
-                    self.zoom(to: self.zoomRectForScale(scale: self.maximumZoomScale, center: selectedPoint), animated: true)
-                    //self.footerRule?.views?.forEach{$0.layer.transform = scale}
-                    
-                    
-//                    self.oldFooterTransform3D = self.footerRule?.transform ?? .init()
-//                    self.oldRootTransform3D = self.rootRule?.transform3D ?? .init()
-//                    self.footerRule?.transform3D = scale
-//                    self.rootRule?.transform3D  = scale
-                    
-                    
-                    //self.zoom(toPoint: selectedPoint, scale: 2.0, animated: true)
-                })
-                CATransaction.commit()
+        let selectionDataIndexFromPointLayerLocation = render.data.index(from: layerPoint.position)
+        // Get the selection data index
+        if let dataIndex = selectionDataIndexFromPointLayerLocation {
+            let sectionIndex = sectionFromPoint(renderIndex: render.index, layer: layerPoint)
+            if sectionIndex != Index.bad.rawValue {
+                print("Selected data point index: \(dataIndex) section: \(sectionIndex) type: \(render.data.dataType)")
+                // notify and animate footer if the animation is actived
+                self.didSelectedRenderLayerSection( render.index,
+                                                   sectionIndex: Int(sectionIndex),
+                                                   layer: layerPoint)
+            } else {
+                print("Selected data point index: \(dataIndex) type: \(render.data.dataType)")
+                // notify the data index selection.
+                self.didSelectedRenderLayerIndex( render.index,
+                                                  dataIndex: Int(dataIndex),
+                                                  layer: layerPoint)
             }
         }
-        CATransaction.commit()
+        // Show tooltip
+        if showTooltip {
+            self.selectionShowTooltip(       render,layerPoint,
+                                 
+                                       selectionDataIndexFromPointLayerLocation,
+                                       selectedPoint,
+                                       animation,
+                                       duration)
+        }
+        
+        if zoomIsActive {
+            self.performZoomOnSelection(selectedPoint,
+                                        animation,
+                                        duration)
+        }
+        
+        if needAnimation {
+            CATransaction.commit()
+        }
     }
     /// locationFromTouchInContentView
     /// - Parameter touches: Set<UITouch>

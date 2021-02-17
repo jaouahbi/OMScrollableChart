@@ -10,15 +10,24 @@ import UIKit
 public protocol RenderLocatorProtocol {
     func dataIndexFromPointInLayer(_ renderIndex: Int, point: CGPoint) -> Int?
     func dataIndexFromPoint(_ renderIndex: Int, point: CGPoint) -> Int?
-    func dataFromPoint( _ renderIndex: Int, point: CGPoint) -> Float?
+    func dataFromPoint(_ renderIndex: Int, point: CGPoint) -> Float?
     func dataStringFromPoint(_ renderIndex: Int, point: CGPoint) -> String?
     func indexForPoint(_ renderIndex: Int, point: CGPoint) -> Int?
     func pointFromIndex(_ renderIndex: Int, index: Int) -> CGPoint?
 }
 
+
+public enum Index: Int {
+    case bad = -1
+}
+
+
 // MARK: - RenderLocatorProtocol -
+
 extension OMScrollableChart: RenderLocatorProtocol {
-    
+
+
+
     /// Get  render point from index.
     /// - Parameters:
     ///   - renderIndex: Render index
@@ -26,10 +35,9 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: CGPoint or nil if point not found
     public func pointFromIndex(_ renderIndex: Int, index: Int) -> CGPoint? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        assert(index < pointsRender[renderIndex].count)
-        
-        return pointsRender[renderIndex][index]
+        return RenderManager.shared.renders[renderIndex].data.point(withIndex: index)
     }
+
     /// indexForPoint
     /// - Parameters:
     ///   - point: CGPoint
@@ -37,17 +45,19 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: Int?
     public func indexForPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        switch self.renderType[renderIndex] {
+        let render = RenderManager.shared.renders[renderIndex].data
+        switch render.dataType {
         case .discrete:
-            return discreteData[renderIndex]?.points.map { $0.distance(from: point) }.indexOfMin
-        case .mean:
-            return meanData[renderIndex]?.points.map { $0.distance(from: point) }.indexOfMin
-        case .approximation:
-            return approximationData[renderIndex]?.points.map { $0.distance(from: point) }.indexOfMin
-        case .linregress:
-            return linregressData[renderIndex]?.points.map { $0.distance(from: point) }.indexOfMin
+            return render.index(from: point)
+        case .stadistics:
+            return render.index(from: point)
+        case .simplify:
+            return render.index(from: point)
+        case .regress:
+            return render.index(from: point)
         }
     }
+
     /// dataStringFromPoint
     /// - Parameters:
     ///   - point: CGPoint
@@ -56,45 +66,64 @@ extension OMScrollableChart: RenderLocatorProtocol {
     
     public func dataStringFromPoint(_ renderIndex: Int, point: CGPoint) -> String? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        switch self.renderType[renderIndex] {
-        case .mean:
-            if let render = meanData[renderIndex],
-               let firstIndex = indexForPoint( renderIndex, point: point)
-            {
-                let item = Double(render.data[firstIndex])
-                if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
-                    return currentStep
-                }
+        let render = RenderManager.shared.renders[renderIndex].data
+        switch render.dataType {
+        case .stadistics:
+            if let firstIndex = render.index(from: point) {
+                let item = render.data[firstIndex]
+                    if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
+                        return currentStep
+                    }
+                
             }
         case .discrete:
-            if let render = discreteData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point)
-            {
-                let item = Double(render.data[firstIndex])
-                if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
-                    return currentStep
-                }
+            if let firstIndex = render.points.firstIndex(of: point) {
+                let item = render.data[firstIndex]
+                    if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
+                        return currentStep
+                    }
+                
             }
-        case .approximation:
-            if let render = approximationData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point)
-            {
-                let item = Double(render.data[firstIndex])
-                if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
-                    return currentStep
-                }
+        case .simplify:
+            if let firstIndex = render.points.firstIndex(of: point) {
+                 let item = render.data[firstIndex]
+                    if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
+                        return currentStep
+                    }
+                
             }
-        case .linregress:
-            if let render = linregressData[renderIndex],
-                let firstIndex = render.points.firstIndex(of: point)
-            {
-                let item = Double(render.data[firstIndex])
-                if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
-                    return currentStep
-                }
+        case .regress:
+            if let firstIndex = render.points.firstIndex(of: point) {
+                 let item = render.data[firstIndex]
+                    if let currentStep = numberFormatter.string(from: NSNumber(value: item)) {
+                        return currentStep
+                    }
+                
             }
         }
         return nil
+    }
+    /// Make raw discrete points
+    /// - Parameters:
+    ///   - data: Data
+    ///   - size: CGSize
+    /// - Returns: Array of discrete CGPoint
+//    func makeRawPoints(_ data: [Float], size: CGSize) -> [CGPoint] {
+//        assert(size != .zero)
+//        assert(!data.isEmpty)
+//        return DiscreteScaledPointsGenerator(data: data).makePoints(data: data, size: size)
+//    }
+//
+//    internal var renderSourceNumberOfRenders: Int {
+//        if let render = renderSource {
+//            return render.numberOfRenders
+//        }
+//        return 0
+//    }
+    
+    public func dataFromPoint(_ renderIndex: Int, point: CGPoint) -> Float? {
+        let data = RenderManager.shared.renders[renderIndex].data
+        return dataFromPoint(data, point: point)
     }
     
     /// dataFromPoint
@@ -103,38 +132,59 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - renderIndex: Index
     /// - Returns: Float?
     
-    public func dataFromPoint( _ renderIndex: Int, point: CGPoint) -> Float? {
-        assert(renderIndex < renderSourceNumberOfRenders)
-        switch self.renderType[renderIndex] {
+    public func dataFromPoint(_ renderData: DataRender, point: CGPoint) -> Float? {
+        switch renderData.dataType {
         case .discrete:
-            if let render = self.discreteData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return render.data[firstIndex]
-                }
+            if let firstIndex = renderData.points.firstIndex(of: point) {
+                return renderData.data[firstIndex]
             }
-        case .mean:
-            if let render = self.meanData[renderIndex] {
-                if let firstIndex = indexForPoint( renderIndex, point: point) {
-                    return render.data[firstIndex]
-                }
+        case .stadistics:
+            if let firstIndex = renderData.points.map({ $0.distance(point) }).mini {
+                return renderData.data[firstIndex]
             }
-        case .approximation:
-            if let render = self.approximationData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return render.data[firstIndex]
-                }
+        case .simplify:
+            if let firstIndex = renderData.points.firstIndex(of: point) {
+                return renderData.data[firstIndex]
             }
-        case .linregress:
-            if let render = self.linregressData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return render.data[firstIndex]
-                }
+        case .regress:
+            if let firstIndex = renderData.points.firstIndex(of: point) {
+                return renderData.data[firstIndex]
             }
         }
         return nil
         // return dataIndexFromLayers(point, renderIndex: renderIndex)
     }
     
+
+    func renderResolution( with type: RenderType, renderIndex: Int) -> Double {
+        let render = RenderManager.shared.renders[renderIndex].data
+        return Double(render.data.count) / Double(numberOfSections)
+    }
+    func sectionFromPoint(renderIndex: Int, layer: CALayer) -> Int {
+        let data = RenderManager.shared.renders[renderIndex].data
+        let dataIndexLayer = dataIndexFromPoint(renderIndex, point: layer.position)
+        // Get the selection data index
+        if let dataIndex = dataIndexLayer {
+            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
+            let pointPerSectionRelation = floor(renderResolution(with: data.dataType, renderIndex: renderIndex))
+            let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
+            print(
+                """
+                Render index: \(Int(renderIndex))
+                Data index: \(Int(dataIndex))
+
+                Point to section relation \(pointPerSectionRelation)
+                Section index: \(Int(sectionIndex))
+                """)
+            
+            return sectionIndex
+        }
+        
+        return Index.bad.rawValue
+    }
+    
+    //   \((ruleManager.footerRule?.views?[sectionIndex] as? UILabel)?.text ?? "")
+
     /// dataIndexFromPoint
     /// - Parameters:
     ///   - point: CGPoint
@@ -143,29 +193,30 @@ extension OMScrollableChart: RenderLocatorProtocol {
     
     public func dataIndexFromPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        switch self.renderType[renderIndex] {
+        let render = RenderManager.shared.renders[renderIndex].data
+        switch render.dataType {
         case .discrete:
-            if let render = discreteData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return firstIndex
-                }
-            }
-        case .mean:
-            if let firstIndex = indexForPoint( renderIndex, point: point) {
+            // if let render = RenderManager.shared.renders[renderIndex] {
+            if let firstIndex = render.points.firstIndex(of: point) {
                 return firstIndex
             }
-        case .approximation:
-            if let render = self.approximationData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return firstIndex
-                }
+        // }
+        case .stadistics:
+            if let firstIndex = render.index(from :point) {
+                return firstIndex
             }
-        case .linregress:
-            if let render = self.linregressData[renderIndex] {
-                if let firstIndex = render.points.firstIndex(of: point) {
-                    return firstIndex
-                }
+        case .simplify:
+            // if let render = RenderManager.shared.renders[renderIndex] {
+            if let firstIndex = render.points.firstIndex(of: point) {
+                return firstIndex
             }
+        // }
+        case .regress:
+            // if let render = RenderManager.shared.renders[renderIndex] {
+            if let firstIndex = render.points.firstIndex(of: point) {
+                return firstIndex
+            }
+            // }
         }
         return nil // dataIndexFromLayers(point, renderIndex: renderIndex)
     }
@@ -177,19 +228,20 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: Int?
     public func dataIndexFromPointInLayer(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        switch self.renderType[renderIndex] {
-        case .mean(_):
+        let render = RenderManager.shared.renders[renderIndex]
+        let data = render.data
+        switch data.dataType {
+        case .stadistics:
             if let firstIndex = indexForPoint(renderIndex, point: point) {
                 return firstIndex
             }
-        case .approximation(_), .linregress(_), .discrete:
-            if let layersPathContains = renderLayers[renderIndex].filter({
+        case .simplify(_,_), .regress(_), .discrete:
+            if let layersPathContains = render.layers.filter({
                 $0.path!.contains(point)
             }).first {
-                return renderLayers[renderIndex].firstIndex(of: layersPathContains)
+                return render.layers.firstIndex(of: layersPathContains)
             }
         }
         return nil
     }
-    
 }
