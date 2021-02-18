@@ -234,7 +234,7 @@ extension OMScrollableChart {
     /// Polyline UIBezierPath
     /// TODO: cache???
     public var polylinePath: UIBezierPath? {
-        let polylinePoints = RenderManager.shared.polyline.data.points
+        let polylinePoints = engine.renders[RenderIdent.polyline.rawValue].data.points
         guard  let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
             print("Unexpected empty polylinePath (UIBezierPath).")
             return nil
@@ -284,7 +284,7 @@ extension OMScrollableChart {
             return
         }
         // get the data points
-        let render = RenderManager.shared.renders[renderIndex]
+        let render = engine.renders[renderIndex]
         switch renderAs {
         case .discrete:
             self.makeDiscreteScalePointsAndLayers(render, size)

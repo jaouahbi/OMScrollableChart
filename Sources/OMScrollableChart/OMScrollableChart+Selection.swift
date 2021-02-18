@@ -29,7 +29,7 @@ extension OMScrollableChart {
     ///   - point: point
     func selectNearestRenderLayer(_ renderIndex: Int, point: CGPoint ) {
         /// Select the last point if the render is not hidden.
-        selectNearestRenderLayer( RenderManager.shared.renders[renderIndex], point: point)
+        selectNearestRenderLayer( engine.renders[renderIndex], point: point)
     }
     
     func selectNearestRenderLayer(_ render: BaseRender, point: CGPoint ) {
@@ -257,7 +257,7 @@ extension OMScrollableChart {
             CATransaction.setAnimationDuration(1.0)
             CATransaction.setCompletionBlock( {
                 CATransaction.setAnimationDuration(duration)
-                let scale = CATransform3DMakeScale(self.maximumZoomScale, self.maximumZoomScale, 1)
+//                let scale = CATransform3DMakeScale(self.maximumZoomScale, self.maximumZoomScale, 1)
                 self.zoom(to: self.zoomRectForScale(scale: self.maximumZoomScale, center: selectedPoint), animated: true)
                 //self.footerRule?.views?.forEach{$0.layer.transform = scale}
                 
@@ -309,9 +309,9 @@ extension OMScrollableChart {
                                               dataIndex: Int(dataIndex),
                                               layer: layerPoint)
             
-            let sectionIndex = sectionFromPoint(render: render, layer: layerPoint)
+            let sectionIndex = sectionIndexFromLayer(render, layer: layerPoint)
             if sectionIndex != Index.bad.rawValue {
-                print("Selected data point index: \(dataIndex) section: \(sectionIndex) type: \(render.data.dataType)")
+                print("Selected SECTION: \(sectionIndex) type: \(render.data.dataType)")
                 // notify and animate footer if the animation is actived
                 self.didSelectedRenderLayerSectionNotify( render,
                                                           sectionIndex: Int(sectionIndex),

@@ -26,8 +26,8 @@ import LibControl
 public enum RenderIdent: Int {
     case polyline       = 0
     case points         = 1
-    case selectedPoint   = 2
-    case base     = 3  //  public renders base index
+    case selectedPoint  = 2
+    case base           = 3  //  public renders base index
 }
 
 public enum SimplifyType {
@@ -46,14 +46,6 @@ public enum RenderDataType: Equatable {
 }
 
 typealias RenderType = RenderDataType
-
-// MARK: Default renders idents
-public enum RenderIdentify: Int {
-    case polyline        = 0
-    case points          = 1
-    case selectedPoint   = 2
-    case base            = 3  //  public renders base index
-}
 
 public struct DataRender  {
     static var empty: DataRender = DataRender(data: [], points: [])
@@ -152,7 +144,7 @@ public struct DataRender  {
             } else {
                 return points.map({ $0.distance(point) }).mini
             }
-
+            
         case .stadistics:
             if let firstIndex = index(withPoint: point) {
                 return firstIndex
@@ -160,21 +152,21 @@ public struct DataRender  {
                 return points.map({ $0.distance(point) }).mini
             }
         case .simplify:
-
+            
             if let firstIndex = points.firstIndex(of: point) {
                 return firstIndex
             } else {
                 return points.map({ $0.distance(point) }).mini
             }
-
+            
         case .regress:
-
+            
             if let firstIndex = points.firstIndex(of: point) {
                 return firstIndex
             } else {
                 return points.map({ $0.distance(point) }).mini
             }
-
+            
         }
         return nil // dataIndexFromLayers(point, renderIndex: renderIndex)
     }
@@ -190,18 +182,23 @@ public protocol RenderProtocol {
     func layerPointFromPoint(_ point: CGPoint ) -> CGPoint
     func layerFrameFromPoint(_ point: CGPoint ) -> CGRect
     func makePoints(_ size: CGSize) -> [CGPoint]
+    var isEmpty: Bool { get}
 }
 
 // MARK: BaseRender
-public class BaseRender: RenderProtocol {
+open class BaseRender: RenderProtocol {
     public var index: Int = 0
     public var data: DataRender = .empty
     public var layers: [GradientShapeLayer] = []
-    init(index: Int) {
+    public init(index: Int) {
         self.index = index
     }
-    init() {
+    public init() {
         
+    }
+    
+    public var isEmpty: Bool {
+        return data.data.isEmpty && data.points.isEmpty
     }
     
     public func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
@@ -260,63 +257,102 @@ public class BaseRender: RenderProtocol {
         return DiscreteScaledPointsGenerator().makePoints(data: self.data.data, size: size)
     }
     
-   
-    
+    public func sectionIndex( withPoint point: CGPoint, numberOfSections: Int) -> Int {
+        let dataIndexLayer = data.dataIndex( withPoint: point )
+        // Get the selection data index
+        if let dataIndex = dataIndexLayer {
+            let pointPerSectionRelation = Double(data.data.count) / Double(numberOfSections)
+            let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation) ) ) % numberOfSections
+            //            print(
+            //                """
+            //                        Render index: \(Int(render.index))
+            //                        Data index: \(Int(dataIndex))
+            //
+            //                        \((ruleManager.footerRule?.views?[Int(sectionIndex)] as? UILabel)?.text ?? "")
+            //
+            //                        Point to section relation \(pointPerSectionRelation)
+            //                        Section index: \(Int(sectionIndex))
+            //                """)
+            
+            return Int(sectionIndex)
+        }
+        return Index.bad.rawValue
+    }
 }
 
 public class PolylineRender: BaseRender {
     override init() {
-        super.init(index: RenderIdentify.polyline.rawValue)
+        super.init(index: RenderIdent.polyline.rawValue)
     }
 }
 
 public class PointsRender: BaseRender {
     override init() {
-        super.init(index: RenderIdentify.points.rawValue)
+        super.init(index: RenderIdent.points.rawValue)
     }
 }
 
 public class SelectedPointRender: BaseRender {
     override init() {
-        super.init(index: RenderIdentify.selectedPoint.rawValue)
+        super.init(index: RenderIdent.selectedPoint.rawValue)
     }
 }
 
 
-public class RenderManager {
-    static public var shared: RenderManager = RenderManager()
-    lazy public var renders: [BaseRender] = {
-        return [polyline,
-                points,
-                selectedPoint]
-    }()
-    init() {
-    }
-    public lazy var polyline: PolylineRender = {
-        let poly = PolylineRender()
-        return poly
-    }()
-    public lazy var  points: PointsRender = {
-        let points = PointsRender()
-        return points
-        
-    }()
-    public lazy var selectedPoint: SelectedPointRender = {
-        let selectedPoints = SelectedPointRender()
-        return selectedPoints
-    }()
+public protocol RenderEngineClientProtocol: class {
+    var engine: RenderManagerProtocol {get}
+}
+
+// MARK: - RenderManagerProtocol -
+public protocol RenderManagerProtocol {
     
-    func removeAllLayers() {
+    var version: Int {get}
+    
+    
+    init()
+    
+    func configureRenders() -> [BaseRender]
+    func update(_ numberOfdRenders: Int)
+    func removeAllLayers()
+    
+    var visibleLayers: [CAShapeLayer] { get }
+    var invisibleLayers: [CAShapeLayer] { get }
+    var allPointsRender: [CGPoint] { get }
+    var allDataPointsRender: [Float] { get }
+    var allRendersLayers: [CAShapeLayer] { get }
+    
+    var points: [[CGPoint]] { get set }
+    var layers: [[GradientShapeLayer]]  { get set }
+    var data: [[Float]]   { get set }
+    
+    static var shared: RenderManager {get}
+    var renders: [BaseRender] {get set}
+}
+
+extension RenderManagerProtocol {
+    public var version: Int { 1}
+}
+
+open class RenderManager: RenderManagerProtocol {
+    static public var shared: RenderManager = RenderManager()
+    open var renders: [BaseRender] = []
+    required public init() {
+        self.renders = configureRenders()
+    }
+    open func update(_ numberOfdRenders: Int) {
+        for idx in renders.count..<numberOfdRenders {
+            renders.insert(BaseRender(index: idx), at: idx)
+        }
+    }
+    open func configureRenders() -> [BaseRender] { [RenderManager.polyline, RenderManager.points, RenderManager.selectedPoint] }
+    open func removeAllLayers() {
         self.renders.forEach{
             $0.layers.forEach{$0.removeFromSuperlayer()}
             $0.layers.removeAll()
         }
     }
-    
-    public var layers: [[GradientShapeLayer]] {
-        get {
-            return RenderManager.shared.renders.reduce([[]]) { $0 + [$1.layers] }
-        }
+    open var layers: [[GradientShapeLayer]] {
+        get { RenderManager.shared.renders.reduce([[]]) { $0 + [$1.layers] } }
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach{
                 $1.layers = newValue[$0]
@@ -325,10 +361,8 @@ public class RenderManager {
         }
     }
     // points
-    public var dataPoints: [[CGPoint]] {
-        get {
-            return RenderManager.shared.renders.map{$0.data.points}
-        }
+    open var points: [[CGPoint]] {
+        get { RenderManager.shared.renders.map{$0.data.points} }
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach {
                 $1.data = DataRender(data: $1.data.data , points: newValue[$0], type: $1.data.dataType )
@@ -336,10 +370,8 @@ public class RenderManager {
         }
     }
     // data
-    public var data: [[Float]]  {
-        get {
-            return RenderManager.shared.renders.map{$0.data.data}
-        }
+    open var data: [[Float]]  {
+        get { RenderManager.shared.renders.map{$0.data.data} }
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach{
                 $1.data = DataRender(data: newValue[$0], points: $1.data.points, type: $1.data.dataType )
@@ -347,12 +379,29 @@ public class RenderManager {
         }
     }
     
-    var visibleLayers: [CAShapeLayer] { allRendersLayers.filter { $0.opacity == 1.0 } }
-    var invisibleLayers: [CAShapeLayer] { allRendersLayers.filter { $0.opacity == 0 }}
-    var allPointsRender: [CGPoint] {    RenderManager.shared.dataPoints.flatMap{$0}}
-    var allDataPointsRender: [Float]  {   RenderManager.shared.data.flatMap{$0}}
-    var allRendersLayers: [CAShapeLayer]  {   RenderManager.shared.layers.flatMap{$0} }
+    //
+    // Getters helpers
+    //
     
     
+    public var visibleLayers: [CAShapeLayer] { allRendersLayers.filter { $0.opacity == 1.0 } }
+    public var invisibleLayers: [CAShapeLayer] { allRendersLayers.filter { $0.opacity == 0 }}
+    public var allPointsRender: [CGPoint] {    RenderManager.shared.points.flatMap{$0}}
+    public var allDataPointsRender: [Float]  {   RenderManager.shared.data.flatMap{$0}}
+    public var allRendersLayers: [CAShapeLayer]  {   RenderManager.shared.layers.flatMap{$0} }
+    
+
+
 }
 
+
+
+extension RenderManager {
+    //
+    // Renders
+    //
+    
+    public static var polyline: PolylineRender  = PolylineRender()
+    public static var points: PointsRender = PointsRender()
+    public static var selectedPoint: SelectedPointRender = SelectedPointRender()
+}

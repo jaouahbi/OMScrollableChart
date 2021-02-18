@@ -201,13 +201,13 @@ extension OMScrollableChart {
     }
     func makeRulesPoints() -> Bool {
         var generator: ScaledPointsGenerator?
-        switch RenderManager.shared.polyline.data.dataType {
+        switch engine.renders[RenderIdent.polyline.rawValue].data.dataType {
         case .discrete:
-             let data = RenderManager.shared.polyline.data
+             let data = engine.renders[RenderIdent.polyline.rawValue].data
             generator  = DiscreteScaledPointsGenerator(data: data.data)
             
         case .stadistics(_):
-             let data = RenderManager.shared.polyline.data
+             let data = engine.renders[RenderIdent.polyline.rawValue].data
             generator  = DiscreteScaledPointsGenerator(data: data.data)
             
         case .simplify(_,_):
@@ -270,4 +270,36 @@ extension OMScrollableChart {
             $0.setNeedsDisplay()
         }
     }
+}
+
+
+public class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
+    public func renderDataTypeChanged(in dataOfRender: RenderDataType) {
+        print("renderDataTypeChanged", dataOfRender)
+    }
+    
+    public func drawRootRuleText(in frame: CGRect, text: NSAttributedString) {
+        print("drawRootRuleText", frame, text)
+    }
+    
+    public func footerSectionsTextChanged(texts: [String]) {
+        print("footerSectionsTextChanged", texts)
+    }
+    
+    public func numberOfPagesChanged(pages: Int) {
+        print("numberOfPagesChanged", pages)
+    }
+    
+    public func contentSizeChanged(contentSize: CGSize) {
+        print("contentSizeChanged", contentSize)
+    }
+    
+    public func frameChanged(frame: CGRect) {
+        print("frameChanged", frame)
+    }
+    
+    public func dataPointsChanged(dataPoints: [Float], for index: Int) {
+        print("dataPointsChanged", index, dataPoints)
+    }
+    
 }

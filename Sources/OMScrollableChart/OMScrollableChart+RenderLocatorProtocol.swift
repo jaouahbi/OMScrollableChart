@@ -14,7 +14,7 @@ public protocol RenderLocatorProtocol {
     func dataStringFromPoint(_ renderIndex: Int, point: CGPoint) -> String?
     func indexForPoint(_ renderIndex: Int, point: CGPoint) -> Int?
     func pointFromIndex(_ renderIndex: Int, index: Int) -> CGPoint?
-    func sectionFromPoint(_ renderIndex: Int, layer: CALayer) -> Int
+    func sectionIndexFromLayer(_ renderIndex: Int, layer: CALayer) -> Int
 }
 
 
@@ -37,7 +37,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: CGPoint or nil if point not found
     public func pointFromIndex(_ renderIndex: Int, index: Int) -> CGPoint? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        return RenderManager.shared.renders[renderIndex].data.point(withIndex: index)
+        return engine.renders[renderIndex].data.point(withIndex: index)
     }
 
     /// indexForPoint
@@ -47,7 +47,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: Int?
     public func indexForPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        return RenderManager.shared.renders[renderIndex].data.index(withPoint: point)
+        return engine.renders[renderIndex].data.index(withPoint: point)
     }
 
     /// dataStringFromPoint
@@ -58,7 +58,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     
     public func dataStringFromPoint(_ renderIndex: Int, point: CGPoint) -> String? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        let renderData = RenderManager.shared.renders[renderIndex].data
+        let renderData = engine.renders[renderIndex].data
         switch renderData.dataType {
         case .stadistics:
             if let firstIndex = renderData.index(withPoint: point) {
@@ -97,23 +97,33 @@ extension OMScrollableChart: RenderLocatorProtocol {
     }
     
     public func dataFromPoint(_ renderIndex: Int, point: CGPoint) -> Float? {
-        let render = RenderManager.shared.renders[renderIndex]
+        let render = engine.renders[renderIndex]
         return render.data.data( withPoint: point)
     }
 
-    func renderResolution( with type: RenderType, renderIndex: Int) -> Double {
-        let render = RenderManager.shared.renders[renderIndex].data
+    func renderResolution( renderIndex: Int) -> Double {
+        let render = engine.renders[renderIndex].data
         return Double(render.data.count) / Double(numberOfSections)
     }
-    /// sectionFromPoint
+    /// sectionIndexFromLayer
     /// - Parameters:
     ///   - renderIndex: render description
     ///   - layer: layer description
     /// - Returns: description
     
-    public func sectionFromPoint(_ renderIndex: Int, layer: CALayer) -> Int {
-        let render = RenderManager.shared.renders[renderIndex]
-        return sectionFromPoint(render: render, layer: layer)
+    public func sectionIndexFromLayer(_ renderIndex: Int, layer: CALayer) -> Int {
+        let render = engine.renders[renderIndex]
+        return sectionIndexFromLayer(render, layer: layer)
+        
+    }
+    /// sectionIndexFromLayer
+    /// - Parameters:
+    ///   - render: render description
+    ///   - layer: layer description
+    /// - Returns: description
+    public func sectionIndexFromLayer(_ render: BaseRender, layer: CALayer) -> Int {
+        return render.sectionIndex(withPoint: layer.position,
+                                   numberOfSections: numberOfSections)
     }
     /// sectionFromPoint
     /// - Parameters:
@@ -121,29 +131,29 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - layer: layer description
     /// - Returns: description
     
-    func sectionFromPoint(render: BaseRender, layer: CALayer) -> Int {
-        let dataIndexLayer = render.data.dataIndex( withPoint: layer.position )
-        // Get the selection data index
-        if let dataIndex = dataIndexLayer {
-            let data = render.data
-//            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
-            let pointPerSectionRelation = floor(renderResolution(with: data.dataType, renderIndex: render.index))
-            let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
-//            print(
-//                """
-//                        Render index: \(Int(render.index))
-//                        Data index: \(Int(dataIndex))
+//    func sectionFromPoint(render: BaseRender, layer: CALayer) -> Int {
+//        let dataIndexLayer = render.data.dataIndex( withPoint: layer.position )
+//        // Get the selection data index
+//        if let dataIndex = dataIndexLayer {
+//            let data = render.data
+////            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
+//            let pointPerSectionRelation = floor(renderResolution(with: data.dataType, renderIndex: render.index))
+//            let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
+////            print(
+////                """
+////                        Render index: \(Int(render.index))
+////                        Data index: \(Int(dataIndex))
+////
+////                        \((ruleManager.footerRule?.views?[Int(sectionIndex)] as? UILabel)?.text ?? "")
+////
+////                        Point to section relation \(pointPerSectionRelation)
+////                        Section index: \(Int(sectionIndex))
+////                """)
 //
-//                        \((ruleManager.footerRule?.views?[Int(sectionIndex)] as? UILabel)?.text ?? "")
-//
-//                        Point to section relation \(pointPerSectionRelation)
-//                        Section index: \(Int(sectionIndex))
-//                """)
-            
-            return Int(sectionIndex)
-        }
-        return Index.bad.rawValue
-    }
+//            return Int(sectionIndex)
+//        }
+//        return Index.bad.rawValue
+//    }
 
     /// dataIndexFromPoint
     /// - Parameters:
@@ -153,7 +163,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     
     public func dataIndexFromPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        let render = RenderManager.shared.renders[renderIndex]
+        let render = engine.renders[renderIndex]
         return render.data.dataIndex(withPoint: point)
     }
     
@@ -164,7 +174,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: Int?
     public func dataIndexFromPointInLayer(_ renderIndex: Int, point: CGPoint) -> Int? {
         assert(renderIndex < renderSourceNumberOfRenders)
-        let render = RenderManager.shared.renders[renderIndex]
+        let render = engine.renders[renderIndex]
         let data = render.data
         switch data.dataType {
         case .stadistics:

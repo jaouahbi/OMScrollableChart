@@ -21,6 +21,16 @@ public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: B
     Foundation.NSLocalizedString(key, tableName: tableName,bundle: bundle,value: value,comment: comment)
 }
 
+public protocol OMScrollableChartRuleDelegate {
+    func footerSectionsTextChanged(texts: [String])
+    func numberOfPagesChanged(pages: Int)
+    func contentSizeChanged(contentSize: CGSize)
+    func frameChanged(frame: CGRect)
+    func dataPointsChanged(dataPoints: [Float], for index: Int)
+    func drawRootRuleText(in frame: CGRect, text: NSAttributedString)
+    func renderDataTypeChanged(in dataOfRender: RenderDataType)
+}
+
 enum ChartRuleType: Int {
     case leading = 0
     case footer = 1
@@ -264,8 +274,10 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
         super.touchesBegan(touches, with: event)
         if let touch = touches.first {
             let location = touch.location(in: self)
-            let hit = hitTest(location, with: event)
-            print(hit)
+            if let sectionSelectedIndex = arrangedSubviews.map{ $0.frame.origin }.map { $0.distance(location) }.mini {
+                let selectedView = arrangedSubviews[sectionSelectedIndex]
+                print("sectionSelectedIndex", sectionSelectedIndex, selectedView)
+            }
         }
     
     }
