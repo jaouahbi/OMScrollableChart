@@ -27,9 +27,6 @@ public enum Index: Int {
 
 extension OMScrollableChart: RenderLocatorProtocol {
 
-
-
-
     /// Get  render point from index.
     /// - Parameters:
     ///   - renderIndex: Render index
@@ -125,36 +122,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
         return render.sectionIndex(withPoint: layer.position,
                                    numberOfSections: numberOfSections)
     }
-    /// sectionFromPoint
-    /// - Parameters:
-    ///   - render: render description
-    ///   - layer: layer description
-    /// - Returns: description
-    
-//    func sectionFromPoint(render: BaseRender, layer: CALayer) -> Int {
-//        let dataIndexLayer = render.data.dataIndex( withPoint: layer.position )
-//        // Get the selection data index
-//        if let dataIndex = dataIndexLayer {
-//            let data = render.data
-////            print("Selected data point index: \(dataIndex) type: \(data.dataType)")
-//            let pointPerSectionRelation = floor(renderResolution(with: data.dataType, renderIndex: render.index))
-//            let sectionIndex = Int(floor(Double(dataIndex) / Double(pointPerSectionRelation))) % numberOfSections
-////            print(
-////                """
-////                        Render index: \(Int(render.index))
-////                        Data index: \(Int(dataIndex))
-////
-////                        \((ruleManager.footerRule?.views?[Int(sectionIndex)] as? UILabel)?.text ?? "")
-////
-////                        Point to section relation \(pointPerSectionRelation)
-////                        Section index: \(Int(sectionIndex))
-////                """)
-//
-//            return Int(sectionIndex)
-//        }
-//        return Index.bad.rawValue
-//    }
-
+  
     /// dataIndexFromPoint
     /// - Parameters:
     ///   - point: CGPoint

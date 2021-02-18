@@ -256,3 +256,112 @@ extension OMScrollableChart {
     }
 }
 
+
+//var kUpY: CGFloat = 115
+//var kDownY: CGFloat = 310
+
+extension OMScrollableChart {
+    
+//    func touchDown() {
+//        animateTouchLayer(layer: self.layer, toY:kDownY, baseY:kUpY)
+//    }
+//
+//    func touchUp(){
+//        animateTouchLayer(layer: self.layer, toY:kUpY, baseY:kDownY)
+//    }
+//
+//    func animateTouchLayer(layer: CALayer, toY: CGFloat, baseY: CGFloat)  {
+//        let fromValue = layer.presentation()?.position ?? .zero
+//        let toValue = CGPoint(x:fromValue.x,y:toY)
+//
+//        layer.position = toValue
+//
+//        let animation = CABasicAnimation()
+//        animation.fromValue = NSValue(cgPoint: fromValue)
+//        animation.toValue = NSValue(cgPoint: toValue)
+//        animation.duration = CFTimeInterval(2.0 * (toValue.y - fromValue.y) / (toY - baseY))
+//        layer.add(animation, forKey:animation.keyPath)
+//
+//    }
+    /// animatePoints
+    /// - Parameters:
+    ///   - layers: CAShapeLayer
+    ///   - delay: TimeInterval delay [0.1]
+    ///   - duration: TimeInterval duration [ 2.0]
+    func animatePoints(_ layers: [GradientShapeLayer],
+                       delay: TimeInterval = 0.1,
+                       duration: TimeInterval = 2.0) {
+        var currentDelay = delay
+        for point in layers {
+            point.opacity = 1
+            let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+            fadeAnimation.toValue = 0.3
+            fadeAnimation.beginTime = CACurrentMediaTime() + currentDelay
+            fadeAnimation.duration = duration
+            fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+            fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
+            fadeAnimation.isRemovedOnCompletion = false
+            point.add(fadeAnimation, forKey: nil)
+            currentDelay += 0.05
+        }
+    }
+    
+//    func animateLayerOpacy( _ layer: CALayer,
+//                            fromValue: CGFloat,
+//                            toValue: CGFloat,
+//                            duration: TimeInterval = 1.0) {
+//        //layer.removeAllAnimations()
+//        //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
+//        let fadeAnimation = CABasicAnimation(keyPath: "opacity")
+//        fadeAnimation.toValue = toValue
+//        fadeAnimation.fromValue = fromValue
+//        fadeAnimation.beginTime = CACurrentMediaTime() + 0.5
+//        fadeAnimation.duration = duration
+//        fadeAnimation.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+//        fadeAnimation.fillMode = CAMediaTimingFillMode.forwards
+//        fadeAnimation.isRemovedOnCompletion = true
+//        layer.add(fadeAnimation, forKey: nil)
+//    }
+    
+    /// animateOnRenderLayerSelection
+    /// - Parameters:
+    ///   - selectedLayer: GradientShapeLayer
+    ///   - renderIndex: render index
+    ///   - duration: TimeInterval [2.0]
+//    func animateOnRenderLayerSelection(_ selectedLayer: GradientShapeLayer?,
+//                                       renderIndex:Int,
+//                                       duration: TimeInterval = 2.0) {
+//        var index: Int = 0
+//        guard RenderManager.shared.layers.isEmpty == false else {
+//            return
+//        }
+//        if let selectedLayer = selectedLayer {
+//            index = RenderManager.shared.layers[renderIndex].firstIndex(of: selectedLayer) ?? 0
+//        }
+//        let count = RenderManager.shared.layers[renderIndex].count - 1
+//        let pointBegin = RenderManager.shared.layers[renderIndex].takeElements(index)
+//        let pointEnd   = RenderManager.shared.layers[renderIndex].takeElements(count - index,
+//                                                                     startAt: index + 1)
+//        animatePoints(pointBegin.reversed(), duration: duration)
+//        animatePoints(pointEnd, duration: duration)
+//
+//    }
+
+    
+//    func animateDashLinesPhase() {
+//        for layer in dashLineLayers {
+//            let animation = CABasicAnimation(keyPath: "lineDashPhase")
+//            animation.fromValue = 0
+//            animation.toValue = layer.lineDashPattern?.reduce(0) { $0 - $1.intValue } ?? 0
+//            animation.duration = 1
+//            animation.repeatCount = .infinity
+//            layer.add(animation, forKey: "line")
+//        }
+//    }
+    //let fromValue =  self.contentSize.width /  self.contentOffset.x == 0 ? 1 :  self.contentOffset.x
+     // self.contentOffset.x / self.contentSize.width
+    
+   
+}
+
+

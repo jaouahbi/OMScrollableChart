@@ -14,21 +14,23 @@
 
 import Foundation
 import UIKit
+import LibControl
 
-public func NSLocalizedString(_ key: String, tableName: String? = nil, bundle: Bundle = Bundle.main, value: String = "", comment: String = "") -> String
-
-{
-    Foundation.NSLocalizedString(key, tableName: tableName,bundle: bundle,value: value,comment: comment)
-}
 
 public protocol OMScrollableChartRuleDelegate {
     func footerSectionsTextChanged(texts: [String])
+    func footerSectionDidSelected(section: Int, selectedView: UIView?)
+    func footerSectionDidDeselected(section: Int, selectedView: UIView?)
     func numberOfPagesChanged(pages: Int)
     func contentSizeChanged(contentSize: CGSize)
     func frameChanged(frame: CGRect)
     func dataPointsChanged(dataPoints: [Float], for index: Int)
     func drawRootRuleText(in frame: CGRect, text: NSAttributedString)
     func renderDataTypeChanged(in dataOfRender: RenderType)
+    func updateRenderLayers( index: Int, with layers: [GradientShapeLayer])
+    func updateRenderData(index: Int, data: RenderData)
+    func deviceRotation()
+    
 }
 
 enum ChartRuleType: Int {
@@ -95,7 +97,7 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         labelViews.removeAll()
         let fontSize: CGFloat = font.pointSize
                 
-        for (index, item) in chart.rulesPoints.enumerated() {
+        for (index, item) in chart.ruleManager.rulesPoints.enumerated() {
                 if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
                     let string = NSAttributedString(string: stepString,
                                                     attributes: [NSAttributedString.Key.font: self.font,
@@ -110,6 +112,8 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
                                          height: label.bounds.height)
                     self.addSubview(label)
                     labelViews.append(label)
+                    // Notify the draw
+                    chart.flowDelegate?.drawRootRuleText(in: label.frame, text: string)
                 }
         }
         return true
@@ -155,7 +159,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     required init(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    var ruleSize: CGSize { return CGSize(width: 0, height: self.chart.footerViewHeight)}
+    var ruleSize: CGSize { return CGSize(width: 0, height: self.chart.ruleManager.footerViewHeight)}
     var fontColor = UIColor.darkGreyBlueTwo {
         didSet {
             views?.forEach({($0 as? UILabel)?.textColor = fontColor})
@@ -222,18 +226,35 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                        color: decorationColor.withAlphaComponent(0.24)))
         return true
     }
+    var section: Int = 0
+    var selectedView: UIView? = nil
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         if let touch = touches.first {
             let location = touch.location(in: self)
             if let sectionSelectedIndex = arrangedSubviews.map{ $0.frame.origin }.map { $0.distance(location) }.mini {
-                let selectedView = arrangedSubviews[sectionSelectedIndex]
-                print("sectionSelectedIndex", sectionSelectedIndex, selectedView)
+                section = sectionSelectedIndex
+                selectedView = arrangedSubviews[sectionSelectedIndex]
+                print("Notify section selected index", sectionSelectedIndex, selectedView)
+                
+                chart.flowDelegate?.footerSectionDidSelected(section: sectionSelectedIndex,
+                                                            selectedView: selectedView)
                 
             }
         }
+    }
+    override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesMoved(touches, with: event)
+  
+    }
     
+    override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        chart.flowDelegate?.footerSectionDidDeselected(section: section,
+                                                       selectedView: selectedView)
+        section = 0
+        selectedView = nil
     }
     
     override func didMoveToSuperview() {

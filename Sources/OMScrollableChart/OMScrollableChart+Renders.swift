@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-import UIKit
 import LibControl
+import UIKit
 
 struct ScrollableRendersConfiguration {
     static let defaultPointSize = CGSize(width: 8, height: 8)
@@ -24,46 +23,51 @@ struct ScrollableRendersConfiguration {
     static let animationPointsClearOpacityKey: String = "animationPointsClearOpacityKey"
 }
 
-extension OMScrollableChart {
+public extension OMScrollableChart {
     /// makeApproximation
     /// - Parameters:
     ///   - data: [Float]]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    public func makeScalePointsSimplifyAndLayers( _ render: BaseRender,
-                             _ size: CGSize,
-                             _ simplifyType: SimplifyType,
-                             _ tol: CGFloat) {
+    func makeScalePointsSimplifyAndLayers(_ render: BaseRender,
+                                          _ size: CGSize,
+                                          _ simplifyType: SimplifyType,
+                                          _ tolerance: CGFloat)
+    {
         let points = render.makePoints(size)
         if points.count > 0 {
             if let simplifyPoints = simplifyPoints(points: points,
                                                    type: simplifyType,
-                                                   tolerance: tol) {
+                                                   tolerance: tolerance)
+            {
                 // remove the index from data
                 let difference = simplifyPoints.difference(from: points)
-                var diffedData = render.data.data.map({$0})
+                var diffedData = render.data.data.map { $0 }
                 for change in difference {
                     switch change {
-                    case let .remove(offset, _, _):
+                    case .remove(let offset, _, _):
                         diffedData.remove(at: offset)
-                    case let .insert(_, _, _): break
-                    //diffedData.insert(newElement, at: offset)
+                    case .insert: break
+                        // diffedData.insert(newElement, at: offset)
                     }
                 }
-                let data = RenderData(data: diffedData, points: simplifyPoints )
+                let data = RenderData(data: diffedData, points: simplifyPoints)
                 render.data = data
                 if simplifyPoints.count > 0 {
                     var layers = dataSource?.dataLayers(chart: self,
-                                                       renderIndex: render.index,
-                                                       section: 0,
-                                                       data: data) ?? []
+                                                        renderIndex: render.index,
+                                                        section: 0,
+                                                        data: data) ?? []
                     // accumulate layers
                     if layers.isEmpty {
                         print("Unexpected empty layers, lets use the default renders.")
                         layers = self.renderDefaultLayers(render, data: data)
                     }
                     render.layers.append(contentsOf: layers)
-                } else  {
+                    
+                    flowDelegate?.updateRenderLayers(index: render.index,
+                                                     with: render.layers)
+                } else {
                     print("Unexpected empty simplify points.")
                 }
             }
@@ -72,63 +76,60 @@ extension OMScrollableChart {
         }
     }
     
-    
     /// Make mean points
     /// - Parameters:
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    public func makeStadisticsScaledPointsAndLayers(
-                
-                         _ render: BaseRender,
-                         _ size: CGSize,
-                         _ grouping: CGFloat) {
-        
+    func makeStadisticsScaledPointsAndLayers(
+        _ render: BaseRender,
+        _ size: CGSize,
+        _ grouping: CGFloat) {
         let renderData = make(data: render.data.data,
                               size: size,
                               grouping: CGFloat(grouping),
                               function: {
-                                switch $0 {
-                                default:
-                                    // TODO:
-                                    return $0.mean()
-                                }
-                              }
-        )
+                                  switch $0 {
+                                  default:
+                                      // TODO:
+                                      return $0.mean()
+                                  }
+                              })
         if renderData.points.count > 0 {
             var layers = dataSource?.dataLayers(chart: self,
-                                               renderIndex: render.index,
-                                               section: 0,
-                                               data: renderData) ?? []
+                                                renderIndex: render.index,
+                                                section: 0,
+                                                data: renderData) ?? []
             // accumulate layers
             if layers.isEmpty {
                 print("Unexpected empty render layers, let's use the default renders.")
                 layers = self.renderDefaultLayers(render, data: renderData)
             }
             render.data = renderData
-            render.layers.append( contentsOf: layers)
+            render.layers.append(contentsOf: layers)
+            
+            flowDelegate?.updateRenderLayers(index: render.index,
+                                             with: render.layers)
         } else {
             print("Unexpected empty points.")
         }
     }
-    
-
     
     /// makeDiscrete points
     /// - Parameters:
     ///   - data: [Float]
     ///   - renderIndex: index
     ///   - dataSource: OMScrollableChartDataSource
-    public func makeDiscreteScalePointsAndLayers(_ render: BaseRender,
-                             _ size: CGSize) {
+    func makeDiscreteScalePointsAndLayers(_ render: BaseRender,
+                                          _ size: CGSize) {
         let points = render.makePoints(size)
         if points.count > 0 {
             print("making render \(render.index) layers.")
             let datRebuilded = RenderData(data: render.data.data, points: points)
             var layers = dataSource?.dataLayers(chart: self,
-                                               renderIndex: render.index,
-                                               section: 0,
-                                               data: datRebuilded) ?? []
+                                                renderIndex: render.index,
+                                                section: 0,
+                                                data: datRebuilded) ?? []
             render.data = datRebuilded
             //  use the default renders
             if layers.isEmpty {
@@ -137,19 +138,28 @@ extension OMScrollableChart {
             }
             // accumulate layers
             print("Accumulating \(layers.count) layers.")
+            
+            flowDelegate?.updateRenderLayers(index: render.index,
+                                             with: render.layers)
+            
             render.layers.append(contentsOf: layers)
         } else {
             print("Unexpected empty discrete points (makeRawPoints).")
         }
     }
     
-    public func makeLinregressScaledPointsAndLayers( _ render: BaseRender,
-                               _ size: CGSize,
-                               _ numberOfElements: Int)
+    /// makeLinregressScaledPointsAndLayers
+    /// - Parameters:
+    ///   - render: <#render description#>
+    ///   - size: <#size description#>
+    ///   - numberOfElements: <#numberOfElements description#>
+    func makeLinregressScaledPointsAndLayers(_ render: BaseRender,
+                                             _ size: CGSize,
+                                             _ numberOfElements: Int)
     {
         let points = render.makePoints(size)
         if points.count > 0 {
-            let chartData = RenderData( data: render.data.data, points: points)
+            let chartData = RenderData(data: render.data.data, points: points)
             let linregressData = makeLinregressPoints(data: chartData,
                                                       size: size,
                                                       numberOfElements: numberOfElements,
@@ -161,9 +171,9 @@ extension OMScrollableChart {
             //                                                      renderIndex: renderIndex)
             render.data = linregressData
             var layers = dataSource?.dataLayers(chart: self,
-                                               renderIndex: render.index,
-                                               section: 0,
-                                               data: linregressData) ?? []
+                                                renderIndex: render.index,
+                                                section: 0,
+                                                data: linregressData) ?? []
             // accumulate layers
             if layers.isEmpty {
                 print("Unexpected empty layers render \(render.index), lets use the default renders.")
@@ -173,14 +183,18 @@ extension OMScrollableChart {
             // accumulate layers
             print("Accumulating \(layers.count) layers.")
             render.layers.append(contentsOf: layers)
+            
+            flowDelegate?.updateRenderLayers(index: render.index,
+                                             with: render.layers)
         } else {
             print("Unexpected empty discrete points (makeRawPoints).")
         }
     }
 }
+
 // MARK: - Renders -
 
-extension OMScrollableChart {
+public extension OMScrollableChart {
     // Render the internal layers:
     // 0 - Polyline
     // 1 - Discrete points
@@ -199,8 +213,8 @@ extension OMScrollableChart {
         case RenderIdent.points.rawValue:
             let layers = self.createPointsLayers(data.points,
                                                  size: ScrollableRendersConfiguration.defaultPointSize,
+                                                 shadowOffset: pointsLayersShadowOffset,
                                                  color: lineColor)
-            
             #if DEBUG
             if layers.first?.name == nil {
                 layers.enumerated().forEach { $1.name = "pointDefault \($0)" }
@@ -209,8 +223,10 @@ extension OMScrollableChart {
             return layers
         case RenderIdent.selectedPoint.rawValue:
             if let point = render.data.maxPoint {
-                let layer = self.createPointLayer(point, size: ScrollableRendersConfiguration.defaultSelectedPointSize,
-                                                  color: selectedPointColor, shadowOffset: pointsLayersShadowOffset)
+                let layer = self.createPointLayer(point,
+                                                  size: ScrollableRendersConfiguration.defaultSelectedPointSize,
+                                                  color: selectedPointColor,
+                                                  shadowOffset: pointsLayersShadowOffset)
                 #if DEBUG
                 layer.name = "selectedPointDefault"
                 #endif
@@ -222,20 +238,19 @@ extension OMScrollableChart {
         return []
     }
     
-    /// Polyline UIBezierPath
-    public var polylineSubpaths: [UIBezierPath] {
+    /// Polyline UIBezierPath sub paths
+    var polylineSubpaths: [UIBezierPath] {
         guard let polylinePath = polylinePath else {
             print("Unexpected empty polylinePath (UIBezierPath).")
             return []
         }
         return polylinePath.cgPath.subpaths
     }
-    
+
     /// Polyline UIBezierPath
-    /// TODO: cache???
-    public var polylinePath: UIBezierPath? {
+    var polylinePath: UIBezierPath? {
         let polylinePoints = engine.renders[RenderIdent.polyline.rawValue].data.points
-        guard  let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
+        guard let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
             print("Unexpected empty polylinePath (UIBezierPath).")
             return nil
         }
@@ -251,18 +266,18 @@ extension OMScrollableChart {
     }
     
     ///  Update the polyline layer with UIBezierPath, strokeColor, lineWidth
-    ///  TODO: complete the shadow.
+    // TODO: complete the shadow.
     /// - Returns: [GradientShapeLayer]
-    public  func updatePolylineLayer() -> [GradientShapeLayer] {
+    func updatePolylineLayer(_ strokeAlpha: CGFloat = 0.64) -> [GradientShapeLayer] {
         guard let polylinePath = polylinePath else {
             print("Unexpected empty polylinePath (UIBezierPath).")
             return []
         }
         
-        updatePolylinePath(polylinePath)
+        self.updatePolylinePath(polylinePath)
         
         polylineLayer.fillColor = UIColor.clear.cgColor
-        polylineLayer.strokeColor = (self.strokeLineColor ?? self.lineColor.withAlphaComponent(0.8)).cgColor
+        polylineLayer.strokeColor = (self.strokeLineColor ?? self.lineColor.withAlphaComponent(strokeAlpha)).cgColor
         polylineLayer.lineWidth = self.lineWidth
         polylineLayer.shadowColor = UIColor.black.cgColor
         polylineLayer.shadowOffset = CGSize(width: 0, height: self.lineWidth * 2)
@@ -273,8 +288,7 @@ extension OMScrollableChart {
         return [polylineLayer]
     }
     
-
-    /// Render layers of render ´renderIndex´ as ´OMScrollableChart.RenderType´
+    /// Render layers of render ´renderIndex´ as ´RenderType´
     /// - Parameters:
     ///   - renderIndex: render index
     ///   - renderAs: RenderDataType
@@ -291,7 +305,7 @@ extension OMScrollableChart {
         case .simplify(let type, let tol):
             self.makeScalePointsSimplifyAndLayers(render, size, type, tol)
         case .stadistics(let elements):
-            self.makeStadisticsScaledPointsAndLayers( render, size, elements)
+            self.makeStadisticsScaledPointsAndLayers(render, size, elements)
         case .regress(let elements):
             self.makeLinregressScaledPointsAndLayers(render, size, elements)
         }
@@ -299,15 +313,17 @@ extension OMScrollableChart {
         if render.data.dataType != renderAs {
             render.data = RenderData(data: render.data.data,
                                      points: render.data.points,
-                                     type: renderAs )
+                                     type: renderAs)
+            
+            flowDelegate?.updateRenderData(index: render.index,
+                                           data: render.data)
         }
     }
-    
     /// renderLayers
     /// - Parameters:
     ///   - render: render description
     ///   - size: size description
-    public func renderLayers(with render: BaseRender, size: CGSize) {
+    func renderLayers(with render: BaseRender, size: CGSize) {
         // get the data poiunt
         switch render.data.dataType {
         case .discrete:
@@ -315,7 +331,7 @@ extension OMScrollableChart {
         case .simplify(let type, let tol):
             self.makeScalePointsSimplifyAndLayers(render, size, type, tol)
         case .stadistics(let elements):
-            self.makeStadisticsScaledPointsAndLayers( render, size, elements)
+            self.makeStadisticsScaledPointsAndLayers(render, size, elements)
         case .regress(let elements):
             self.makeLinregressScaledPointsAndLayers(render, size, elements)
         }
@@ -327,11 +343,14 @@ extension OMScrollableChart {
     ///   - size: CGSize
     ///   - color: UIColor
     /// - Returns:  [ShapeRadialGradientLayer]
-    public func createPointsLayers(_ points: [CGPoint], size: CGSize, color: UIColor) -> [ShapeRadialGradientLayer] {
+    func createPointsLayers(_ points: [CGPoint],
+                            size: CGSize,
+                            shadowOffset: CGSize,
+                            color: UIColor) -> [ShapeRadialGradientLayer] {
         return points.map { createPointLayer($0,
                                              size: size,
                                              color: color,
-                                             shadowOffset: pointsLayersShadowOffset) }
+                                             shadowOffset: shadowOffset ) }
     }
     
     /// Create a point layer
@@ -340,7 +359,10 @@ extension OMScrollableChart {
     ///   - size: CGSize
     ///   - color: UIColor
     /// - Returns: ShapeRadialGradientLayer
-    public  func createPointLayer(_ point: CGPoint, size: CGSize, color: UIColor, shadowOffset: CGSize) -> ShapeRadialGradientLayer {
+    func createPointLayer(_ point: CGPoint,
+                          size: CGSize,
+                          color: UIColor,
+                          shadowOffset: CGSize) -> ShapeRadialGradientLayer {
         let circleLayer = ShapeRadialGradientLayer()
         circleLayer.bounds = CGRect(x: 0,
                                     y: 0,
@@ -358,7 +380,7 @@ extension OMScrollableChart {
         circleLayer.shadowOffset = shadowOffset
         circleLayer.shadowOpacity = 0.7
         circleLayer.shadowRadius = 3.0
-        circleLayer.opacity =  0.0
+        circleLayer.opacity = 0.0
         circleLayer.bounds = circleLayer.path!.boundingBoxOfPath
         
         return circleLayer
@@ -370,10 +392,9 @@ extension OMScrollableChart {
     ///   - columnIndex: columnIndex
     ///   - count: count
     /// - Returns: [UIBezierPath]
-    public func createInverseRectanglePaths(_ points: [CGPoint],
-                                            columnIndex: Int,
-                                            count: Int) -> [UIBezierPath]
-    {
+    func createInverseRectanglePaths(_ points: [CGPoint],
+                                     columnIndex: Int,
+                                     count: Int) -> [UIBezierPath] {
         var paths = [UIBezierPath]()
         for currentPointIndex in 0..<points.count - 1 {
             let width = abs(points[currentPointIndex].x - points[currentPointIndex + 1].x)
@@ -402,10 +423,10 @@ extension OMScrollableChart {
     ///   - count: count
     ///   - color: UIColor
     /// - Returns: [GradientShapeLayer]
-    public func createRectangleLayers(_ points: [CGPoint],
-                                      columnIndex: Int,
-                                      count: Int,
-                                      color: UIColor) -> [ShapeLinearGradientLayer]
+    func createRectangleLayers(_ points: [CGPoint],
+                               columnIndex: Int,
+                               count: Int,
+                               color: UIColor) -> [ShapeLinearGradientLayer]
     {
         var layers = [ShapeLinearGradientLayer]()
         for currentPointIndex in 0..<points.count - 1 {
@@ -448,11 +469,12 @@ extension OMScrollableChart {
     ///   - color: UIColor
     ///   - strokeColor: UIColor
     /// - Returns: [GradientShapeLayer]
-    public func createSegmentLayers(_ segmentsPaths: [UIBezierPath],
-                                    _ lineWidth: CGFloat = 0.5,
-                                    _ gardientColor: UIColor = .red,
-                                    _ fillColor: UIColor? = .black,
-                                    _ strokeColor: UIColor? = nil) -> [ShapeLinearGradientLayer] {
+    func createSegmentLayers(_ segmentsPaths: [UIBezierPath],
+                             _ lineWidth: CGFloat = 0.5,
+                             _ gardientColor: UIColor = .black,
+                             _ fillColor: UIColor? = .clear,
+                             _ strokeColor: UIColor? = nil) -> [ShapeLinearGradientLayer]
+    {
         var layers = [ShapeLinearGradientLayer]()
         for currentPointIndex in 0..<segmentsPaths.count - 1 {
             let path = segmentsPaths[currentPointIndex]
@@ -473,10 +495,19 @@ extension OMScrollableChart {
         return layers
     }
     
-    public func createSegmentLayers( _ lineWidth: CGFloat = 0.5,
-                                     _ gardientColor: UIColor = .red,
-                                     _ fillColor: UIColor = .black,
-                                     _ strokeColor: UIColor? = .black) -> [GradientShapeLayer] {
-        return createSegmentLayers(polylineSubpaths, lineWidth,  gardientColor, fillColor,strokeColor)
+    /// createSegmentLayers
+    /// - Parameters:
+    ///   - lineWidth: lineWidth description
+    ///   - gardientColor: gardientColor description
+    ///   - fillColor: fillColor description
+    ///   - strokeColor: strokeColor description
+    /// - Returns: description
+    func createSegmentLayers(_ lineWidth: CGFloat = 0.5,
+                             _ gardientColor: UIColor = .red,
+                             _ fillColor: UIColor = .black,
+                             _ strokeColor: UIColor? = .black) -> [GradientShapeLayer] {
+        return self.createSegmentLayers(self.polylineSubpaths, lineWidth,
+                                        gardientColor,
+                                        fillColor, strokeColor)
     }
 }

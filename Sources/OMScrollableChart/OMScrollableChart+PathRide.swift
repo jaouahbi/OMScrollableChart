@@ -40,8 +40,8 @@ extension OMScrollableChart {
                                    startPoint: CGPoint? = nil,
                                    timingFunction: CAMediaTimingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)) -> CGPoint {
         let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(sectionIndex))
-        self.ridePath = Path(withTimingFunction: timingFunction)
-        let point = self.ridePath?.pointForPercentage(pathPercent: Double(percent), startPoint: startPoint) ?? .zero
+        animations.ridePath = Path(withTimingFunction: timingFunction)
+        let point = animations.ridePath?.pointForPercentage(pathPercent: Double(percent), startPoint: startPoint) ?? .zero
         print("pointForPercentage",percent, point)
         return point
     }
@@ -57,14 +57,14 @@ extension OMScrollableChart {
                             startPoint: CGPoint? = nil,
                             timingFunction: CAMediaTimingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut),
                             duration: TimeInterval) -> CAAnimation? {
-        self.ridePath = Path(withTimingFunction: timingFunction)
+        animations.ridePath = Path(withTimingFunction: timingFunction)
 
 
         let timesForFourthOfAnimation: Double
-        let percents = ridePath?.percentagesWhereYIs(y: Double(percent))
+        let percents = animations.ridePath?.percentagesWhereYIs(y: Double(percent))
         if let curveLengthPercentagesForFourthOfAnimation = percents {
             if curveLengthPercentagesForFourthOfAnimation.count > 0 {
-                if let originX = ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0],
+                if let originX = animations.ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0],
                                                          startPoint: startPoint)?.x {
                     timesForFourthOfAnimation = Double(originX)
                 } else {
@@ -98,8 +98,12 @@ extension OMScrollableChart {
                                      layerToRide: CALayer,
                                      sectionIndex: Int,
                                      duration: TimeInterval = 10.0) -> CAAnimation {
-        self.layerToRide = layerToRide
-        self.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath, sectionIndex: sectionIndex, duration: duration)
+        
+        animations.layerToRide = layerToRide
+        animations.rideAnim = pathRideToPointAnimation(cgPath: path.cgPath,
+                                                       sectionIndex: sectionIndex,
+                                                       duration: duration)
+        
         let anim = CABasicAnimation(keyPath: AnimationKeyPaths.rideProgresAnimationsKey)
         anim.fromValue = NSNumber(value: 0)
         anim.toValue   = NSNumber(value: 1.0)

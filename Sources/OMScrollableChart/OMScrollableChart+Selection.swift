@@ -42,8 +42,6 @@ extension OMScrollableChart {
                                             layer,
                                             point)
     }
-    
-    
     /// selectRenderLayer
     /// - Parameters:
     ///   - layer: layer
@@ -52,12 +50,12 @@ extension OMScrollableChart {
         let unselected = render.allOtherLayers(layer: layer)
         print("allUnselectedRenderLayers = \(unselected.count)")
         unselected.forEach { (layer: GradientShapeLayer) in
-            layer.gardientColor = self.unselectedColor
-            layer.opacity = self.unselectedOpacy
+            layer.gardientColor = animations.unselectedColor
+            layer.opacity = animations.unselectedOpacy
         }
-        layer.gardientColor = self.selectedColor
-        layer.opacity = self.selectedOpacy
-        print("Selected Render Layers = \(layer.name)")
+        layer.gardientColor = animations.selectedColor
+        layer.opacity = animations.selectedOpacy
+        print("Selected Render Layer = \(layer.name)")
         return layer
     }
     
@@ -94,7 +92,7 @@ extension OMScrollableChart {
     ///   - dataIndex: Int
     func didSelectedRenderLayerSectionNotify(_ render: BaseRender, sectionIndex: Int, layer: CALayer) {
         // lets animate the footer rule
-        if isFooterRuleAnimated {
+        if animations.isFooterRuleAnimated {
             let isFooterRuleAnimationDone = performFooterRuleAnimation(onSection: sectionIndex)
             if !isFooterRuleAnimationDone {
                 print("Unable to animate section \(sectionIndex) render: \(render.index) layer: \(layer.name ?? "unnamed")")
@@ -286,12 +284,13 @@ extension OMScrollableChart {
                                         _ animation: Bool = false,
                                         _ duration: TimeInterval = 0.5) {
         print("[HHS] selectRenderLayerWithAnimation = \(render.index)")
-        let needAnimation: Bool = animations.showPointsOnSelection || animations.animateOnRenderLayerSelection || animation
+        let needAnimation: Bool = animations.showPointsOnSelection ||
+                                  animations.animateOnRenderLayerSelection ||
+                                   animation
         if needAnimation {
             CATransaction.setAnimationDuration(duration)
             CATransaction.begin()
         }
-        
         
         if animations.showPointsOnSelection, let layer = layerPoint as? GradientShapeLayer {
             let selectedRenderLayer = selectRenderLayers( render: render, layer: layer)
@@ -323,7 +322,7 @@ extension OMScrollableChart {
             }
         }
         // Show tooltip
-        if showTooltip {
+        if animations.showTooltip {
             self.selectionShowTooltip( render,
                                        layerPoint,
                                        selectionDataIndexFromPointLayerLocation,
@@ -332,7 +331,7 @@ extension OMScrollableChart {
                                        duration)
         }
         
-        if zoomIsActive {
+        if animations.zoomIsActive {
             self.performZoomOnSelection( selectedPoint,
                                         animation,
                                         duration)

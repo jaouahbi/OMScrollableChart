@@ -24,24 +24,16 @@
 		D17A586F2559FB580016A698 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D17A586E2559FB580016A698 /* TestUtils.swift */; };
 		D1D16B6525D684AA007FEDD3 /* OMScrollableChart+Stadistics.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B3F25D684A8007FEDD3 /* OMScrollableChart+Stadistics.swift */; };
 		D1D16B6625D684AA007FEDD3 /* OMScrollableChart+Path.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4025D684A8007FEDD3 /* OMScrollableChart+Path.swift */; };
-		D1D16B6825D684AA007FEDD3 /* CGPath+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4225D684A8007FEDD3 /* CGPath+Extension.swift */; };
 		D1D16B6925D684AA007FEDD3 /* OMScrollableChart+Simplify.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4325D684A8007FEDD3 /* OMScrollableChart+Simplify.swift */; };
 		D1D16B6A25D684AA007FEDD3 /* OMScrollableChart+RenderLocatorProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4425D684A8007FEDD3 /* OMScrollableChart+RenderLocatorProtocol.swift */; };
-		D1D16B6B25D684AA007FEDD3 /* OMScrollableChart+Layers.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4525D684A8007FEDD3 /* OMScrollableChart+Layers.swift */; };
 		D1D16B6C25D684AA007FEDD3 /* OMScrollableLeadingChartRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4625D684A8007FEDD3 /* OMScrollableLeadingChartRule.swift */; };
 		D1D16B7025D684AA007FEDD3 /* OMScrollableChart+Tooltip.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4C25D684A9007FEDD3 /* OMScrollableChart+Tooltip.swift */; };
-		D1D16B7125D684AA007FEDD3 /* FloatPoint+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4D25D684A9007FEDD3 /* FloatPoint+Extension.swift */; };
 		D1D16B7225D684AA007FEDD3 /* UIScrollView+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4E25D684A9007FEDD3 /* UIScrollView+Extensions.swift */; };
 		D1D16B7325D684AA007FEDD3 /* OMScrollableChart+Selection.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B4F25D684A9007FEDD3 /* OMScrollableChart+Selection.swift */; };
 		D1D16B7425D684AA007FEDD3 /* OMScrollableChart+Renders.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5025D684A9007FEDD3 /* OMScrollableChart+Renders.swift */; };
 		D1D16B7525D684AA007FEDD3 /* OMScrollableChart+Rules.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5225D684A9007FEDD3 /* OMScrollableChart+Rules.swift */; };
 		D1D16B7625D684AA007FEDD3 /* DiscreteScaledPointsGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5325D684A9007FEDD3 /* DiscreteScaledPointsGenerator.swift */; };
 		D1D16B7925D684AA007FEDD3 /* OMScrollableChart+Animations.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5725D684A9007FEDD3 /* OMScrollableChart+Animations.swift */; };
-		D1D16B7A25D684AA007FEDD3 /* Geometry+Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5825D684A9007FEDD3 /* Geometry+Utilities.swift */; };
-		D1D16B7B25D684AA007FEDD3 /* CAAnimation+Closure.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5A25D684A9007FEDD3 /* CAAnimation+Closure.swift */; };
-		D1D16B7C25D684AA007FEDD3 /* CALayer+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5B25D684A9007FEDD3 /* CALayer+Extensions.swift */; };
-		D1D16B7D25D684AA007FEDD3 /* RecursiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5C25D684A9007FEDD3 /* RecursiveProtocol.swift */; };
-		D1D16B7E25D684AA007FEDD3 /* CALayerHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5D25D684A9007FEDD3 /* CALayerHandler.swift */; };
 		D1D16B7F25D684AA007FEDD3 /* OMScrollableChart+Regression.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B5E25D684A9007FEDD3 /* OMScrollableChart+Regression.swift */; };
 		D1D16B8325D684AA007FEDD3 /* OMScrollableChart+PathRide.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B6325D684A9007FEDD3 /* OMScrollableChart+PathRide.swift */; };
 		D1D16B8425D684AA007FEDD3 /* OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */; };
@@ -117,14 +109,11 @@
 		D17A586E2559FB580016A698 /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
 		D1D16B3F25D684A8007FEDD3 /* OMScrollableChart+Stadistics.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Stadistics.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Stadistics.swift"; sourceTree = "<group>"; };
 		D1D16B4025D684A8007FEDD3 /* OMScrollableChart+Path.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Path.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Path.swift"; sourceTree = "<group>"; };
-		D1D16B4225D684A8007FEDD3 /* CGPath+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "CGPath+Extension.swift"; path = "Sources/OMScrollableChart/CGPath+Extension.swift"; sourceTree = "<group>"; };
 		D1D16B4325D684A8007FEDD3 /* OMScrollableChart+Simplify.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Simplify.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Simplify.swift"; sourceTree = "<group>"; };
 		D1D16B4425D684A8007FEDD3 /* OMScrollableChart+RenderLocatorProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+RenderLocatorProtocol.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+RenderLocatorProtocol.swift"; sourceTree = "<group>"; };
-		D1D16B4525D684A8007FEDD3 /* OMScrollableChart+Layers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Layers.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Layers.swift"; sourceTree = "<group>"; };
 		D1D16B4625D684A8007FEDD3 /* OMScrollableLeadingChartRule.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OMScrollableLeadingChartRule.swift; path = Sources/OMScrollableChart/OMScrollableLeadingChartRule.swift; sourceTree = "<group>"; };
 		D1D16B4725D684A9007FEDD3 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = LICENSE; path = Sources/OMScrollableChart/LICENSE; sourceTree = "<group>"; };
 		D1D16B4C25D684A9007FEDD3 /* OMScrollableChart+Tooltip.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Tooltip.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Tooltip.swift"; sourceTree = "<group>"; };
-		D1D16B4D25D684A9007FEDD3 /* FloatPoint+Extension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "FloatPoint+Extension.swift"; path = "Sources/OMScrollableChart/FloatPoint+Extension.swift"; sourceTree = "<group>"; };
 		D1D16B4E25D684A9007FEDD3 /* UIScrollView+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "UIScrollView+Extensions.swift"; path = "Sources/OMScrollableChart/UIScrollView+Extensions.swift"; sourceTree = "<group>"; };
 		D1D16B4F25D684A9007FEDD3 /* OMScrollableChart+Selection.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Selection.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Selection.swift"; sourceTree = "<group>"; };
 		D1D16B5025D684A9007FEDD3 /* OMScrollableChart+Renders.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Renders.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Renders.swift"; sourceTree = "<group>"; };
@@ -132,11 +121,6 @@
 		D1D16B5225D684A9007FEDD3 /* OMScrollableChart+Rules.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Rules.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Rules.swift"; sourceTree = "<group>"; };
 		D1D16B5325D684A9007FEDD3 /* DiscreteScaledPointsGenerator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = DiscreteScaledPointsGenerator.swift; path = Sources/OMScrollableChart/DiscreteScaledPointsGenerator.swift; sourceTree = "<group>"; };
 		D1D16B5725D684A9007FEDD3 /* OMScrollableChart+Animations.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Animations.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Animations.swift"; sourceTree = "<group>"; };
-		D1D16B5825D684A9007FEDD3 /* Geometry+Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "Geometry+Utilities.swift"; path = "Sources/OMScrollableChart/Geometry+Utilities.swift"; sourceTree = "<group>"; };
-		D1D16B5A25D684A9007FEDD3 /* CAAnimation+Closure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CAAnimation+Closure.swift"; sourceTree = "<group>"; };
-		D1D16B5B25D684A9007FEDD3 /* CALayer+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CALayer+Extensions.swift"; sourceTree = "<group>"; };
-		D1D16B5C25D684A9007FEDD3 /* RecursiveProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecursiveProtocol.swift; sourceTree = "<group>"; };
-		D1D16B5D25D684A9007FEDD3 /* CALayerHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CALayerHandler.swift; sourceTree = "<group>"; };
 		D1D16B5E25D684A9007FEDD3 /* OMScrollableChart+Regression.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+Regression.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+Regression.swift"; sourceTree = "<group>"; };
 		D1D16B6325D684A9007FEDD3 /* OMScrollableChart+PathRide.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "OMScrollableChart+PathRide.swift"; path = "Sources/OMScrollableChart/OMScrollableChart+PathRide.swift"; sourceTree = "<group>"; };
 		D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OMScrollableChart.swift; path = Sources/OMScrollableChart/OMScrollableChart.swift; sourceTree = "<group>"; };
@@ -179,18 +163,6 @@
 			children = (
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		D1D16B5925D684A9007FEDD3 /* CA */ = {
-			isa = PBXGroup;
-			children = (
-				D1D16B5A25D684A9007FEDD3 /* CAAnimation+Closure.swift */,
-				D1D16B5B25D684A9007FEDD3 /* CALayer+Extensions.swift */,
-				D1D16B5C25D684A9007FEDD3 /* RecursiveProtocol.swift */,
-				D1D16B5D25D684A9007FEDD3 /* CALayerHandler.swift */,
-			);
-			name = CA;
-			path = Sources/OMScrollableChart/CA;
 			sourceTree = "<group>";
 		};
 		D1D16D8E25DC5685007FEDD3 /* Products */ = {
@@ -266,17 +238,13 @@
 		OBJ_9 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				D1D16B5925D684A9007FEDD3 /* CA */,
-				D1D16B4225D684A8007FEDD3 /* CGPath+Extension.swift */,
+				D1D16B4E25D684A9007FEDD3 /* UIScrollView+Extensions.swift */,
 				D1D16B5325D684A9007FEDD3 /* DiscreteScaledPointsGenerator.swift */,
 				D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */,
 				D1D16B5125D684A9007FEDD3 /* Example-Bridging-Header.h */,
-				D1D16B4D25D684A9007FEDD3 /* FloatPoint+Extension.swift */,
-				D1D16B5825D684A9007FEDD3 /* Geometry+Utilities.swift */,
 				D1D16B4725D684A9007FEDD3 /* LICENSE */,
 				D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */,
 				D1D16B5725D684A9007FEDD3 /* OMScrollableChart+Animations.swift */,
-				D1D16B4525D684A8007FEDD3 /* OMScrollableChart+Layers.swift */,
 				D1D16B4025D684A8007FEDD3 /* OMScrollableChart+Path.swift */,
 				D1D16B6325D684A9007FEDD3 /* OMScrollableChart+PathRide.swift */,
 				D1D16B5E25D684A9007FEDD3 /* OMScrollableChart+Regression.swift */,
@@ -288,7 +256,6 @@
 				D1D16B3F25D684A8007FEDD3 /* OMScrollableChart+Stadistics.swift */,
 				D1D16B4C25D684A9007FEDD3 /* OMScrollableChart+Tooltip.swift */,
 				D1D16B4625D684A8007FEDD3 /* OMScrollableLeadingChartRule.swift */,
-				D1D16B4E25D684A9007FEDD3 /* UIScrollView+Extensions.swift */,
 			);
 			name = Sources;
 			sourceTree = SOURCE_ROOT;
@@ -446,22 +413,14 @@
 				D1D16B6A25D684AA007FEDD3 /* OMScrollableChart+RenderLocatorProtocol.swift in Sources */,
 				D1D16E0825DC963F007FEDD3 /* RenderEngine.swift in Sources */,
 				D1D16B8425D684AA007FEDD3 /* OMScrollableChart.swift in Sources */,
-				D1D16B6B25D684AA007FEDD3 /* OMScrollableChart+Layers.swift in Sources */,
 				D1D16B6C25D684AA007FEDD3 /* OMScrollableLeadingChartRule.swift in Sources */,
 				D1D16B8325D684AA007FEDD3 /* OMScrollableChart+PathRide.swift in Sources */,
-				D1D16B7A25D684AA007FEDD3 /* Geometry+Utilities.swift in Sources */,
-				D1D16B6825D684AA007FEDD3 /* CGPath+Extension.swift in Sources */,
-				D1D16B7E25D684AA007FEDD3 /* CALayerHandler.swift in Sources */,
 				D1D16B7625D684AA007FEDD3 /* DiscreteScaledPointsGenerator.swift in Sources */,
-				D1D16B7D25D684AA007FEDD3 /* RecursiveProtocol.swift in Sources */,
 				D1D16B7425D684AA007FEDD3 /* OMScrollableChart+Renders.swift in Sources */,
 				D1D16B7025D684AA007FEDD3 /* OMScrollableChart+Tooltip.swift in Sources */,
 				D1D16B7F25D684AA007FEDD3 /* OMScrollableChart+Regression.swift in Sources */,
-				D1D16B7B25D684AA007FEDD3 /* CAAnimation+Closure.swift in Sources */,
 				D1D16B7925D684AA007FEDD3 /* OMScrollableChart+Animations.swift in Sources */,
-				D1D16B7C25D684AA007FEDD3 /* CALayer+Extensions.swift in Sources */,
 				D1D16B6925D684AA007FEDD3 /* OMScrollableChart+Simplify.swift in Sources */,
-				D1D16B7125D684AA007FEDD3 /* FloatPoint+Extension.swift in Sources */,
 				D1D16B6625D684AA007FEDD3 /* OMScrollableChart+Path.swift in Sources */,
 				D1D16B7525D684AA007FEDD3 /* OMScrollableChart+Rules.swift in Sources */,
 				D1D16B6525D684AA007FEDD3 /* OMScrollableChart+Stadistics.swift in Sources */,

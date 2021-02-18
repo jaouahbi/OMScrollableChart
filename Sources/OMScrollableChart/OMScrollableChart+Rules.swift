@@ -19,13 +19,23 @@
 
 import UIKit
 import Accelerate
-
+import LibControl
 
 public struct RuleManager {
     var rootRule: ChartRuleProtocol?
     var footerRule: ChartRuleProtocol?
     var topRule: ChartRuleProtocol?
     var rules = [ChartRuleProtocol]()
+    var ruleLeadingAnchor: NSLayoutConstraint?
+    var ruletopAnchor: NSLayoutConstraint?
+    var rulebottomAnchor: NSLayoutConstraint?
+    var rulewidthAnchor: NSLayoutConstraint?
+    var ruleHeightAnchor: NSLayoutConstraint?
+    var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
+    var rulesPoints = [CGPoint]()
+    var footerViewHeight: CGFloat = 60
+    var topViewHeight: CGFloat = 20
+
 }
 
 
@@ -67,21 +77,21 @@ extension OMScrollableChart {
                 rule.ruleSize.height :
                 contentView.bounds.height
             print(height, width)
-            ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
-            ruletopAnchor      = rule.topAnchor.constraint(equalTo: self.contentView.topAnchor)
-            rulewidthAnchor    = rule.widthAnchor.constraint(equalToConstant: CGFloat(width))
-            ruleHeightAnchor    = rule.heightAnchor.constraint(equalToConstant: CGFloat(height))
+            ruleManager.ruleLeadingAnchor  = rule.leadingAnchor.constraint(equalTo: self.leadingAnchor)
+            ruleManager.ruletopAnchor      = rule.topAnchor.constraint(equalTo: self.contentView.topAnchor)
+            ruleManager.rulewidthAnchor    = rule.widthAnchor.constraint(equalToConstant: CGFloat(width))
+            ruleManager.ruleHeightAnchor    = rule.heightAnchor.constraint(equalToConstant: CGFloat(height))
             
             if let footerRule = ruleManager.footerRule {
-                rulebottomAnchor =  rule.bottomAnchor.constraint(equalTo: footerRule.bottomAnchor,
+                ruleManager.rulebottomAnchor =  rule.bottomAnchor.constraint(equalTo: footerRule.bottomAnchor,
                                                                  constant: -footerRule.ruleSize.height)
             }
             
-            ruleLeadingAnchor?.isActive  = true
-            ruletopAnchor?.isActive  = true
+            ruleManager.ruleLeadingAnchor?.isActive  = true
+            ruleManager.ruletopAnchor?.isActive  = true
             //rulebottomAnchor?.isActive  = true
-            rulewidthAnchor?.isActive  = true
-            ruleHeightAnchor?.isActive  = true
+            ruleManager.rulewidthAnchor?.isActive  = true
+            ruleManager.ruleHeightAnchor?.isActive  = true
         }
     }
     
@@ -182,11 +192,11 @@ extension OMScrollableChart {
         
         let rootRule = OMScrollableLeadingChartRule(chart: self)
         rootRule.chart = self
-        rootRule.font  = ruleFont
+        rootRule.font  = ruleManager.ruleFont
         rootRule.fontColor = fontRootRuleColor
         let footerRule = OMScrollableChartRuleFooter(chart: self)
         footerRule.chart = self
-        footerRule.font  = ruleFont
+        footerRule.font  = ruleManager.ruleFont
         footerRule.fontColor = fontFooterRuleColor
         ruleManager.rootRule = rootRule
         ruleManager.footerRule = footerRule
@@ -224,7 +234,7 @@ extension OMScrollableChart {
         }
         internalRulesMarks.removeAll()
         internalCalcRules(generator: generatorUnwarp)
-        rulesPoints = generatorUnwarp.makePoints(data: rulesMarks, size: drawableFrame.size)
+        ruleManager.rulesPoints = generatorUnwarp.makePoints(data: rulesMarks, size: drawableFrame.size)
         return true
     }
     
@@ -236,10 +246,10 @@ extension OMScrollableChart {
         let width: CGFloat = contentView.frame.width
         
         //let fontSize = ruleFont.pointSize
-        for (index, item) in rulesPoints.enumerated() {
+        for (index, item) in ruleManager.rulesPoints.enumerated() {
             var yPos = item.y
             if index > 0 {
-                if index < rulesPoints.count - 1 {
+                if index < ruleManager.rulesPoints.count - 1 {
                     yPos = item.y
                 } else {
                     yPos = item.y
@@ -253,14 +263,14 @@ extension OMScrollableChart {
     ///
     func layoutRules() {
         // rules lines
-        let oldRulesPoints = rulesPoints
+        let oldRulesPoints = ruleManager.rulesPoints
         guard let leadingRule = ruleManager.rootRule else {
             return
         }
         guard makeRulesPoints() else {
             return
         }
-        if rulesPoints == oldRulesPoints {
+        if ruleManager.rulesPoints == oldRulesPoints {
             return
         }
         addDashLinesToMarksToVerticalRule(leadingRule)
@@ -274,28 +284,48 @@ extension OMScrollableChart {
 
 
 public class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
+    public func deviceRotation() {
+        print("[Flow] deviceRotation")
+    }
+    
+    public func footerSectionDidSelected(section: Int, selectedView: UIView?) {
+        print("[Flow] footerSectionDidSelected", section, selectedView)
+    }
+    
+    public func footerSectionDidDeselected(section: Int, selectedView: UIView?) {
+        print("[Flow] footerSectionDidDeselected", section, selectedView)
+    }
+    
+    public func updateRenderLayers(index: Int, with layers: [GradientShapeLayer]) {
+        print("[Flow] updateRenderLayers", index, layers)
+    }
+    
+    public func updateRenderData(index: Int, data: RenderData) {
+        print("[Flow] updateRenderData", index, data)
+    }
+    
     public func renderDataTypeChanged(in dataOfRender: RenderType) {
-        print("renderDataTypeChanged", dataOfRender)
+        print("[Flow] renderDataTypeChanged", dataOfRender)
     }
     
     public func drawRootRuleText(in frame: CGRect, text: NSAttributedString) {
-        print("drawRootRuleText", frame, text)
+        print("[Flow] drawRootRuleText", frame, text)
     }
     
     public func footerSectionsTextChanged(texts: [String]) {
-        print("footerSectionsTextChanged", texts)
+        print("[Flow] footerSectionsTextChanged", texts)
     }
     
     public func numberOfPagesChanged(pages: Int) {
-        print("numberOfPagesChanged", pages)
+        print("[Flow] numberOfPagesChanged", pages)
     }
     
     public func contentSizeChanged(contentSize: CGSize) {
-        print("contentSizeChanged", contentSize)
+        print("[Flow] contentSizeChanged", contentSize)
     }
     
     public func frameChanged(frame: CGRect) {
-        print("frameChanged", frame)
+        print("[Flow] frameChanged", frame)
     }
     
     public func dataPointsChanged(dataPoints: [Float], for index: Int) {

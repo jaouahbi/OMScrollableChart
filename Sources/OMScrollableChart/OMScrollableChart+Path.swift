@@ -33,7 +33,6 @@ extension OMScrollableChart {
             startPointShapeLayer.path = nil
             return
         }
-        //        layoutBezierPath()
         let location = recognizer.location(in: self)
         if let  closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
             drawLine(fromPoint: location, toPoint: closestPoint)
@@ -96,7 +95,7 @@ extension OMScrollableChart {
                 drawDot(onLayer: self.contentView.layer,
                         atPoint: $0,
                         atSize: ScrollableRendersConfiguration.defaultPathPointSize,
-                        color: UIColor.black.lighter,
+                        color: UIColor.navyTwo.lighter,
                         alpha: 0.75)
             }
         }
@@ -109,15 +108,15 @@ extension OMScrollableChart {
     }
     
     
-    private func drawLine(fromPoint: CGPoint, toPoint: CGPoint) {
+    private func drawLine(fromPoint: CGPoint, toPoint: CGPoint, width: CGFloat = 6.0) {
         let path = UIBezierPath()
         path.move(to: fromPoint)
         path.addLine(to: toPoint)
         
         lineShapeLayer.path = path.cgPath
         
-        let width: CGFloat = 6.0
         let ovalPath = UIBezierPath(ovalIn: CGRect(origin: CGPoint(x: fromPoint.x - width * 0.5, y: fromPoint.y - width * 0.5), size: CGSize(width: width, height: width)))
+        
         startPointShapeLayer.path = ovalPath.cgPath
     }
     
