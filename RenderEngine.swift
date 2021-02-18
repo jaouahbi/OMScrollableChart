@@ -10,19 +10,22 @@ import LibControl
 
 /*
  
- Host           Renders
- [SC]  --->   |  ---- Polyline
- (Data)  |  ---- Points
- |  ---- Selected point
+    Host           Renders                          version: 1
+        q[SC]  --->   |  ---- Polyline
+              (Data)  |  ---- Points
+                      |  ---- Selected point
  
- | ---- Base custom render
- 
- 
- 
+                      | ---- Base custom render
+                                                    version: 2
+        q[SC]  --->   |  ---- Bar1
+              (Data)  |  ---- Bar2
+                      |  ---- Segments
+
  */
 
 
-// MARK: Default renders idents
+// MARK: Library renders
+
 public enum RenderIdent: Int {
     case polyline       = 0
     case points         = 1
@@ -38,17 +41,16 @@ public enum SimplifyType {
     case ramerDouglasPeuckerPerp
 }
 
-public enum RenderDataType: Equatable {
+public enum RenderType: Equatable {
     case discrete
     case stadistics(CGFloat)
     case simplify(SimplifyType, CGFloat)
     case regress(Int)
 }
 
-typealias RenderType = RenderDataType
 
-public struct DataRender  {
-    static var empty: DataRender = DataRender(data: [], points: [])
+public struct RenderData  {
+    static var empty: RenderData = RenderData(data: [], points: [])
     internal var output: [CGPoint] = []
     internal var input: [Float] = []
     // tipo de render
@@ -69,21 +71,17 @@ public struct DataRender  {
         output = []
     }
     
-    var copy: DataRender {
-        return DataRender(data: data,
+    var copy: RenderData {
+        return RenderData(data: data,
                           points: points,
                           type: type)
     }
     
     public var points: [CGPoint] { return output}
     public var data: [Float] { return input}
-    public var dataType: RenderDataType { return type}
-    public var minPoint: CGPoint? {
-        return output.max(by: {$0.x > $1.x})
-    }
-    public var maxPoint: CGPoint? {
-        return output.max(by: {$0.x <= $1.x})
-    }
+    public var dataType: RenderType { return type}
+    public var minPoint: CGPoint? { output.max(by: {$0.x > $1.x}) }
+    public var maxPoint: CGPoint? { output.max(by: {$0.x <= $1.x}) }
     /// Get  render point from index.
     /// - Parameters:
     ///   - renderIndex: Render index
@@ -174,8 +172,8 @@ public struct DataRender  {
 
 // MARK: RenderProtocol
 public protocol RenderProtocol {
-    associatedtype DataRender
-    var data: DataRender {get set} // Points and data
+    associatedtype RenderData
+    var data: RenderData {get set} // Points and data
     var layers: [GradientShapeLayer] {get set}
     var index: Int {get set}
     func locationToLayer(_ location: CGPoint, mostNearLayer: Bool ) -> GradientShapeLayer?
@@ -188,7 +186,7 @@ public protocol RenderProtocol {
 // MARK: BaseRender
 open class BaseRender: RenderProtocol {
     public var index: Int = 0
-    public var data: DataRender = .empty
+    public var data: RenderData = .empty
     public var layers: [GradientShapeLayer] = []
     public init(index: Int) {
         self.index = index
@@ -197,10 +195,11 @@ open class BaseRender: RenderProtocol {
         
     }
     
-    public var isEmpty: Bool {
-        return data.data.isEmpty && data.points.isEmpty
-    }
+    public var isEmpty: Bool { data.data.isEmpty && data.points.isEmpty}
     
+    /// allOtherLayers
+    /// - Parameter layer: GradientShapeLayer
+    /// - Returns: [GradientShapeLayer]
     public func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
         if !layers.contains(layer) { return [] }
         return layers.filter { $0 != layer }
@@ -298,7 +297,6 @@ public class SelectedPointRender: BaseRender {
     }
 }
 
-
 public protocol RenderEngineClientProtocol: class {
     var engine: RenderManagerProtocol {get}
 }
@@ -307,7 +305,6 @@ public protocol RenderEngineClientProtocol: class {
 public protocol RenderManagerProtocol {
     
     var version: Int {get}
-    
     
     init()
     
@@ -333,6 +330,8 @@ extension RenderManagerProtocol {
     public var version: Int { 1}
 }
 
+
+// MARK: - RenderManager -
 open class RenderManager: RenderManagerProtocol {
     static public var shared: RenderManager = RenderManager()
     open var renders: [BaseRender] = []
@@ -344,7 +343,11 @@ open class RenderManager: RenderManagerProtocol {
             renders.insert(BaseRender(index: idx), at: idx)
         }
     }
-    open func configureRenders() -> [BaseRender] { [RenderManager.polyline, RenderManager.points, RenderManager.selectedPoint] }
+    /// configureRenders
+    /// - Returns:  [BaseRender]
+    open func configureRenders() -> [BaseRender] { [RenderManager.polyline,
+                                                    RenderManager.points,
+                                                    RenderManager.selectedPoint] }
     open func removeAllLayers() {
         self.renders.forEach{
             $0.layers.forEach{$0.removeFromSuperlayer()}
@@ -365,7 +368,7 @@ open class RenderManager: RenderManagerProtocol {
         get { RenderManager.shared.renders.map{$0.data.points} }
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach {
-                $1.data = DataRender(data: $1.data.data , points: newValue[$0], type: $1.data.dataType )
+                $1.data = RenderData(data: $1.data.data , points: newValue[$0], type: $1.data.dataType )
             }
         }
     }
@@ -374,7 +377,7 @@ open class RenderManager: RenderManagerProtocol {
         get { RenderManager.shared.renders.map{$0.data.data} }
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach{
-                $1.data = DataRender(data: newValue[$0], points: $1.data.points, type: $1.data.dataType )
+                $1.data = RenderData(data: newValue[$0], points: $1.data.points, type: $1.data.dataType )
             }
         }
     }

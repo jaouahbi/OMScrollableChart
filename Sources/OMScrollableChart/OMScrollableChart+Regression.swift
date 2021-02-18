@@ -10,7 +10,7 @@ import UIKit
 // Regression
 extension OMScrollableChart {
     
-    func makeLinregressPoints(data: DataRender, size: CGSize, numberOfElements: Int, renderIndex: Int) -> DataRender {
+    func makeLinregressPoints(data: RenderData, size: CGSize, numberOfElements: Int, renderIndex: Int) -> RenderData {
         let originalDataIndex: [Float] = data.points.enumerated().map { Float($0.offset) }
         //        let max = originalData.points.max(by: { $0.x < $1.x})!
         //        let distance = mean(originalDataX.enumerated().compactMap{
@@ -37,7 +37,7 @@ extension OMScrollableChart {
         // add the new points
         let newData = data.data + resulLinregress
         let newPoints = DiscreteScaledPointsGenerator().makePoints(data: newData, size: size)
-        return DataRender( data: newData, points: newPoints)
+        return RenderData( data: newData, points: newPoints)
     }
     func linregressDataForIndex(index: Float) -> Float {
         guard let linFunction = linFunction else { return 0 }

@@ -274,7 +274,7 @@ extension OMScrollableChart {
 
 
 public class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
-    public func renderDataTypeChanged(in dataOfRender: RenderDataType) {
+    public func renderDataTypeChanged(in dataOfRender: RenderType) {
         print("renderDataTypeChanged", dataOfRender)
     }
     

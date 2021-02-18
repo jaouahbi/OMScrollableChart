@@ -47,7 +47,7 @@
 		D1D16B8425D684AA007FEDD3 /* OMScrollableChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */; };
 		D1D16DB025DC56AA007FEDD3 /* LibControl.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1D16DA525DC5692007FEDD3 /* LibControl.framework */; };
 		D1D16DB125DC56AE007FEDD3 /* OMBubbleTextView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1D16D9625DC5685007FEDD3 /* OMBubbleTextView.framework */; };
-		D1D16E0825DC963F007FEDD3 /* RenderManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16E0725DC963F007FEDD3 /* RenderManager.swift */; };
+		D1D16E0825DC963F007FEDD3 /* RenderEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */; };
 		OBJ_113 /* Package.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_6 /* Package.swift */; };
 		OBJ_124 /* OMScrollableChartTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_58 /* OMScrollableChartTests.swift */; };
 		OBJ_125 /* XCTestManifests.swift in Sources */ = {isa = PBXBuildFile; fileRef = OBJ_59 /* XCTestManifests.swift */; };
@@ -142,7 +142,7 @@
 		D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = OMScrollableChart.swift; path = Sources/OMScrollableChart/OMScrollableChart.swift; sourceTree = "<group>"; };
 		D1D16D8D25DC5685007FEDD3 /* OMBubbleTextView.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OMBubbleTextView.xcodeproj; path = ../OMBubbleTextView/OMBubbleTextView.xcodeproj; sourceTree = "<group>"; };
 		D1D16D9D25DC5692007FEDD3 /* LibControl.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = LibControl.xcodeproj; path = ../LibControl/LibControl.xcodeproj; sourceTree = "<group>"; };
-		D1D16E0725DC963F007FEDD3 /* RenderManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderManager.swift; sourceTree = "<group>"; };
+		D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderEngine.swift; sourceTree = "<group>"; };
 		OBJ_58 /* OMScrollableChartTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OMScrollableChartTests.swift; sourceTree = "<group>"; };
 		OBJ_59 /* XCTestManifests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = XCTestManifests.swift; sourceTree = "<group>"; };
 		OBJ_6 /* Package.swift */ = {isa = PBXFileReference; explicitFileType = sourcecode.swift; path = Package.swift; sourceTree = "<group>"; };
@@ -269,7 +269,7 @@
 				D1D16B5925D684A9007FEDD3 /* CA */,
 				D1D16B4225D684A8007FEDD3 /* CGPath+Extension.swift */,
 				D1D16B5325D684A9007FEDD3 /* DiscreteScaledPointsGenerator.swift */,
-				D1D16E0725DC963F007FEDD3 /* RenderManager.swift */,
+				D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */,
 				D1D16B5125D684A9007FEDD3 /* Example-Bridging-Header.h */,
 				D1D16B4D25D684A9007FEDD3 /* FloatPoint+Extension.swift */,
 				D1D16B5825D684A9007FEDD3 /* Geometry+Utilities.swift */,
@@ -399,7 +399,7 @@
 		};
 		D1D16D9825DC5685007FEDD3 /* OMBubbleTextViewTests.xctest */ = {
 			isa = PBXReferenceProxy;
-			fileType = file;
+			fileType = wrapper.cfbundle;
 			path = OMBubbleTextViewTests.xctest;
 			remoteRef = D1D16D9725DC5685007FEDD3 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
@@ -444,7 +444,7 @@
 			buildActionMask = 0;
 			files = (
 				D1D16B6A25D684AA007FEDD3 /* OMScrollableChart+RenderLocatorProtocol.swift in Sources */,
-				D1D16E0825DC963F007FEDD3 /* RenderManager.swift in Sources */,
+				D1D16E0825DC963F007FEDD3 /* RenderEngine.swift in Sources */,
 				D1D16B8425D684AA007FEDD3 /* OMScrollableChart.swift in Sources */,
 				D1D16B6B25D684AA007FEDD3 /* OMScrollableChart+Layers.swift in Sources */,
 				D1D16B6C25D684AA007FEDD3 /* OMScrollableLeadingChartRule.swift in Sources */,

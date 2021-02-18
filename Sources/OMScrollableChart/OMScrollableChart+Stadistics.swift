@@ -19,41 +19,41 @@ public extension OMScrollableChart {
     func chunk( data: [Float],
                       size: CGSize,
                       groping: Int,
-                      operation: ([Float]) -> Float) -> DataRender? {
+                      operation: ([Float]) -> Float) -> RenderData? {
         guard groping > 1 else { return nil }
         let chunked = data.chunked(into: groping)
         let output: [Float] = chunked.map { operation($0) }
         let points: [CGPoint] = DiscreteScaledPointsGenerator().makePoints(data: output, size: size)
-        return DataRender( data: output, points: points)
+        return RenderData( data: output, points: points)
     }
-    func mean( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func mean( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.mean()}
     }
-    func meamg( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func meamg( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.meamg()}
     }
-    func measq( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func measq( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.measq()}
     }
-    func rmsq( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func rmsq( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.rmsq()}
     }
-    func rmsqv( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func rmsqv( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.rmsqv()}
     }
-    func sum( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func sum( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.sum()}
     }
-    func asum( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func asum( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.asum()}
     }
-    func svesq( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func svesq( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.svesq()}
     }
-    func max( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func max( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.maxv()}
     }
-    func min( data: [Float], size: CGSize, groping: Int) -> DataRender? {
+    func min( data: [Float], size: CGSize, groping: Int) -> RenderData? {
         return chunk(data: data, size: size, groping: groping) {$0.minv()}
     }
     typealias StadisticProc = ([Float]) -> Float
@@ -62,15 +62,15 @@ public extension OMScrollableChart {
     func make( data: [Float],
                size: CGSize,
                grouping: CGFloat,
-               function: StadisticProc) -> DataRender {
+               function: StadisticProc) -> RenderData {
         assert(size != .zero)
         assert(!data.isEmpty)
         let chunked = data.chunked(into: Swift.max(1,Int(grouping))) // clap(min: 1, max: ...)
-        guard !chunked.isEmpty else { return DataRender( data: data)}
+        guard !chunked.isEmpty else { return RenderData( data: data)}
         let meanData: [Float] = chunked.map{function($0)}
         let pts = DiscreteScaledPointsGenerator().makePoints(data: meanData, size: size)
-        guard !pts.isEmpty else { return DataRender(data: meanData)}
-        return DataRender( data: meanData,  points: pts)
+        guard !pts.isEmpty else { return RenderData(data: meanData)}
+        return RenderData( data: meanData,  points: pts)
     }
     
     // https://stackoverflow.com/questions/61879898/how-to-get-a-centerpoint-from-an-array-of-cgpoints

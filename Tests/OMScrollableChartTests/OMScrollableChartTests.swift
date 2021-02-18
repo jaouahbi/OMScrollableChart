@@ -61,7 +61,7 @@ class OMScrollableChartTests: XCTestCase, OMScrollableChartDataSource, OMScrolla
         4
     }
     
-    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [GradientShapeLayer] {
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: RenderData) -> [GradientShapeLayer] {
         []
     }
     

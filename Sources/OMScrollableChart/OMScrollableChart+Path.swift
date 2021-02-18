@@ -34,7 +34,7 @@ extension OMScrollableChart {
             return
         }
         //        layoutBezierPath()
-        let location = recognizer.location(in: contentView)
+        let location = recognizer.location(in: self)
         if let  closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
             drawLine(fromPoint: location, toPoint: closestPoint)
         }
@@ -54,7 +54,7 @@ extension OMScrollableChart {
     }
     
     public func makeBezierPathFromPolylinePath(with path: CGPath) -> Bool {
-        bezier = OMBezierPath(cgPath: path)
+        bezier = BezierPathSegmenter(cgPath: path)
         bezier?.generateLookupTable()
         layoutBezierPath(path: path)
         return true
@@ -102,65 +102,12 @@ extension OMScrollableChart {
         }
         
     }
-    
-    //    func drawLine(fromPoint: CGPoint, toPoint: CGPoint) {
-    //        let path = UIBezierPath()
-    //        path.move(to: fromPoint)
-    //        path.addLine(to: toPoint)
-    //
-    //        lineShapeLayer.path = path.cgPath
-    //
-    //        let width: CGFloat = 6.0
-    //        let origin = CGPoint(x: fromPoint.x - width * 0.5, y: fromPoint.y - width * 0.5)
-    //        let rect = CGRect(origin: origin, size: CGSize(width: width, height: width))
-    //        let ovalPath = UIBezierPath(ovalIn: rect)
-    //
-    //        startPointShapeLayer.path = ovalPath.cgPath
-    //    }
-    //
-    //
-    //    @discardableResult
-    //    private func drawDotLines(onLayer parentLayer: CALayer,
-    //                              atPoint point: CGPoint,
-    //                              alpha: CGFloat = 0.85) -> ShapeRadialGradientLayer {
-    //        let layer = ShapeRadialGradientLayer()
-    //        let width: CGFloat = 4.0
-    //        let path = UIBezierPath(ovalIn: CGRect(origin: CGPoint(x: point.x - width * 0.5, y: point.y - width * 0.5), size: CGSize(width: width, height: width)))
-    //        layer.path = path.cgPath
-    //        layer.lineWidth = 1.0
-    //        layer.strokeColor = UIColor.crayolaNeonCarrotColor.withAlphaComponent(alpha).cgColor
-    //        layer.fillColor = UIColor.clear.cgColor
-    //        parentLayer.addSublayer(layer)
-    //
-    //        dotPathLayers.append(layer)
-    //        return layer
-    //    }
-    
-    
 
     
-//    public func addPanGestureRecognizer() {
-//
-//        contentView.addGestureRecognizer(pathNearPointsPanGesture)
-//    }
+    public func addPrivateGestureRecognizer() {
+        self.addGestureRecognizer(pathNearPointsPanGesture)
+    }
     
-    
-    
-    // MARK: - Drawing
-    //    public func drawPath() {
-    //        guard let bezier = bezier else { return }
-    //
-    //        bezierPathLayer.path = bezier.cgPath
-    //        bezierPathLayer.strokeColor = UIColor.green.cgColor
-    //        bezierPathLayer.lineWidth = 2.0
-    //        bezierPathLayer.fillColor = UIColor.clear.cgColor
-    //
-    //        bezier.generateLookupTable()
-    //        for point in bezier.lookupTable {
-    //            drawDot(onLayer: bezierPathLayer, atPoint: point)
-    //        }
-    //    }
-    //
     
     private func drawLine(fromPoint: CGPoint, toPoint: CGPoint) {
         let path = UIBezierPath()

@@ -50,7 +50,7 @@ extension OMScrollableChart {
                     //diffedData.insert(newElement, at: offset)
                     }
                 }
-                let data = DataRender(data: diffedData, points: simplifyPoints )
+                let data = RenderData(data: diffedData, points: simplifyPoints )
                 render.data = data
                 if simplifyPoints.count > 0 {
                     var layers = dataSource?.dataLayers(chart: self,
@@ -124,7 +124,7 @@ extension OMScrollableChart {
         let points = render.makePoints(size)
         if points.count > 0 {
             print("making render \(render.index) layers.")
-            let datRebuilded = DataRender(data: render.data.data, points: points)
+            let datRebuilded = RenderData(data: render.data.data, points: points)
             var layers = dataSource?.dataLayers(chart: self,
                                                renderIndex: render.index,
                                                section: 0,
@@ -149,7 +149,7 @@ extension OMScrollableChart {
     {
         let points = render.makePoints(size)
         if points.count > 0 {
-            let chartData = DataRender( data: render.data.data, points: points)
+            let chartData = RenderData( data: render.data.data, points: points)
             let linregressData = makeLinregressPoints(data: chartData,
                                                       size: size,
                                                       numberOfElements: numberOfElements,
@@ -185,7 +185,7 @@ extension OMScrollableChart {
     // 0 - Polyline
     // 1 - Discrete points
     // 2 - Selected point
-    internal func renderDefaultLayers(_ render: BaseRender, data: DataRender) -> [GradientShapeLayer] {
+    internal func renderDefaultLayers(_ render: BaseRender, data: RenderData) -> [GradientShapeLayer] {
         switch render.index {
         case RenderIdent.polyline.rawValue:
             // let color = UIColor.greyishBlue
@@ -278,7 +278,7 @@ extension OMScrollableChart {
     /// - Parameters:
     ///   - renderIndex: render index
     ///   - renderAs: RenderDataType
-    private func renderLayers(from renderIndex: Int, size: CGSize, renderAs: RenderDataType) {
+    private func renderLayers(from renderIndex: Int, size: CGSize, renderAs: RenderType) {
         guard renderIndex <= renderSourceNumberOfRenders else {
             print("Unexpected out of renderIndex.")
             return
@@ -297,7 +297,7 @@ extension OMScrollableChart {
         }
         // Update the type if needed.
         if render.data.dataType != renderAs {
-            render.data = DataRender(data: render.data.data,
+            render.data = RenderData(data: render.data.data,
                                      points: render.data.points,
                                      type: renderAs )
         }

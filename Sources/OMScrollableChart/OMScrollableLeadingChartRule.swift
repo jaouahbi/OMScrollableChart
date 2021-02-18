@@ -28,7 +28,7 @@ public protocol OMScrollableChartRuleDelegate {
     func frameChanged(frame: CGRect)
     func dataPointsChanged(dataPoints: [Float], for index: Int)
     func drawRootRuleText(in frame: CGRect, text: NSAttributedString)
-    func renderDataTypeChanged(in dataOfRender: RenderDataType)
+    func renderDataTypeChanged(in dataOfRender: RenderType)
 }
 
 enum ChartRuleType: Int {
@@ -41,7 +41,8 @@ protocol ChartRuleProtocol: UIView {
     var chart: OMScrollableChart! {get set}
     init(chart: OMScrollableChart!)
     var type: ChartRuleType {get set}
-    //var isPointsNeeded: Bool {get set}
+
+    
     var font: UIFont {get set}
     var fontColor: UIColor {get set}
     var fontStrokeColor: UIColor {get set}
@@ -71,8 +72,6 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         super.init(coder: coder)
         backgroundColor = .clear
     }
-    
-    
     
     var fontColor = UIColor.black {
         didSet {
@@ -115,53 +114,7 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
         }
         return true
     }
-    
-    //    func createLayout() -> Bool {
-    //        guard let chart = chart else {
-    //            return false
-    //        }
-    //        labelViews.forEach({$0.removeFromSuperview()})
-    //        labelViews.removeAll()
-    //        let fontSize: CGFloat = font.pointSize
-    //
-    //        let attributes = [NSAttributedString.Key.font: self.font,
-    //                          NSAttributedString.Key.foregroundColor: self.fontColor,
-    //                          NSAttributedString.Key.strokeColor: self.fontStrokeColor]
-    //
-    //        for (index, item) in chart.rulesPoints.enumerated() {
-    //            if let stepString = chart.currencyFormatter.string(from: NSNumber(value: chart.rulesMarks[index])) {
-    //                let string = NSAttributedString(string: stepString,
-    //                                                attributes: attributes)
-    //                let label = UILabel()
-    //                label.attributedText = string
-    //                label.sizeToFit()
-    //
-    //                var yPos = (item.y - fontSize)
-    //                if index > 0 {
-    //                    if index < chart.rulesPoints.count - 1 {
-    //                        print(index, item)
-    //                        yPos = item.y - fontSize * 0.5
-    //                    } else {
-    //                        print(index, item)
-    //                        yPos = item.y
-    //                    }
-    //                }
-    //                let frame = CGRect(x: leftInset,
-    //                                     y: yPos,
-    //                                     width: label.bounds.width,
-    //                                     height: label.bounds.height)
-    //                label.frame = frame
-    //                self.addSubview(label)
-    //                labelViews.append(label)
-    //
-    //                chart.flowDelegate?.drawRootRuleText(in: frame,
-    //                                                     text: string)
-    //            }
-    //
-    //
-    //        return true
-    //    }
-    
+   
     override func didMoveToSuperview() {
         super.didMoveToSuperview()
         setNeedsLayout()
@@ -277,6 +230,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             if let sectionSelectedIndex = arrangedSubviews.map{ $0.frame.origin }.map { $0.distance(location) }.mini {
                 let selectedView = arrangedSubviews[sectionSelectedIndex]
                 print("sectionSelectedIndex", sectionSelectedIndex, selectedView)
+                
             }
         }
     

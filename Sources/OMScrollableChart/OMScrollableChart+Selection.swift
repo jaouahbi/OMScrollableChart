@@ -286,16 +286,18 @@ extension OMScrollableChart {
                                         _ animation: Bool = false,
                                         _ duration: TimeInterval = 0.5) {
         print("[HHS] selectRenderLayerWithAnimation = \(render.index)")
-        let needAnimation: Bool = showPointsOnSelection || animateOnRenderLayerSelection || animation
+        let needAnimation: Bool = animations.showPointsOnSelection || animations.animateOnRenderLayerSelection || animation
         if needAnimation {
             CATransaction.setAnimationDuration(duration)
             CATransaction.begin()
         }
-        if showPointsOnSelection, let layer = layerPoint as? GradientShapeLayer {
+        
+        
+        if animations.showPointsOnSelection, let layer = layerPoint as? GradientShapeLayer {
             let selectedRenderLayer = selectRenderLayers( render: render, layer: layer)
             print("selectedRenderLayer = \(selectedRenderLayer)")
         }
-        if animateOnRenderLayerSelection,
+        if animations.animateOnRenderLayerSelection,
            layerPoint.opacity > 0, animation {
             self.animateOnRenderLayerSelection(render, layerPoint,  duration)
         }

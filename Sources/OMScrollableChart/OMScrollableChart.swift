@@ -164,10 +164,10 @@ public enum AnimationTiming: Hashable {
 public protocol OMScrollableChartDataSource: class {
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float]
     func numberOfPages(chart: OMScrollableChart) -> Int
-    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [GradientShapeLayer]
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: RenderData) -> [GradientShapeLayer]
     func footerSectionsText(chart: OMScrollableChart) -> [String]?
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String?
-    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderDataType
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderType
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String?
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int
     func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat
@@ -209,7 +209,6 @@ public final class OMScrollableChart: UIScrollView,
                                       CAAnimationDelegate,
                                       UIGestureRecognizerDelegate, RenderEngineClientProtocol, UIScrollViewDelegate {
     private var instancedRenderManager: RenderManagerProtocol!
-    
     public var engine: RenderManagerProtocol { instancedRenderManager }
     private func instanciateRenderManager(_ renderManagerClass: AnyClass) {
         let stringFromClass = NSStringFromClass(renderManagerClass)
@@ -221,12 +220,13 @@ public final class OMScrollableChart: UIScrollView,
     public var renderManagerClass: RenderManagerProtocol.Type? {
         didSet {
             if let renderManagerClass = renderManagerClass as? AnyClass {
+                // instanciate
                 instanciateRenderManager(renderManagerClass)
             }
         }
     }
     
-    private var pointsLayer = GradientShapeLayer()
+//    private var pointsLayer = GradientShapeLayer()
     var dashLineLayers = [GradientShapeLayer]()
     var flowDelegate: OMScrollableChartRuleDelegate? = OMScrollableChartRuleFlow()
     var isAnimatePointsClearOpacity: Bool = true
@@ -244,8 +244,19 @@ public final class OMScrollableChart: UIScrollView,
     public var dotPathLayers = [ShapeRadialGradientLayer]()
     public var layersToStroke: [LayerStroker] = []
     
-    var animatePointLayers: Bool = false
-    var animateLineSelection: Bool = false
+    
+    struct AnimationConfiguration {
+        var animatePointLayers: Bool = false
+        var animateLineSelection: Bool = false
+        var showPointsOnSelection: Bool = true
+        var animateOnRenderLayerSelection: Bool = true
+        var animatePolyLine = false
+        var animateDashLines: Bool = false
+        var animatePointsOnSelectionLayers: Bool = false
+        var isAnimateLineSelection: Bool = false
+    }
+
+    var animations: AnimationConfiguration = .init()
     
     public var ruleManager: RuleManager = .init()
     public weak var dataSource: OMScrollableChartDataSource?
@@ -268,23 +279,18 @@ public final class OMScrollableChart: UIScrollView,
     var ruleHeightAnchor: NSLayoutConstraint?
     var ruleFont = UIFont.systemFont(ofSize: 10, weight: .medium)
     var rulesPoints = [CGPoint]()
-    var animatePolyLine = false
-    var animateDashLines: Bool = false
-    var animatePointsOnSelectionLayers: Bool = false
-    var isAnimateLineSelection: Bool = false
+
     var pointsLayersShadowOffset = CGSize(width: 0, height: 0.5)
     var selectedColor = UIColor.red
     var selectedOpacy: Float = 1.0
     var unselectedOpacy: Float = 0.1
     var unselectedColor = UIColor.clear
     /// Animate show unselected points
-    var showPointsOnSelection: Bool = true
-    var animateOnRenderLayerSelection: Bool = true
     var showTooltip: Bool = true
     var rideAnim: CAAnimation?
     var layerToRide: CALayer?
     var ridePath: Path?
-    var bezier: OMBezierPath?
+    var bezier: BezierPathSegmenter?
     var showPolylineNearPoints: Bool = true
     
     // MARK: - Layout Cache -
@@ -503,13 +509,11 @@ public final class OMScrollableChart: UIScrollView,
     
     public func forceLayoutReload() { updateLayout(ignoreLayoutCache: true) }
     
-    //    lazy var recognizer: UIPanGestureRecognizer = {
-    //        let rev = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-    ////        rev.cancelsTouchesInView = true
-    //        rev.delegate = self
-    ////       rev.shouldRequireFailure(of: self.panGestureRecognizer)
-    //        return rev
-    //    }()
+    lazy var pathNearPointsPanGesture: UIPanGestureRecognizer = {
+        let rev = UIPanGestureRecognizer(target: self, action: #selector(pathNearPointsHandlePan(_:)))
+        rev.delegate = self
+        return rev
+    }()
     
     var linFunction: (slope: Float, intercept: Float)?
     
@@ -623,6 +627,8 @@ public final class OMScrollableChart: UIScrollView,
         configureTooltip()
         
         
+        self.addPrivateGestureRecognizer()
+        
         
         //        if isScreenLine {
         //            self.setupTouchScreenLineLayer()
@@ -669,6 +675,8 @@ public final class OMScrollableChart: UIScrollView,
                                        y: 0,
                                        width: contentSize.width,
                                        height: contentSize.height - footerViewHeight)
+            
+            flowDelegate?.contentSizeChanged(contentSize: newValue)
         }
         updateLayout()
     }
@@ -688,6 +696,8 @@ public final class OMScrollableChart: UIScrollView,
                                                        renderIndex: index,
                                                        section: 0)
                 dataPointsRenderNewDataPoints.insert(dataPoints, at: index)
+                
+                flowDelegate?.dataPointsChanged(dataPoints: dataPoints, for: index)
             }
         } else {
             // Only exist one render.
@@ -695,7 +705,11 @@ public final class OMScrollableChart: UIScrollView,
                                                    renderIndex: 0,
                                                    section: 0)
             dataPointsRenderNewDataPoints.insert(dataPoints, at: 0)
+            
+            flowDelegate?.dataPointsChanged(dataPoints: dataPoints, for: 0)
         }
+        
+
         return dataPointsRenderNewDataPoints
     }
     
@@ -704,7 +718,7 @@ public final class OMScrollableChart: UIScrollView,
         
         // Update the renders data
         zip(engine.renders, dataPointsRender).forEach {
-            $0.data = DataRender(data: $1, points: [])
+            $0.data = RenderData(data: $1, points: [])
         }
     }
     
@@ -713,7 +727,7 @@ public final class OMScrollableChart: UIScrollView,
             if let texts = dataSource.footerSectionsText(chart: self) {
                 if texts != footerRule.footerSectionsText {
                     footerRule.footerSectionsText = texts
-                    // _delegate.footerSectionsTextChanged()
+                    flowDelegate?.footerSectionsTextChanged(texts: texts)
                     print("footerSectionsTextChanged()")
                 }
             }
@@ -731,7 +745,7 @@ public final class OMScrollableChart: UIScrollView,
             let newNumberOfPages = dataSource.numberOfPages(chart: self)
             if oldNumberOfPages != newNumberOfPages {
                 print("numberOfPagesChanged: \(oldNumberOfPages) -> \(newNumberOfPages)")
-                //                _delegate.numberOfPagesChanged()
+                flowDelegate?.numberOfPagesChanged(pages: newNumberOfPages)
             }
             numberOfPages = newNumberOfPages
             return true
@@ -1029,7 +1043,12 @@ public final class OMScrollableChart: UIScrollView,
                                                            renderIndex: render.index)
                 print("dataOfRender \(dataOfRender) for render \(render.index)")
                 
-                render.data = DataRender(data: render.data.data,
+                
+                if dataOfRender != render.data.dataType {
+                    flowDelegate?.renderDataTypeChanged(in: dataOfRender)
+                }
+                
+                render.data = RenderData(data: render.data.data,
                                          points: render.data.points,
                                          type: dataOfRender )
                 
@@ -1314,7 +1333,7 @@ extension OMScrollableChart {
     ///   - location: location description
     private func layerDidTouch(_ render: BaseRender, _ selectedLayer: ShapeLayer?, _ location: CGPoint) {
         guard let layer = selectedLayer else { return }
-        if animateLineSelection {
+        if animations.animateLineSelection {
             if let path = polylinePath {
                 let anim = perfromAnimateLineSelection(with: layer, path)
                 print(anim)
@@ -1425,6 +1444,7 @@ extension OMScrollableChart {
             oldFrame = super.frame
             super.frame = newValue
             if oldFrame != super.frame {
+                flowDelegate?.frameChanged(frame: super.frame)
                 layoutForFrame()
             }
         }
@@ -1512,80 +1532,80 @@ extension OMScrollableChart {
     
     override public func draw(_ rect: CGRect) {
         super.draw(rect)
-        if let ctx = UIGraphicsGetCurrentContext() {
-            if drawPolylineGradient {
-                if layersToStroke.count > 0 {
-                    for stroker in layersToStroke {
-                        let lineWidth_2 = lineWidth * 2
-                        let darkerColor = lineColor.darker
-                        strokeGradient(ctx: ctx,
-                                       layer: stroker.layer,
-                                       points: stroker.points,
-                                       color: darkerColor,
-                                       lowColor: darkerColor.complementaryColor,
-                                       lineWidth: lineWidth_2,
-                                       fadeFactor: 0.8)
-                    }
-                    
-                    strokeGradient(ctx: ctx,
-                                   layer: polylineLayer,
-                                   points: polylinePoints,
-                                   color: lineColor,
-                                   lineWidth: lineWidth,
-                                   fadeFactor: polylineGradientFadePercentage)
-                } else {
-                    
-                    guard let path = polylinePath, let point = polylinePoints?.first, let lastPoint = polylinePoints?.last else { return }
-                    let st = CGPoint(x: point.x * bounds.width,
-                                     y: point.y * bounds.height)
-                    let ls = CGPoint(x: lastPoint.x * bounds.width,
-                                     y: lastPoint.y * bounds.height)
-                    stroke(in: ctx,
-                           path: path.cgPath,
-                           lineWidth: lineWidth,
-                           startPoint: st,
-                           endPoint: ls,
-                           startRadius: 0,
-                           endRadius: Swift.max(path.bounds.width, path.bounds.height),
-                           strokeColor: .white,
-                           lowColor: .black,
-                           axial: false)
-                    
-                    stroke(in: ctx,
-                           path: path.cgPath,
-                           lineWidth: lineWidth,
-                           startPoint: st,
-                           endPoint: ls,
-                           startRadius: 0,
-                           endRadius: Swift.max(path.bounds.width,path.bounds.height),
-                           strokeColor: .white,
-                           lowColor: .black,
-                           axial: true)
-                    
-                }
-                //                else {
-                //                if drawPolylineSegmentFill {
-                //                    ctx.saveGState()
-                //                    // Clip to the path
-                //                    let paths = polylineSubpaths
-                //                    for (index, path) in paths.enumerated() {
-                //                        let pathToFill = UIBezierPath(cgPath: path.cgPath)
-                //                        pathToFill.lineWidth = 0.5
-                //                        lineColor.withAlphaComponent(1.0 - CGFloat(CGFloat(paths.count) / 1.0) * CGFloat(index)).setFill()
-                //                        pathToFill.fill()
-                //                    }
-                //
-                //                    ctx.restoreGState()
-                //                }
-                //            }
-            }
-            // drawVerticalGridLines()
-            // drawHorizalGridLines()
-            // Specify a border (stroke) color.
-            // UIColor.black.setStroke()
-            // pathVertical.stroke()
-            // pathHorizontal.stroke()
-        }
+//        if let ctx = UIGraphicsGetCurrentContext() {
+//            if drawPolylineGradient {
+//                if layersToStroke.count > 0 {
+//                    for stroker in layersToStroke {
+//                        let lineWidth_2 = lineWidth * 2
+//                        let darkerColor = lineColor.darker
+//                        strokeGradient(ctx: ctx,
+//                                       layer: stroker.layer,
+//                                       points: stroker.points,
+//                                       color: darkerColor,
+//                                       lowColor: darkerColor.complementaryColor,
+//                                       lineWidth: lineWidth_2,
+//                                       fadeFactor: 0.8)
+//                    }
+//
+//                    strokeGradient(ctx: ctx,
+//                                   layer: polylineLayer,
+//                                   points: polylinePoints,
+//                                   color: lineColor,
+//                                   lineWidth: lineWidth,
+//                                   fadeFactor: polylineGradientFadePercentage)
+//                } else {
+//
+//                    guard let path = polylinePath, let point = polylinePoints?.first, let lastPoint = polylinePoints?.last else { return }
+//                    let st = CGPoint(x: point.x * bounds.width,
+//                                     y: point.y * bounds.height)
+//                    let ls = CGPoint(x: lastPoint.x * bounds.width,
+//                                     y: lastPoint.y * bounds.height)
+//                    stroke(in: ctx,
+//                           path: path.cgPath,
+//                           lineWidth: lineWidth,
+//                           startPoint: st,
+//                           endPoint: ls,
+//                           startRadius: 0,
+//                           endRadius: Swift.max(path.bounds.width, path.bounds.height),
+//                           strokeColor: .white,
+//                           lowColor: .black,
+//                           axial: false)
+//
+//                    stroke(in: ctx,
+//                           path: path.cgPath,
+//                           lineWidth: lineWidth,
+//                           startPoint: st,
+//                           endPoint: ls,
+//                           startRadius: 0,
+//                           endRadius: Swift.max(path.bounds.width,path.bounds.height),
+//                           strokeColor: .white,
+//                           lowColor: .black,
+//                           axial: true)
+//
+//                }
+//                //                else {
+//                //                if drawPolylineSegmentFill {
+//                //                    ctx.saveGState()
+//                //                    // Clip to the path
+//                //                    let paths = polylineSubpaths
+//                //                    for (index, path) in paths.enumerated() {
+//                //                        let pathToFill = UIBezierPath(cgPath: path.cgPath)
+//                //                        pathToFill.lineWidth = 0.5
+//                //                        lineColor.withAlphaComponent(1.0 - CGFloat(CGFloat(paths.count) / 1.0) * CGFloat(index)).setFill()
+//                //                        pathToFill.fill()
+//                //                    }
+//                //
+//                //                    ctx.restoreGState()
+//                //                }
+//                //            }
+//            }
+//            // drawVerticalGridLines()
+//            // drawHorizalGridLines()
+//            // Specify a border (stroke) color.
+//            // UIColor.black.setStroke()
+//            // pathVertical.stroke()
+//            // pathHorizontal.stroke()
+//        }
     }
     
     // MARK: Scroll Delegate

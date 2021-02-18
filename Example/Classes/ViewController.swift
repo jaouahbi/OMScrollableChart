@@ -201,7 +201,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     }
     var numberOfRenders: Int { 3 + RenderIdent.base.rawValue }
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] { chartPointsRandom }
-    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: DataRender) -> [GradientShapeLayer] {
+    func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: RenderData) -> [GradientShapeLayer] {
         switch renderIndex {
         case  ExampleRendersIdentify.bar1.rawValue:
             let layers =  chart.createRectangleLayers(data.points, columnIndex: 1, count: 6, color: .black)
@@ -235,7 +235,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     var pathsToAnimate = [[UIBezierPath]]()
     func footerSectionsText(chart: OMScrollableChart) -> [String]? { return nil }
     func dataPointTootipText(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, section: Int) -> String? { return nil }
-    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderDataType { return renderType }
+    func dataOfRender(chart: OMScrollableChart, renderIndex: Int) -> RenderType { return renderType }
     func dataSectionForIndex(chart: OMScrollableChart, dataIndex: Int, section: Int) -> String? { nil }
     func zPositionForLayer(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat? {
         // the last render at top
@@ -442,7 +442,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
             assert(false)
         }
     }
-    var renderType: RenderDataType = .discrete
+    var renderType: RenderType = .discrete
     @IBAction  func typeOfDataSegmentChange( _ sender: Any)  {
         switch segmentTypeOfData.selectedSegmentIndex  {
         case 0: renderType = .discrete
