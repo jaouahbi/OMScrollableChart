@@ -22,6 +22,7 @@ import Accelerate
 import LibControl
 
 public struct RuleManager {
+    
     var rootRule: ChartRuleProtocol?
     var footerRule: ChartRuleProtocol?
     var topRule: ChartRuleProtocol?
@@ -35,7 +36,9 @@ public struct RuleManager {
     var rulesPoints = [CGPoint]()
     var footerViewHeight: CGFloat = 60
     var topViewHeight: CGFloat = 20
-
+    
+    func hideRules() { rules.forEach{$0.isHidden = true }}
+    func showRules() { rules.forEach{$0.isHidden = false }}
 }
 
 
@@ -287,7 +290,6 @@ public class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
     public func deviceRotation() {
         print("[Flow] deviceRotation")
     }
-    
     public func footerSectionDidSelected(section: Int, selectedView: UIView?) {
         print("[Flow] footerSectionDidSelected", section, selectedView)
     }
@@ -331,5 +333,4 @@ public class OMScrollableChartRuleFlow: OMScrollableChartRuleDelegate {
     public func dataPointsChanged(dataPoints: [Float], for index: Int) {
         print("dataPointsChanged", index, dataPoints)
     }
-    
 }

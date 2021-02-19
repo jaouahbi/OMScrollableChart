@@ -1,9 +1,16 @@
+// Copyright 2018 Jorge Ouahbi
 //
-//  OMScrollableChart+RenderLocatorProtocol.swift
-//  OMScrollableChart
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//  Created by Jorge Ouahbi on 13/11/2020.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 import UIKit
 
@@ -33,8 +40,10 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - index: index point in render index ´renderIndex´
     /// - Returns: CGPoint or nil if point not found
     public func pointFromIndex(_ renderIndex: Int, index: Int) -> CGPoint? {
-        assert(renderIndex < renderSourceNumberOfRenders)
-        return engine.renders[renderIndex].data.point(withIndex: index)
+
+        let result = engine.renders[renderIndex].data.point(withIndex: index)
+        assert((result != nil))
+        return result
     }
 
     /// indexForPoint
@@ -43,8 +52,10 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - renderIndex: Int
     /// - Returns: Int?
     public func indexForPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
-        assert(renderIndex < renderSourceNumberOfRenders)
-        return engine.renders[renderIndex].data.index(withPoint: point)
+
+        let result = engine.renders[renderIndex].data.index(withPoint: point)
+        assert((result != nil))
+        return result
     }
 
     /// dataStringFromPoint
@@ -54,7 +65,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: String?
     
     public func dataStringFromPoint(_ renderIndex: Int, point: CGPoint) -> String? {
-        assert(renderIndex < renderSourceNumberOfRenders)
+
         let renderData = engine.renders[renderIndex].data
         switch renderData.dataType {
         case .stadistics:
@@ -90,12 +101,15 @@ extension OMScrollableChart: RenderLocatorProtocol {
                 
             }
         }
+        assert(false)
         return nil
     }
     
     public func dataFromPoint(_ renderIndex: Int, point: CGPoint) -> Float? {
         let render = engine.renders[renderIndex]
-        return render.data.data( withPoint: point)
+        let result =  render.data.data( withPoint: point)
+        assert((result != nil))
+        return result
     }
 
     func renderResolution( renderIndex: Int) -> Double {
@@ -110,7 +124,9 @@ extension OMScrollableChart: RenderLocatorProtocol {
     
     public func sectionIndexFromLayer(_ renderIndex: Int, layer: CALayer) -> Int {
         let render = engine.renders[renderIndex]
-        return sectionIndexFromLayer(render, layer: layer)
+        let result =  sectionIndexFromLayer(render, layer: layer)
+        assert((result != 0))
+        return result
         
     }
     /// sectionIndexFromLayer
@@ -119,8 +135,10 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - layer: layer description
     /// - Returns: description
     public func sectionIndexFromLayer(_ render: BaseRender, layer: CALayer) -> Int {
-        return render.sectionIndex(withPoint: layer.position,
+        let result = render.sectionIndex(withPoint: layer.position,
                                    numberOfSections: numberOfSections)
+        assert((result != 0))
+        return result
     }
   
     /// dataIndexFromPoint
@@ -130,9 +148,11 @@ extension OMScrollableChart: RenderLocatorProtocol {
     /// - Returns: Int?
     
     public func dataIndexFromPoint(_ renderIndex: Int, point: CGPoint) -> Int? {
-        assert(renderIndex < renderSourceNumberOfRenders)
+
         let render = engine.renders[renderIndex]
-        return render.data.dataIndex(withPoint: point)
+        let result = render.data.dataIndex(withPoint: point)
+        assert((result != nil))
+        return result
     }
     
     /// dataIndexFromLayers
@@ -141,7 +161,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     ///   - renderIndex: Index
     /// - Returns: Int?
     public func dataIndexFromPointInLayer(_ renderIndex: Int, point: CGPoint) -> Int? {
-        assert(renderIndex < renderSourceNumberOfRenders)
+
         let render = engine.renders[renderIndex]
         let data = render.data
         switch data.dataType {
@@ -156,6 +176,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
                 return render.layers.firstIndex(of: layersPathContains)
             }
         }
+        assert(false)
         return nil
     }
 }

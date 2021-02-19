@@ -1,9 +1,17 @@
+// Copyright 2018 Jorge Ouahbi
 //
-//  RenderManager.swift
-//  OMScrollableChart
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
 //
-//  Created by Jorge Ouahbi on 17/02/2021.
+//     http://www.apache.org/licenses/LICENSE-2.0
 //
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 
 import UIKit
 import LibControl
@@ -25,12 +33,14 @@ import LibControl
 
 
 // MARK: Library renders
-
 public enum RenderIdent: Int {
     case polyline       = 0
     case points         = 1
     case selectedPoint  = 2
-    case base           = 3  //  public renders base index
+    case bar1           = 3
+    case bar2           = 4
+    case segments       = 5
+    case base           = 6  //  public renders base index
 }
 
 public enum SimplifyType {
@@ -183,9 +193,16 @@ public protocol RenderProtocol {
     var isEmpty: Bool { get}
 }
 
+public enum RenderProperties {
+    case touchable          // like the polyline render, selectable but useless
+    case renderable         // generate layers from data.
+    case renderOnTop        // mark a position, range, segment, step
+}
+
 // MARK: BaseRender
 open class BaseRender: RenderProtocol {
     public var index: Int = 0
+    public var chars: RenderProperties = .touchable
     public var data: RenderData = .empty
     public var layers: [GradientShapeLayer] = []
     public init(index: Int) {
@@ -201,7 +218,9 @@ open class BaseRender: RenderProtocol {
     /// - Parameter layer: GradientShapeLayer
     /// - Returns: [GradientShapeLayer]
     public func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
-        if !layers.contains(layer) { return [] }
+        if !layers.contains(layer) {
+            return []
+        }
         return layers.filter { $0 != layer }
     }
     
@@ -297,6 +316,24 @@ public class SelectedPointRender: BaseRender {
     }
 }
 
+public class SegmentsRender: BaseRender {
+    override init() {
+        super.init(index: RenderIdent.segments.rawValue)
+    }
+}
+
+public class Bar1Render: BaseRender {
+    override init() {
+        super.init(index: RenderIdent.bar1.rawValue)
+    }
+}
+
+public class Bar2Render: BaseRender {
+    override init() {
+        super.init(index: RenderIdent.bar2.rawValue)
+    }
+}
+
 public protocol RenderEngineClientProtocol: class {
     var engine: RenderManagerProtocol {get}
 }
@@ -343,11 +380,23 @@ open class RenderManager: RenderManagerProtocol {
             renders.insert(BaseRender(index: idx), at: idx)
         }
     }
+    open func render(from layer: GradientShapeLayer) -> BaseRender? {
+        for render in renders {
+            if render.layers.contains(layer) {
+                return render
+            }
+        }
+        return nil
+    }
+    
     /// configureRenders
     /// - Returns:  [BaseRender]
     open func configureRenders() -> [BaseRender] { [RenderManager.polyline,
                                                     RenderManager.points,
-                                                    RenderManager.selectedPoint] }
+                                                    RenderManager.selectedPoint,
+                                                    RenderManager.bar1,
+                                                    RenderManager.bar2,
+                                                    RenderManager.segments] }
     open func removeAllLayers() {
         self.renders.forEach{
             $0.layers.forEach{$0.removeFromSuperlayer()}
@@ -407,4 +456,7 @@ extension RenderManager {
     public static var polyline: PolylineRender  = PolylineRender()
     public static var points: PointsRender = PointsRender()
     public static var selectedPoint: SelectedPointRender = SelectedPointRender()
+    public static var bar1: Bar1Render = Bar1Render()
+    public static var bar2: Bar2Render = Bar2Render()
+    public static var segments: SegmentsRender = SegmentsRender()
 }

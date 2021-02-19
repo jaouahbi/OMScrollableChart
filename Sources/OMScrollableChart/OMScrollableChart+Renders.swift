@@ -76,6 +76,8 @@ public extension OMScrollableChart {
         }
     }
     
+    
+    
     /// Make mean points
     /// - Parameters:
     ///   - data: [Float]
@@ -238,7 +240,11 @@ public extension OMScrollableChart {
         return []
     }
     
-    /// Polyline UIBezierPath sub paths
+    //
+    // Get the polyline render sub paths
+    //
+    // output: [UIBezierPath]
+    //
     var polylineSubpaths: [UIBezierPath] {
         guard let polylinePath = polylinePath else {
             print("Unexpected empty polylinePath (UIBezierPath).")
@@ -246,8 +252,13 @@ public extension OMScrollableChart {
         }
         return polylinePath.cgPath.subpaths
     }
+    
+    //
+    // Get the polyline bezier paths
+    //
+    // output: [UIBezierPath]
+    //
 
-    /// Polyline UIBezierPath
     var polylinePath: UIBezierPath? {
         let polylinePoints = engine.renders[RenderIdent.polyline.rawValue].data.points
         guard let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
@@ -257,12 +268,40 @@ public extension OMScrollableChart {
         return polylinePath
     }
     
+    /// regenerateFromBezier
+    /// - Parameter path: CGPath
+    func regenerateFromBezier(withBezier path: CGPath?) {
+        if let path = path {
+            bezier = BezierPathSegmenter(cgPath: path)
+            bezier?.generateLookupTable()
+            //      debugLayoutLimit()
+            if showPolylineNearPoints {
+                dotPathLayers.forEach{$0.removeFromSuperlayer()}
+                dotPathLayers.removeAll()
+                bezier?.lookupTable.forEach {
+                    drawDot(onLayer: self.contentView.layer,
+                            atPoint: $0,
+                            atSize: ScrollableRendersConfiguration.defaultPathPointSize,
+                            color: UIColor.navyTwo.lighter,
+                            alpha: 0.75)
+                }
+            }
+            print("Regenerate path: \(path.boundingBoxOfPath)")
+        }
+    }
+    
     /// updatePolylinePath
     /// - Parameter polylinePath: UIBezierPath
-    private func updatePolylinePath(_ polylinePath: UIBezierPath) {
-        // update path
+    func updatePolylinePath(_ polylinePath: UIBezierPath) {
+        // Update the polyline path
         polylineLayer.path = polylinePath.cgPath
-        polylineLayerPathDidChange(layer: polylineLayer)
+        print(
+            """
+                \(RenderIdent.polyline)
+                ´\(String(describing: layer.name))´ path change in layer
+            """)
+        
+        regenerateFromBezier(withBezier: polylineLayer.path)
     }
     
     ///  Update the polyline layer with UIBezierPath, strokeColor, lineWidth
@@ -293,10 +332,6 @@ public extension OMScrollableChart {
     ///   - renderIndex: render index
     ///   - renderAs: RenderDataType
     private func renderLayers(from renderIndex: Int, size: CGSize, renderAs: RenderType) {
-        guard renderIndex <= renderSourceNumberOfRenders else {
-            print("Unexpected out of renderIndex.")
-            return
-        }
         // get the data points
         let render = engine.renders[renderIndex]
         switch renderAs {
@@ -380,7 +415,7 @@ public extension OMScrollableChart {
         circleLayer.shadowOffset = shadowOffset
         circleLayer.shadowOpacity = 0.7
         circleLayer.shadowRadius = 3.0
-        circleLayer.opacity = 0.0
+        circleLayer.opacity = 1.0
         circleLayer.bounds = circleLayer.path!.boundingBoxOfPath
         
         return circleLayer
