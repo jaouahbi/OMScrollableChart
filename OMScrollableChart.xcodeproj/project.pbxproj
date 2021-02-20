@@ -165,6 +165,22 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		D1C934C125E02531008A7EAF /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */,
+			);
+			name = Core;
+			sourceTree = "<group>";
+		};
+		D1C934C825E02559008A7EAF /* Rules */ = {
+			isa = PBXGroup;
+			children = (
+				D1D16B4625D684A8007FEDD3 /* OMScrollableLeadingChartRule.swift */,
+			);
+			name = Rules;
+			sourceTree = "<group>";
+		};
 		D1D16D8E25DC5685007FEDD3 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -240,7 +256,8 @@
 			children = (
 				D1D16B4E25D684A9007FEDD3 /* UIScrollView+Extensions.swift */,
 				D1D16B5325D684A9007FEDD3 /* DiscreteScaledPointsGenerator.swift */,
-				D1D16E0725DC963F007FEDD3 /* RenderEngine.swift */,
+				D1C934C825E02559008A7EAF /* Rules */,
+				D1C934C125E02531008A7EAF /* Core */,
 				D1D16B5125D684A9007FEDD3 /* Example-Bridging-Header.h */,
 				D1D16B4725D684A9007FEDD3 /* LICENSE */,
 				D1D16B6425D684A9007FEDD3 /* OMScrollableChart.swift */,
@@ -255,7 +272,6 @@
 				D1D16B4325D684A8007FEDD3 /* OMScrollableChart+Simplify.swift */,
 				D1D16B3F25D684A8007FEDD3 /* OMScrollableChart+Stadistics.swift */,
 				D1D16B4C25D684A9007FEDD3 /* OMScrollableChart+Tooltip.swift */,
-				D1D16B4625D684A8007FEDD3 /* OMScrollableLeadingChartRule.swift */,
 			);
 			name = Sources;
 			sourceTree = SOURCE_ROOT;

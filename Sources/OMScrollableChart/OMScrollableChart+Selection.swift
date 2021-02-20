@@ -22,49 +22,28 @@
 import UIKit
 import LibControl
 
-extension OMScrollableChart {
-    /// selectNearestRenderLayer
-    /// - Parameters:
-    ///   - renderIndex: render index
-    ///   - point: point
-    public func selectNearestRenderLayer(_ renderIndex: Int, point: CGPoint ) {
-        /// Select the last point if the render is not hidden.
-        selectNearestRenderLayer( engine.renders[renderIndex], point: point)
-    }
-    
-    public func selectNearestRenderLayer(_ render: BaseRender, point: CGPoint ) {
-        /// Select the last point if the render is not hidden.
-        guard let layer = render.locationToLayer(point) else { return }
-        self.selectRenderLayerWithAnimation(render, layer, point)
-    }
-    /// selectRenderLayer
-    /// - Parameters:
-    ///   - layer: layer
-    ///   - renderIndex: Int
-    public func selectRenderLayers(render: BaseRender, layer: GradientShapeLayer) -> GradientShapeLayer {
-        let unselected = render.allOtherLayers(layer: layer)
-        print("all unselected render layers = \(unselected.count)")
-        unselected.forEach { (layer: GradientShapeLayer) in
-            layer.gardientColor = animations.unselectedColor
-            layer.opacity = animations.unselectedOpacy
-        }
-        layer.gardientColor = animations.selectedColor
-        layer.opacity = animations.selectedOpacy
-        print("Selected Render Layer = \(layer.name)")
-        return layer
-    }
+public struct ScrollableChartColorConfiguration {
+    public static let strokeColor: UIColor = UIColor.paleGreyThree.withAlphaComponent(0.69)
+    public static let fillColor: UIColor = lineColor.lighter.withAlphaComponent(0.88)
+    public static let gradientColor: UIColor = lineColor.darken().withAlphaComponent(0.55)
+    public static let bezierColor: UIColor = UIColor.navyTwo.lighter
+    public static let glowColor: UIColor = lineColor.analagous1.withAlphaComponent(0.63)
+    public static var lineColor = UIColor.greyishBlue
+    public static var selectedPointColor = lineColor.analagous0.withAlphaComponent(0.43)
+    public static let strokeLineColor: UIColor = .black
+    public static let pointColor: UIColor = lineColor.darken()
+}
 
-    
+extension OMScrollableChart {
+
     /// performFooterRuleAnimation
     /// - Parameter sectionIndex: sectionIndex
     /// - Returns: Bool
     public func performFooterRuleAnimation(onSection sectionIndex: Int) -> Bool {
-        guard numberOfSections > 0 else {
-            return false
-        }
+        guard numberOfSections > 0 else { return false }
         if let footer = ruleManager.footerRule as? OMScrollableChartRuleFooter,
            let sectionsViews = footer.views {
-            print("circular section index", sectionIndex % numberOfSections)
+//            print("circular section index", sectionIndex % numberOfSections)
             // shake section view at safe index
             sectionsViews[sectionIndex % numberOfSections].shakeGrow(duration: 1.0)
         }
@@ -76,41 +55,56 @@ extension OMScrollableChart {
     ///   - layer: CALayer
     ///   - renderIndex: Int
     ///   - dataIndex: Int
-    public func didSelectedRenderLayerSectionNotify(_ render: BaseRender, sectionIndex: Int, layer: CALayer) {
+    public func didChangedRenderLayerSectionNotify(_ render: BaseRender, sectionIndex: Int, layer: CALayer) {
         // lets animate the footer rule
-        if animations.isFooterRuleAnimated {
+        if animations.isFooterRuleAnimatedOnSectionChange {
             let isFooterRuleAnimationDone = performFooterRuleAnimation(onSection: sectionIndex)
             if !isFooterRuleAnimationDone {
-                print("Unable to animate section \(sectionIndex) render: \(render.index) layer: \(layer.name ?? "unnamed")")
+                print(
+                    """
+                        Unable to animate section \(sectionIndex)
+                        render: \(render.index)
+                        layer: \(layer.name ?? "unknown layer name")
+                    """)
             }
         }
-        guard let delegate = renderDelegate else {return }
-        delegate.didSelectSection(chart: self,
+        renderDelegate?.didChangeSection(chart: self,
                                   renderIndex: render.index,
-                                         sectionIndex: sectionIndex,
-                                         layer: layer)
+                                  sectionIndex: sectionIndex,
+                                  layer: layer)
     }
-    /// didSelectedRenderLayerIndex
-    /// - Parameters:
-    ///   - renderIndex: renderIndex description
-    ///   - dataIndex: dataIndex description
-    ///   - layer: layer description
-    public func didSelectedRenderLayerIndexNotify(_ render: BaseRender, dataIndex: Int, layer: CALayer) {
-        renderDelegate?.didSelectDataIndex(chart: self, renderIndex: render.index, dataIndex: dataIndex, layer: layer)
-    }
-    /// performZoomOnSelection
+    /// engine_ZoomOnSelection
     /// - Parameters:
     ///   - point: point description
     ///   - scale: scale description
     ///   - animation: animation description
     ///   - duration: duration description
-    public func performZoomOnSelection(_ point: CGPoint, _ scale: CGFloat = 1.2, _ animation: Bool, _ duration: TimeInterval = 1.0) {
+    public func engine_ZoomOnSelection(_ point: CGPoint,
+                                       _ scale: CGFloat = 1.2,
+                                       _ animation: Bool,
+                                       _ duration: TimeInterval = 1.0) {
         if self.zoomScale == 1 {
-            self.zoom(toPoint: point, scale: scale, animated: animation, resetZoom: true)
+            self.zoom(toPoint: point,
+                      scale: scale,
+                      animated: animation,
+                      resetZoom: true)
         } else {
             self.setZoomScale(1, animated: true)
         }
     }
+    
+    private func didChangedRenderLayerDataIndexNotify(_ render: BaseRender,
+                                                      _ dataIndex: Int,
+                                                      _ layerToSelect: ShapeLayer) {
+        // print("Selected data point index: \(dataIndex) type: \(render.data.dataType)")
+        
+        // notify the data index selection.
+        renderDelegate?.didSelectDataIndex(chart: self,
+                                           renderIndex: render.index,
+                                           dataIndex: dataIndex,
+                                           layer: layerToSelect)
+    }
+    
     /// selectRenderLayerWithAnimation
     /// - Parameters:
     ///   - layerPoint: GradientShapeLayer
@@ -118,65 +112,97 @@ extension OMScrollableChart {
     ///   - animation: Bool
     ///   - renderIndex: Int
     public func selectRenderLayerWithAnimation(_ render: BaseRender,
-                                        _ layerPoint: ShapeLayer,
+                                        _ layerToSelect: ShapeLayer,
                                         _ selectedPoint: CGPoint,
                                         _ animation: Bool = false,
                                         _ duration: TimeInterval = 0.5) {
         
-        print("selectRenderLayerWithAnimation = \(render.index)")
+//        print("selectRenderLayerWithAnimation = \(render)")
         
-        let needAnimation: Bool = animations.showPointsOnSelection ||
-                                  animations.animateOnRenderLayerSelection ||
-                                   animation
+        let needAnimation: Bool = (animations.showSelectedLayerOnSelection ||
+                                   animations.animateOnRenderLayerSelection ||
+                                   animation) && duration > 0
         if needAnimation {
             CATransaction.setAnimationDuration(duration)
             CATransaction.begin()
         }
         
-        if animations.showPointsOnSelection, let layer = layerPoint as? GradientShapeLayer {
-            let selectedRenderLayer = selectRenderLayers( render: render, layer: layer)
-            print("selectedRenderLayer = \(selectedRenderLayer)")
-        }
-        if animations.animateOnRenderLayerSelection,
-           layerPoint.opacity > 0, animation {
-            self.animateOnRenderLayerSelection(render, layerPoint,  duration)
-        }
-        let selectionDataIndexFromPointLayerLocation = render.data.index(withPoint: layerPoint.position)
-        // Get the selection data index
-        if let dataIndex = selectionDataIndexFromPointLayerLocation {
-            
-            print("Selected data point index: \(dataIndex) type: \(render.data.dataType)")
-            // notify the data index selection.
-            self.didSelectedRenderLayerIndexNotify( render,
-                                              dataIndex: Int(dataIndex),
-                                              layer: layerPoint)
-            
-            let sectionIndex = sectionIndexFromLayer(render, layer: layerPoint)
-            if sectionIndex != Index.bad.rawValue {
-                print("Selected SECTION: \(sectionIndex) type: \(render.data.dataType)")
-                // notify and animate footer if the animation is actived
-                self.didSelectedRenderLayerSectionNotify( render,
-                                                          sectionIndex: Int(sectionIndex),
-                                                          layer: layerPoint)
-            } else {
-                print("Unexpected \(dataIndex) type: \(render.data.dataType)")
+        if animations.showSelectedLayerOnSelection {
+            if let layer = layerToSelect as? GradientShapeLayer {
+                
+                // change the selected layer to selected layer properties and
+                // unselected layer to unselected layer properties of the render
+                
+                let renderLayer = render.selectLayer(layer: layer,
+                                                     selected: LayerProperties(color: render.selectedColor, opacity: render.selectedOpacy),
+                                                     unselected: LayerProperties(color: render.unselectedColor, opacity: render.selectedOpacy))
+                print("selected layer = \(renderLayer.name ?? "")")
             }
         }
+        
+        if animations.animateOnRenderLayerSelection {
+            if animation {
+                if layerToSelect.opacity > 0 {
+                    self.animateOnRenderLayerSelection(render,
+                                                       layerToSelect,
+                                                       duration)
+                }
+            }
+        }
+
+        let selectionDataIndex = render.data.index(withPoint: layerToSelect.position)
+        // check if render wants notifications
+        if render.chars.contains(.event_notifier) {
+            // notify
+            self.notifyLayerSelection(on: render,
+                                      layerToSelect: layerToSelect,
+                                      selectionDataIndex: selectionDataIndex)
+        }
+        
         // Show tooltip
         if animations.showTooltip {
             self.displayTooltip( render,
-                                       layerPoint,
-                                       selectionDataIndexFromPointLayerLocation,
+                                       layerToSelect,
+                                       selectionDataIndex,
                                        selectedPoint,
                                        animation,
                                        duration)
         }
-        
         if needAnimation {
             CATransaction.commit()
         }
     }
     
+    /// notifyLayerSelection
+    /// - Parameters:
+    ///   - render: render
+    ///   - layerToSelect: layer
+    ///   - selectionDataIndex: data index
+    func notifyLayerSelection(on render: BaseRender,
+                          layerToSelect: ShapeLayer,
+                          selectionDataIndex: Int?) {
+        // Get the selection data index
+        if let dataIndex = selectionDataIndex {
+            // notify about selection of point linked to a index of data
+            self.didChangedRenderLayerDataIndexNotify(render,
+                                                      dataIndex,
+                                                      layerToSelect)
+        }
+        let sectionIndex = sectionIndexFromLayer(render, layer: layerToSelect)
+        // changed
+        if sectionIndex != Index.bad.rawValue && sectionIndex != self.sectionIndex  {
+            // print("Selected SECTION: \(sectionIndex) type: \(render.data.dataType)")
+            // notify and animate footer if the animation is actived
+            self.didChangedRenderLayerSectionNotify( render,
+                                                      sectionIndex: Int(sectionIndex),
+                                                      layer: layerToSelect)
+            // update the last section index
+            self.sectionIndex = sectionIndex
+        } else {
+            //print("Unexpected \(dataIndex) type: \(render.data.dataType)")
+        }
+    }
+    // MARK: - Zoom -
     public func scrollViewWillBeginZooming(_ scrollView: UIScrollView, with view: UIView?) {
         print("scrollViewWillBeginZooming")
         ruleManager.hideRules()
@@ -186,11 +212,9 @@ extension OMScrollableChart {
         print("scrollViewDidEndZooming \(scale)")
         ruleManager.showRules()
     }
-    
     public func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         self.contentView
     }
-    
     /// locationFromTouchInContentView
     /// - Parameter touches: Set<UITouch>
     /// - Returns: CGPoint
@@ -204,7 +228,8 @@ extension OMScrollableChart {
     /// - Parameter location: location description
     /// - Returns: ShapeLayer
     public func hitTestAsLayer(_ location: CGPoint) -> CALayer? {
-        if let layer = contentView.layer.hitTest(location) { // If you hit a layer and if its a Shapelayer
+        // If you hit a layer (and if its a Shapelayer)
+        if let layer = contentView.layer.hitTest(location) {
             return layer
         }
         return nil

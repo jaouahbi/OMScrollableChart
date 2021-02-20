@@ -287,8 +287,10 @@ public extension OMScrollableChart {
         let count = render.layers.count - 1
         let pointBegin = render.layers.takeElements(index)
         let pointEnd = render.layers.takeElements(count - index, startAt: index + 1)
-        animatePoints(pointBegin.reversed(), duration: duration)
-        animatePoints(pointEnd, duration: duration)
+        animatePoints(pointBegin.reversed(),
+                      duration: duration)
+        animatePoints(pointEnd,
+                      duration: duration)
     }
 }
 

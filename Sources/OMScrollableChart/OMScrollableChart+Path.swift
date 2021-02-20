@@ -28,8 +28,9 @@ extension OMScrollableChart {
             startPointShapeLayer.path = nil
             return
         }
+
         let location = recognizer.location(in: self)
-        if let  closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
+        if let closestPoint = bezier?.findClosestPointOnPath(fromPoint: location) {
             drawLine(fromPoint: location,
                      toPoint: closestPoint)
         }

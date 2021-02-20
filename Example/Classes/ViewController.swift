@@ -79,67 +79,140 @@ class ViewController: UIViewController,
         return timingTable[renderIndex]
     }
     
-    func didSelectSection(chart: OMScrollableChart, renderIndex: Int, sectionIndex: Int, layer: CALayer) {
-        print("didSelectSection \(renderIndex) section index: \(sectionIndex) name: \(String(describing: layer.name))")
-        switch renderIndex {
-        case RenderIdent.bar1.rawValue:
-            break
-        case RenderIdent.bar2.rawValue:
-            break
-        case RenderIdent.segments.rawValue:
-//           selectedSegmentIndex = sectionIndex
-//            let selectedSegmentLayer = chart.engine.renders[renderIndex].locationToLayer(layer.position)
-//            print("Section \(sectionIndex) selected \(selectedSegmentLayer) \(layer)")
-            break
-        default: break
+    /// for_each_layer_in_section
+    /// - Parameters:
+    ///   - renderIndex: renderIndex description
+    ///   - layer: layer description
+    ///   - completion: completion description
+    func for_each_layer_in_section(_ renderIndex: Int,
+                                   _ layer: CALayer,
+                                   _ completion: ((CALayer) -> Void)?) {
+
+        let render = RenderManager.shared.renders[renderIndex]
+        for_each_layer_in_section(chart,
+                                  render,
+                                  layer,
+                                  chart.numberOfSections,
+                                  completion)
+    }
+    
+    /// for_each_layer_in_section
+    /// - Parameters:
+    ///   - chart: chart description
+    ///   - render: render description
+    ///   - layer: layer description
+    ///   - numberOfSections: numberOfSections description
+    ///   - completion: completion description
+    func for_each_layer_in_section(_ chart: OMScrollableChart,
+                                   _ render: BaseRender,
+                                   _ layer: CALayer,
+                                   _ numberOfSections: Int,
+                                   _ completion: ((CALayer) -> Void)?) {
+
+        let selectedSectionIndex = render.sectionIndex(withPoint: layer.position,
+                                                       numberOfSections: numberOfSections)
+        render.layers.forEach {
+            let index = render.sectionIndex(withPoint:  $0.position,
+                                            numberOfSections: numberOfSections)
+            if index == selectedSectionIndex {
+                completion?($0)
+            }
         }
     }
     
-    func didSelectDataIndex(chart: OMScrollableChart, renderIndex: Int, dataIndex: Int, layer: CALayer) {
+    /// didChangeSection
+    /// - Parameters:
+    ///   - chart: chart description
+    ///   - renderIndex: renderIndex description
+    ///   - sectionIndex: sectionIndex description
+    ///   - layer: layer description
+    func didChangeSection(chart: OMScrollableChart,
+                          renderIndex: Int,
+                          sectionIndex: Int,
+                          layer: CALayer) {
+        
+        for_each_layer_in_section(renderIndex, layer) {
+            $0.glowLayer(withColor: ScrollableChartColorConfiguration.glowColor,
+                         withEffect: .normal)
+            
+        }
+    }
+    
+//    private func renderLayerSelected(_ chart: OMScrollableChart, _ layer: CALayer, _ renderIndex: Int) {
+//
+//        // update segments layers.
+//
+//        if let result =
+//            chart
+//            .engine
+//            .renders[renderIndex]
+//            .locationToLayer(layer.position, mostNearLayer: true) {
+//
+//            self.selected?.removeAllAnimations()
+//            self.selected?.removeFromSuperlayer()
+//
+//            chart.rootRenderLayer.addSublayer(result)
+//            self.selected = result
+//
+//            result.opacity = 1.0
+//
+//            prepareSelectedLayerMask(renderIndex, result)
+//        }
+//    }
+    
+    func didSelectDataIndex(chart: OMScrollableChart,
+                            renderIndex: Int,
+                            dataIndex: Int,
+                            layer: CALayer) {
+        
         let index: Int = abs(dataIndex - 1)
         let points = chart.engine.renders[renderIndex].data.points
-        print("didSelectDataIndex \(renderIndex) dataIndex: \(dataIndex) name: \(String(describing: layer.name))")
+//        print("didSelectDataIndex render index: \(renderIndex) dataIndex: \(dataIndex) name: \(String(describing: layer.name))")
         if points.count <= index {
-            print("error render index: \(renderIndex) dataIndex: \(dataIndex) name: \(String(describing: layer.name))")
+//            print("error render index: \(renderIndex) dataIndex: \(dataIndex) name: \(String(describing: layer.name))")
             return
         }
         
 //        let previousPoint = points[index]
 //        let indexOfPOint = chart.indexForPoint(renderIndex, point: previousPoint) ?? 0
+        
         switch renderIndex {
-        case RenderIdent.points.rawValue:
-            // update selection point layer.
-            chart.renderSelectedPointsLayer?.position = layer.position
-            // update segments layers.
-            if let selectedSegment =
-                chart
-                .engine
-                .renders[RenderIdent.segments.rawValue]
-                .locationToLayer(layer.position,
-                                 mostNearLayer: true) {
-                
-                self.selectedSegment?.removeAllAnimations()
-                self.selectedSegment?.removeFromSuperlayer()
-                
-                chart.rootRenderLayer.addSublayer(selectedSegment)
-                self.selectedSegment = selectedSegment
-                
-                selectedSegment.opacity = 1.0
-                
-                prepareSelectedLayerMask(renderIndex, selectedSegment)
-            }
+            case RenderIdent.points.rawValue:
+                // update selection point layer.
+                chart.renderSelectedPointsLayer?.position = layer.position
+        case RenderIdent.segments.rawValue:
+            layer.glowLayer(withColor: ScrollableChartColorConfiguration.selectedPointColor,
+                         withEffect: .regular)
+            default:
+                break
+        }
+        
+//           if let result =
+//               chart
+//               .engine
+//               .renders[renderIndex]
+//               .locationToLayer(layer.position, mostNearLayer: true) {
+//            print(result.opacity, result.superlayer)
+//           }
+        
+            
+//        renderLayerSelected(chart,
+//                            layer,
+//                            renderIndex)
             
 
             
 //        case ExampleRendersIdentify.segments.rawValue:
 //            prepareSelectedLayerMask(renderIndex, layer, previousPoint, indexOfPOint)
-        default:
-            break
-        }
+
     }
-    var selectedSegment: ShapeLayer?
+//    var selected: ShapeLayer?
     func animationDidEnded(chart: OMScrollableChart, renderIndex: Int, animation: CAAnimation) {
         switch renderIndex {
+        case RenderIdent.polyline.rawValue:
+            break
+        case RenderIdent.points.rawValue:
+            break
         case RenderIdent.selectedPoint.rawValue:
             timingTable[renderIndex] = .none
         case  RenderIdent.bar1.rawValue:
@@ -158,16 +231,24 @@ class ViewController: UIViewController,
                        layerIndex: Int,
                        layer: GradientShapeLayer) -> CAAnimation? {
         switch renderIndex {
+        case RenderIdent.polyline.rawValue:
+            break
+        case RenderIdent.points.rawValue:
+            break
         case RenderIdent.selectedPoint.rawValue:
             guard let polylinePath = chart.polylinePath else {
                 return nil
             }
-            // last section index
+            //
+            // Animate until last section index
+            //
+            
+            let duration = chart.animations.pathRideToPointAnimationDuration
             let sectionIndex = chart.numberOfSections * chart.numberOfPages
             return chart.animateLayerPathRideToPoint( polylinePath,
                                                       layerToRide: layer,
                                                       sectionIndex: sectionIndex,
-                                                      duration: chart.animations.pathRideToPointAnimationDuration)
+                                                      duration: duration)
         case  RenderIdent.bar1.rawValue:
             let pathStart = pathsToAnimate[renderIndex - RenderIdent.base.rawValue ][layerIndex]
             return chart.animateLayerPath( layer,
@@ -190,6 +271,10 @@ class ViewController: UIViewController,
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] { chartPointsRandom }
     func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, data: RenderData) -> [GradientShapeLayer] {
         switch renderIndex {
+        case RenderIdent.polyline.rawValue:
+            break
+        case RenderIdent.points.rawValue:
+            break
         case  RenderIdent.bar1.rawValue:
             let layers =  chart.createRectangleLayers(data.points, columnIndex: 1, count: 6, color: .black)
             layers.enumerated().forEach({$1.name = "bar income \($0)"})  //debug
@@ -203,13 +288,10 @@ class ViewController: UIViewController,
             self.pathsToAnimate.insert(paths, at: 1)
             return layers
         case  RenderIdent.segments.rawValue:
-            let strokeColor: UIColor = UIColor.tan
-            let fillColor: UIColor = UIColor.crayolaTurquoiseBlueColor
-            let gradientColor: UIColor = UIColor.crayolaVioletBlueColor
             let layers = chart.createSegmentLayers( chart.lineWidth,
-                                                    gradientColor,
-                                                    strokeColor.withAlphaComponent(0.88),
-                                                    fillColor)
+                                                    ScrollableChartColorConfiguration.gradientColor,
+                                                    ScrollableChartColorConfiguration.strokeColor,
+                                                    ScrollableChartColorConfiguration.fillColor)
             layers.enumerated().forEach({$1.name = "line segment \($0)"})  //debug
             return layers
             
@@ -226,68 +308,37 @@ class ViewController: UIViewController,
     
     func zPositionForLayer(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat? {
         // the last render at top
-        return CGFloat(RenderPosition.zPositionReserved.rawValue) + CGFloat(renderIndex)
+        return nil // CGFloat(RenderPosition.zPositionReserved.rawValue) + CGFloat(renderIndex)
     }
     func renderOpacity(chart: OMScrollableChart, renderIndex: Int) -> CGFloat {
         opacityTable[renderIndex].rawValue
     }
-    
-    func configureSelectedLayer(layer: CALayer, points: [CGPoint]) {
-//        layer.zPosition =
-//            CGFloat(SelectedIndexZPostion.selectedIndexZPositionTop.rawValue)
-    }
-    
-    func renderSelectedLayer(layer: GradientShapeLayer, points: [CGPoint]) {
-       // filter all layer
-        let render = RenderManager.shared.render(from: layer)
-        
-        print("Layer \(layer.name) owned by \(render?.index) \(points)")
-        
-//        let layers = chart.rootRenderLayer.sublayers?.filter{ (filLayer: CALayer) in
-//            filLayer.zPosition == CGFloat(SelectedIndexZPostion.selectedIndexZPositionTop.rawValue)
-//        }
-//
-//        layers?.forEach { $0.removeAllAnimations()}
-//        layers?.forEach { $0.removeFromSuperlayer()}
-//
-//        chart.rootRenderLayer.insertSublayer(layer, at: UInt32(layer.zPosition))
-        
-        layer.glowLayer(withColor: UIColor.greyishBlue, withEffect: .normal)
 
-    }
     /// prepareSelectedLayerMask
     /// - Parameters:
     ///   - renderIndex: index
     ///   - layer: ShapeLayer
-    func prepareSelectedLayerMask(_ renderIndex: Int,_ layer: GradientShapeLayer?) {
-        if let layer = layer,
-           let path = layer.path {
-            let points = Path(cgPath: path).destinationPoints()
-            
-            configureSelectedLayer( layer: layer, points: points)
-            renderSelectedLayer(layer: layer, points: points)
-            
-            chart.strokeGradient(ctx: UIGraphicsGetCurrentContext(),
-                           layer: layer,
-                           points: points,
-                           color: UIColor.greenSea,
-                           lowColor: UIColor.greenSea.complementaryColor,
-                           lineWidth: 1.0,
-                           fadeFactor: 0.8)
-        }
-    
-        chart.setNeedsLayout()
-        chart.setNeedsDisplay()
-    }
+//    func prepareSelectedLayerMask(_ renderIndex: Int,_ layer: GradientShapeLayer?) {
+//        if let layer = layer,
+//           let path = layer.path {
+//            let points = Path(cgPath: path).destinationPoints()
+//
+//            configureSelectedLayer( layer: layer, points: points)
+//            renderSelectedLayer(layer: layer, points: points)
+//
+//            chart.strokeGradient(ctx: UIGraphicsGetCurrentContext(),
+//                           layer: layer,
+//                           points: points,
+//                           color: UIColor.greenSea,
+//                           lowColor: UIColor.greenSea.complementaryColor,
+//                           lineWidth: 1.0,
+//                           fadeFactor: 0.8)
+//        }
+//
+//        chart.setNeedsLayout()
+//        chart.setNeedsDisplay()
+//    }
 
-    /// updateSelectedSegmentedOpacity
-    /// - Parameters:
-    ///   - layer: GradientShapeLayer
-    ///   - renderIndex: Int
-    /// - Returns: CGFloat
-    func updateSelectedSegmentedOpacity( layer: GradientShapeLayer, _ renderIndex: Int) -> CGFloat {
-        return Opacity.show.rawValue
-    }
     
     /// layerOpacityForSegmentRender
     /// - Parameters:
@@ -300,24 +351,25 @@ class ViewController: UIViewController,
                                                _ layer: GradientShapeLayer) -> CGFloat? {
         let render = chart.engine.renders[renderIndex]
         let contains: Bool = render.layers.contains(layer)
-        print("Render: \(renderIndex) contains: \(contains), layer: \(String(describing: layer.name)) ")
+        //        print("Render: \(renderIndex) contains: \(contains), layer: \(String(describing: layer.name)) ")
         let indexOfLayer = render.layers.index(of: layer)
         
-        print("""
-            
-            Render: \(renderIndex) layer: \(layer.name) found at index #\(indexOfLayer ?? 0)
-            
-            """)
+        //        print("""
+        //
+        //            Render: \(renderIndex) layer: \(layer.name) found at index #\(indexOfLayer ?? 0)
+        //
+        //            """)
         
         if let indexOfLayer = indexOfLayer {
-                print("Layer index #\(indexOfLayer) found for index: \(renderIndex)")
-                let opacity = updateSelectedSegmentedOpacity(layer: layer, renderIndex)
-                print("Segment \(opacity) for layer \(layer.name)")
-                return opacity
+            //                print("Layer index #\(indexOfLayer) found for index: \(renderIndex)")
+            let opacity = Opacity.show.rawValue
+            //                print("Segment \(opacity) for layer \(layer.name)")
+            return opacity
             
         } else {
-            print("Index not found for layer \(String(describing: layer.name))")
+            //            print("Index not found for layer \(String(describing: layer.name))")
         }
+        
         // Hide it
         return nil
     }
@@ -327,18 +379,28 @@ class ViewController: UIViewController,
     ///   - renderIndex: renderIndex description
     ///   - layer: layer description
     /// - Returns: description
+//    func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat? {
+//        switch renderIndex {
+//        case 0,1,2,3,4: break
+//        case RenderIdent.segments.rawValue:
+//            if let opacity = layerOpacityForSegmentRender(chart, renderIndex, layer) {
+//                print("Segment \(opacity) for layer \(layer.name)")
+//                return opacity
+//            }
+//        default: break
+//        }
+//        return nil
+//    }
+    
+    
     func renderLayerOpacity(chart: OMScrollableChart, renderIndex: Int, layer: GradientShapeLayer) -> CGFloat? {
-        switch renderIndex {
-        case 0,1,2,3,4: break
-        case RenderIdent.segments.rawValue:
-            if let opacity = layerOpacityForSegmentRender(chart, renderIndex, layer) {
-                print("Segment \(opacity) for layer \(layer.name)")
-                return opacity
-            }
-        default: break
+        if let opacity = layerOpacityForSegmentRender(chart, renderIndex, layer) {
+//            print("Segment \(opacity) for layer \(layer.name)")
+            return opacity
         }
         return nil
     }
+    
     func numberOfPages(chart: OMScrollableChart) -> Int { 4 }
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int { 6 }
     
@@ -363,18 +425,17 @@ class ViewController: UIViewController,
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         chart.bounces = false
         chart.dataSource = self
         chart.renderDelegate  = self
         chart.backgroundColor = .clear
         chart.isPagingEnabled = false
         chart.maximumZoomScale = 9.0
-        
         chart.renderManagerClass = RenderManager.self
         
         opacityTable = opacityTableLine
         timingTable  = timingTableLines
-        
         
         segmentInterpolation.removeAllSegments()
         segmentInterpolation.insertSegment(withTitle: "none", at: 0, animated: false)
@@ -398,7 +459,7 @@ class ViewController: UIViewController,
         segmentTypeOfSimplify.insertSegment(withTitle: "Visvalingam", at: 3, animated: false)
         segmentTypeOfSimplify.selectedSegmentIndex = 0 // radial
         
-        chartPointsRandom = randomFloat(100, max: 50000, min: -50)
+        chartPointsRandom = randomFloat(200, max: 50000, min: -50)
         
         toleranceSlider.maximumValue  = 100
         toleranceSlider.minimumValue  = 1
@@ -421,7 +482,11 @@ class ViewController: UIViewController,
         label4.text = "\(roundf(sliderAverage.maximumValue))"
         label5.text = "\(roundf(toleranceSlider.minimumValue))"
         label6.text = "\(roundf(toleranceSlider.maximumValue))"
+//        
+//        let nav = createCubicCurve()
+//        navigationController?.pushViewController(nav, animated: false)
     }
+
     var scaledPointsGenerator: DiscreteScaledPointsGenerator?
     @IBAction  func limitsSliderChange( _ sender: UISlider)  {
         if sender == sliderLimit {

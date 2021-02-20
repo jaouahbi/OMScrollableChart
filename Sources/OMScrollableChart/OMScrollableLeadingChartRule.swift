@@ -19,8 +19,9 @@ import LibControl
 
 public protocol OMScrollableChartRuleDelegate {
     func footerSectionsTextChanged(texts: [String])
-    func footerSectionDidSelected(section: Int, selectedView: UIView?)
-    func footerSectionDidDeselected(section: Int, selectedView: UIView?)
+    func footerSectionDidTouchUpInside(section: Int, selectedView: UIView?)
+    func footerSectionDidTouchUpInsideMove(section: Int, selectedView: UIView?, location: CGPoint)
+    func footerSectionDidTouchUpInsideRelease(section: Int, selectedView: UIView?)
     func numberOfPagesChanged(pages: Int)
     func contentSizeChanged(contentSize: CGSize)
     func frameChanged(frame: CGRect)
@@ -39,11 +40,11 @@ enum ChartRuleType: Int {
     case top = 2
     case trailing = 3
 }
+
 protocol ChartRuleProtocol: UIView {
     var chart: OMScrollableChart! {get set}
     init(chart: OMScrollableChart!)
     var type: ChartRuleType {get set}
-
     
     var font: UIFont {get set}
     var fontColor: UIColor {get set}
@@ -53,6 +54,54 @@ protocol ChartRuleProtocol: UIView {
     var ruleSize: CGSize {get}
     var views: [UIView]? {get}
     func layoutRule() -> Bool
+    func touchRuleFooterNotify(at index: Int?) -> Bool
+    func subviewIndexFromPoint(_ location: CGPoint) -> Int
+}
+
+extension ChartRuleProtocol {
+    /// touchRuleFooterNotify
+    /// - Parameter location: CGPoint
+    func touchRuleFooterNotify(at index: Int? = nil ) -> Bool {
+        guard let ruleViews = self.views else { return false }
+        if let sectionSelectedIndex = index {
+            let selectedFooterView = ruleViews[sectionSelectedIndex]
+            guard let delegate = chart.renderDelegate else { return false }
+            
+            print("Notify section selected index",
+                  sectionSelectedIndex,
+                  selectedFooterView,
+                  delegate)
+            
+            // notify
+            for render in chart.engine.renders where render.chars.contains(.rule_events) {
+                
+                // OMScrollableChartRenderableDelegateProtocol
+//                delegate.didChangeSection(chart: chart,
+//                                          renderIndex: render.index,
+//                                          sectionIndex: sectionSelectedIndex,
+//                                          layer: layer)
+                
+                chart.flowDelegate?.footerSectionDidTouchUpInside(section: sectionSelectedIndex,
+                                                             selectedView: selectedFooterView)
+            }
+            
+            return true
+        }
+        return false
+    }
+    func subviewIndexFromPoint(_ location: CGPoint) -> Int {
+        guard let views = views else {
+            return -1
+        }
+        for (index, view) in views.enumerated() {
+            if view.frame.contains(location) {
+                //we found the finally touched view
+                print(index,"Found it", view)
+                return index
+            }
+        }
+        return -1
+    }
 }
 
 // MARK: - OMScrollableLeadingChartRule -
@@ -64,7 +113,7 @@ class OMScrollableLeadingChartRule: UIView, ChartRuleProtocol {
     var type: ChartRuleType = .leading
     var chart: OMScrollableChart!
     var decorationColor: UIColor = .black
-    //var isPointsNeeded: Bool =  true
+
     required init(chart: OMScrollableChart!) {
         super.init(frame: .zero)
         self.chart = chart
@@ -138,8 +187,12 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
     var fontStrokeColor: UIColor = .black
     var leftInset: CGFloat = 16
     var chart: OMScrollableChart!
-    //var isPointsNeeded: Bool  =  false
     var type: ChartRuleType = .footer
+    var lastTouchedFooterViewIndex: Int = 0
+    /// Border decoration.
+    var borderDecorationWidth: CGFloat = 0.5
+    var decorationColor: UIColor = UIColor.darkGreyBlueTwo
+    var  borderViews = [UIView]()
     var views: [UIView]? {
         return arrangedSubviews
     }
@@ -183,10 +236,7 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
             setNeedsLayout()
         }
     }
-    /// Border decoration.
-    var borderDecorationWidth: CGFloat = 0.5
-    var decorationColor: UIColor = UIColor.darkGreyBlueTwo
-    var  borderViews = [UIView]()
+
     /// create rule layout
     /// - Returns: Bool
     func layoutRule() -> Bool {
@@ -226,35 +276,37 @@ class OMScrollableChartRuleFooter: UIStackView, ChartRuleProtocol {
                        color: decorationColor.withAlphaComponent(0.24)))
         return true
     }
-    var section: Int = 0
-    var selectedView: UIView? = nil
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         if let touch = touches.first {
-            let location = touch.location(in: self)
-            if let sectionSelectedIndex = arrangedSubviews.map{ $0.frame.origin }.map { $0.distance(location) }.mini {
-                section = sectionSelectedIndex
-                selectedView = arrangedSubviews[sectionSelectedIndex]
-                print("Notify section selected index", sectionSelectedIndex, selectedView)
-                
-                chart.flowDelegate?.footerSectionDidSelected(section: sectionSelectedIndex,
-                                                            selectedView: selectedView)
-                
-            }
+            // get the view.
+            let location = touch.preciseLocation(in: self)
+            let subviewIndex = subviewIndexFromPoint(location)
+            _ = touchRuleFooterNotify( at: subviewIndex)
+            lastTouchedFooterViewIndex = subviewIndex
         }
     }
+    
     override public func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesMoved(touches, with: event)
-  
+        guard let views = views else { return}
+        // Release the touch
+        if let touch = touches.first {
+            chart.flowDelegate?.footerSectionDidTouchUpInsideMove(section: lastTouchedFooterViewIndex,
+                                                                 selectedView: views[lastTouchedFooterViewIndex] ,
+                                                                 location: touch.location(in: self))
+        }
     }
     
     override public func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesEnded(touches, with: event)
-        chart.flowDelegate?.footerSectionDidDeselected(section: section,
-                                                       selectedView: selectedView)
-        section = 0
-        selectedView = nil
+        guard let views = views else { return}
+        
+        // Release the touch
+        chart.flowDelegate?.footerSectionDidTouchUpInsideRelease(section: lastTouchedFooterViewIndex,
+                                                                 selectedView: views[lastTouchedFooterViewIndex] )
+        lastTouchedFooterViewIndex = 0
     }
     
     override func didMoveToSuperview() {

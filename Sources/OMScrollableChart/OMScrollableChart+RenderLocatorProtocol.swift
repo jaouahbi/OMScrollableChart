@@ -137,7 +137,7 @@ extension OMScrollableChart: RenderLocatorProtocol {
     public func sectionIndexFromLayer(_ render: BaseRender, layer: CALayer) -> Int {
         let result = render.sectionIndex(withPoint: layer.position,
                                    numberOfSections: numberOfSections)
-        assert((result != 0))
+//        assert((result != 0))
         return result
     }
   

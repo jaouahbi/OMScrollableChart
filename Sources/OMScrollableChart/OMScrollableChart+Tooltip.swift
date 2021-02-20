@@ -86,7 +86,7 @@ extension OMScrollableChart {
             // calculate manually
             calculateTooltipTextManually(render, dataIndex, dataSection, layerPoint)
             
-            print("displaying tooltip: \(String(describing: tooltip.string)) at \(tooltipPosition)")
+//            print("displaying tooltip: \(String(describing: tooltip.string)) at \(tooltipPosition)")
         }
         tooltip.displayTooltip(tooltipPosition,
                                duration: duration)
@@ -125,7 +125,7 @@ extension OMScrollableChart {
     ///   - animation: Bool
     ///   - duration: TimeInterval
 
-    public func displayTooltip( _ render: BaseRender,
+    public func displayTooltip( on render: BaseRender,
                                        _ layerPoint: ShapeLayer,
                                        _ dataIndex: Int? = nil,
                                        _ selectedPoint: CGPoint,

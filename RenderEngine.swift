@@ -183,6 +183,7 @@ public struct RenderData  {
 // MARK: RenderProtocol
 public protocol RenderProtocol {
     associatedtype RenderData
+    var chars: RenderProperties {get}
     var data: RenderData {get set} // Points and data
     var layers: [GradientShapeLayer] {get set}
     var index: Int {get set}
@@ -191,38 +192,118 @@ public protocol RenderProtocol {
     func layerFrameFromPoint(_ point: CGPoint ) -> CGRect
     func makePoints(_ size: CGSize) -> [CGPoint]
     var isEmpty: Bool { get}
+    
+    var selectedColor: UIColor {get}
+    var selectedOpacy: Float {get}
+    var unselectedOpacy: Float {get}
+    var unselectedColor: UIColor {get}
 }
 
-public enum RenderProperties {
-    case touchable          // like the polyline render, selectable but useless
-    case renderable         // generate layers from data.
-    case renderOnTop        // mark a position, range, segment, step
+
+public struct LayerProperties {
+    var color: UIColor = UIColor.clear
+    var opacity: Float = 1.0
 }
+
+extension RenderProtocol {
+    public var selectedColor: UIColor {return .red}
+    public var selectedOpacy: Float {return 1.0}
+    public var unselectedOpacy: Float {return 0.1}
+    public var unselectedColor: UIColor  {return .clear}
+}
+
+
+// like the polyline render, selectable but useless
+// generate layers from data.
+
+// indicate
+
+
+
+public struct RenderProperties: OptionSet {
+    public let rawValue: Int
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    static let touchable = RenderProperties(rawValue: 1 << 0)   // can be touched
+    static let renderable = RenderProperties(rawValue: 1 << 1)  // can generate layers
+    static let indication = RenderProperties(rawValue: 1 << 2)
+    static let event_notifier = RenderProperties(rawValue: 1 << 3) // wants chart events
+    static let always_visible = RenderProperties(rawValue: 1 << 4) // ignore opacy changes
+    static let tooltip = RenderProperties(rawValue: 1 << 5) // can generate tooltips
+    static let rule_events = RenderProperties(rawValue: 1 << 6) // wants rule events
+    static let foundation  = RenderProperties(rawValue: 1 << 7) // core render
+    static let render: RenderProperties = [touchable, renderable]
+    static let root: RenderProperties   = [touchable, renderable, indication, foundation, event_notifier, rule_events, tooltip]
+}
+
+
+extension CGRect {
+    init(pointsArray: [CGPoint]) {
+
+        var greatestXValue = pointsArray[0].x;
+        var greatestYValue = pointsArray[0].y;
+        var smallestXValue = pointsArray[0].x;
+        var smallestYValue = pointsArray[0].y;
+
+        for i  in 1..<pointsArray.count {
+                let point = pointsArray[i];
+                greatestXValue = max(greatestXValue, point.x);
+                greatestYValue = max(greatestYValue, point.y);
+                smallestXValue = min(smallestXValue, point.x);
+                smallestYValue = min(smallestYValue, point.y);
+            }
+
+        var rect: CGRect = .zero
+        rect.origin = CGPoint(x: smallestXValue, y: smallestYValue);
+            rect.size.width = greatestXValue - smallestXValue;
+            rect.size.height = greatestYValue - smallestYValue;
+
+        self = rect
+        }
+    }
 
 // MARK: BaseRender
-open class BaseRender: RenderProtocol {
+open class BaseRender: RenderProtocol, CustomDebugStringConvertible, CustomStringConvertible {
+    public var description: String { debugDescription }
+    public var debugDescription: String {
+        return "\(index) bounds: \(CGRect(pointsArray: data.points).integral) layers: \(layers.count)"
+    }
+    
     public var index: Int = 0
-    public var chars: RenderProperties = .touchable
+    public var chars: RenderProperties { [.renderable ]}
     public var data: RenderData = .empty
     public var layers: [GradientShapeLayer] = []
     public init(index: Int) {
         self.index = index
     }
-    public init() {
-        
-    }
-    
+    public init() { }
     public var isEmpty: Bool { data.data.isEmpty && data.points.isEmpty}
-    
     /// allOtherLayers
     /// - Parameter layer: GradientShapeLayer
     /// - Returns: [GradientShapeLayer]
-    public func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
+    private func allOtherLayers(layer: GradientShapeLayer ) -> [GradientShapeLayer] {
         if !layers.contains(layer) {
             return []
         }
         return layers.filter { $0 != layer }
     }
+    public func selectLayer(layer: GradientShapeLayer,
+                            selected: LayerProperties,
+                            unselected: LayerProperties) -> GradientShapeLayer {
+        
+        let unselectedLayers = allOtherLayers(layer: layer)
+//        print("all unselected render layers = \(unselected.count)")
+        unselectedLayers.forEach { (layer: GradientShapeLayer) in
+            layer.gardientColor = unselected.color
+            layer.opacity = unselected.opacity
+        }
+        layer.gardientColor = selected.color
+        layer.opacity = selected.opacity
+//        print("Selected Render Layer = \(layer.name)")
+        return layer
+    }
+
     
     /// locationToLayer
     /// - Parameters:
@@ -299,36 +380,42 @@ open class BaseRender: RenderProtocol {
 }
 
 public class PolylineRender: BaseRender {
+    public override var chars: RenderProperties { [.touchable, .renderable, .foundation] }
     override init() {
         super.init(index: RenderIdent.polyline.rawValue)
     }
 }
 
 public class PointsRender: BaseRender {
+    public override var chars: RenderProperties { return RenderProperties.root }
     override init() {
         super.init(index: RenderIdent.points.rawValue)
     }
 }
 
 public class SelectedPointRender: BaseRender {
+    public override var chars: RenderProperties { return [.indication, .touchable, .event_notifier, .foundation]}
     override init() {
         super.init(index: RenderIdent.selectedPoint.rawValue)
     }
 }
 
 public class SegmentsRender: BaseRender {
+    public override var chars: RenderProperties { return [.indication, .touchable, .event_notifier, .renderable]}
     override init() {
         super.init(index: RenderIdent.segments.rawValue)
     }
 }
 
 public class Bar1Render: BaseRender {
+    public override var chars: RenderProperties  { return [.indication, .touchable, .renderable]}
     override init() {
         super.init(index: RenderIdent.bar1.rawValue)
     }
 }
 
 public class Bar2Render: BaseRender {
+    public override var chars: RenderProperties  { return [.indication, .touchable, .renderable]}
     override init() {
         super.init(index: RenderIdent.bar2.rawValue)
     }
@@ -340,15 +427,11 @@ public protocol RenderEngineClientProtocol: class {
 
 // MARK: - RenderManagerProtocol -
 public protocol RenderManagerProtocol {
-    
-    var version: Int {get}
-    
     init()
-    
+    var version: Int {get}
     func configureRenders() -> [BaseRender]
     func update(_ numberOfdRenders: Int)
     func removeAllLayers()
-    
     var visibleLayers: [CAShapeLayer] { get }
     var invisibleLayers: [CAShapeLayer] { get }
     var allPointsRender: [CGPoint] { get }
@@ -364,9 +447,8 @@ public protocol RenderManagerProtocol {
 }
 
 extension RenderManagerProtocol {
-    public var version: Int { 1}
+    public var version: Int { 1 }
 }
-
 
 // MARK: - RenderManager -
 open class RenderManager: RenderManagerProtocol {
@@ -408,7 +490,6 @@ open class RenderManager: RenderManagerProtocol {
         set(newValue) {
             return RenderManager.shared.renders.enumerated().forEach{
                 $1.layers = newValue[$0]
-                
             }
         }
     }
@@ -441,14 +522,12 @@ open class RenderManager: RenderManagerProtocol {
     public var allPointsRender: [CGPoint] {    RenderManager.shared.points.flatMap{$0}}
     public var allDataPointsRender: [Float]  {   RenderManager.shared.data.flatMap{$0}}
     public var allRendersLayers: [CAShapeLayer]  {   RenderManager.shared.layers.flatMap{$0} }
-    
-
-
 }
 
 
 
 extension RenderManager {
+    
     //
     // Renders
     //

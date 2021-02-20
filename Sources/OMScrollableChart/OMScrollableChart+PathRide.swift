@@ -50,7 +50,7 @@ extension OMScrollableChart {
         let percent: CFloat =  CFloat(1.0 / Double(self.numberOfSections) * Double(sectionIndex))
         animations.ridePath = Path(withTimingFunction: timingFunction)
         let point = animations.ridePath?.pointForPercentage(pathPercent: Double(percent), startPoint: startPoint) ?? .zero
-        print("pointForPercentage",percent, point)
+//        print("pointForPercentage",percent, point)
         return point
     }
     /// pathRideAnimation
@@ -72,8 +72,7 @@ extension OMScrollableChart {
         let percents = animations.ridePath?.percentagesWhereYIs(y: Double(percent))
         if let curveLengthPercentagesForFourthOfAnimation = percents {
             if curveLengthPercentagesForFourthOfAnimation.count > 0 {
-                if let originX = animations.ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0],
-                                                         startPoint: startPoint)?.x {
+                if let originX = animations.ridePath?.pointForPercentage(pathPercent: curveLengthPercentagesForFourthOfAnimation[0], startPoint: startPoint)?.x {
                     timesForFourthOfAnimation = Double(originX)
                 } else {
                     timesForFourthOfAnimation = 1

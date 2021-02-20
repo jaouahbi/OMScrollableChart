@@ -19,8 +19,11 @@ struct ScrollableRendersConfiguration {
     static let defaultPointSize = CGSize(width: 8, height: 8)
     static let defaultPathPointSize = CGSize(width: 10, height: 10)
     static let defaultSelectedPointSize = CGSize(width: 13, height: 13)
-    static let defaultLineWidth: CGFloat = 4
+    static let defaultLineWidth: CGFloat = UIScreen.main.bounds.height / 250
+
     static let animationPointsClearOpacityKey: String = "animationPointsClearOpacityKey"
+
+
 }
 
 public extension OMScrollableChart {
@@ -60,7 +63,7 @@ public extension OMScrollableChart {
                                                         data: data) ?? []
                     // accumulate layers
                     if layers.isEmpty {
-                        print("Unexpected empty layers, lets use the default renders.")
+//                        print("Unexpected empty layers, lets use the default renders.")
                         layers = self.renderDefaultLayers(render, data: data)
                     }
                     render.layers.append(contentsOf: layers)
@@ -68,11 +71,11 @@ public extension OMScrollableChart {
                     flowDelegate?.updateRenderLayers(index: render.index,
                                                      with: render.layers)
                 } else {
-                    print("Unexpected empty simplify points.")
+//                    print("Unexpected empty simplify points.")
                 }
             }
         } else {
-            print("Unexpected empty discrete points for simplify.")
+//            print("Unexpected empty discrete points for simplify.")
         }
     }
     
@@ -104,7 +107,7 @@ public extension OMScrollableChart {
                                                 data: renderData) ?? []
             // accumulate layers
             if layers.isEmpty {
-                print("Unexpected empty render layers, let's use the default renders.")
+//                print("Unexpected empty render layers, let's use the default renders.")
                 layers = self.renderDefaultLayers(render, data: renderData)
             }
             render.data = renderData
@@ -113,7 +116,7 @@ public extension OMScrollableChart {
             flowDelegate?.updateRenderLayers(index: render.index,
                                              with: render.layers)
         } else {
-            print("Unexpected empty points.")
+//            print("Unexpected empty points.")
         }
     }
     
@@ -126,7 +129,7 @@ public extension OMScrollableChart {
                                           _ size: CGSize) {
         let points = render.makePoints(size)
         if points.count > 0 {
-            print("making render \(render.index) layers.")
+//            print("making render \(render.index) layers.")
             let datRebuilded = RenderData(data: render.data.data, points: points)
             var layers = dataSource?.dataLayers(chart: self,
                                                 renderIndex: render.index,
@@ -135,26 +138,26 @@ public extension OMScrollableChart {
             render.data = datRebuilded
             //  use the default renders
             if layers.isEmpty {
-                print("Unexpected empty layers render \(render.index), lets use the default renders.")
+//                print("Unexpected empty layers render \(render.index), lets use the default renders.")
                 layers = self.renderDefaultLayers(render, data: datRebuilded)
             }
             // accumulate layers
-            print("Accumulating \(layers.count) layers.")
+//            print("Accumulating \(layers.count) layers.")
             
             flowDelegate?.updateRenderLayers(index: render.index,
                                              with: render.layers)
             
             render.layers.append(contentsOf: layers)
         } else {
-            print("Unexpected empty discrete points (makeRawPoints).")
+//            print("Unexpected empty discrete points (makeRawPoints).")
         }
     }
     
     /// makeLinregressScaledPointsAndLayers
     /// - Parameters:
-    ///   - render: <#render description#>
-    ///   - size: <#size description#>
-    ///   - numberOfElements: <#numberOfElements description#>
+    ///   - render:  BaseRender
+    ///   - size: size
+    ///   - numberOfElements: Int
     func makeLinregressScaledPointsAndLayers(_ render: BaseRender,
                                              _ size: CGSize,
                                              _ numberOfElements: Int)
@@ -178,18 +181,18 @@ public extension OMScrollableChart {
                                                 data: linregressData) ?? []
             // accumulate layers
             if layers.isEmpty {
-                print("Unexpected empty layers render \(render.index), lets use the default renders.")
+//                print("Unexpected empty layers render \(render.index), lets use the default renders.")
                 layers = self.renderDefaultLayers(render,
                                                   data: linregressData)
             }
             // accumulate layers
-            print("Accumulating \(layers.count) layers.")
+//            print("Accumulating \(layers.count) layers.")
             render.layers.append(contentsOf: layers)
             
             flowDelegate?.updateRenderLayers(index: render.index,
                                              with: render.layers)
         } else {
-            print("Unexpected empty discrete points (makeRawPoints).")
+//            print("Unexpected empty discrete points (makeRawPoints).")
         }
     }
 }
@@ -208,7 +211,7 @@ public extension OMScrollableChart {
             let layers = self.updatePolylineLayer()
             #if DEBUG
             if layers.first?.name == nil {
-                layers.forEach { $0.name = "polylineDefault" }
+                layers.forEach { $0.name = "polyline" }
             }
             #endif
             return layers
@@ -216,10 +219,10 @@ public extension OMScrollableChart {
             let layers = self.createPointsLayers(data.points,
                                                  size: ScrollableRendersConfiguration.defaultPointSize,
                                                  shadowOffset: pointsLayersShadowOffset,
-                                                 color: lineColor)
+                                                 color: pointColor)
             #if DEBUG
             if layers.first?.name == nil {
-                layers.enumerated().forEach { $1.name = "pointDefault \($0)" }
+                layers.enumerated().forEach { $1.name = "point \($0)" }
             }
             #endif
             return layers
@@ -230,7 +233,7 @@ public extension OMScrollableChart {
                                                   color: selectedPointColor,
                                                   shadowOffset: pointsLayersShadowOffset)
                 #if DEBUG
-                layer.name = "selectedPointDefault"
+                layer.name = "selectedPoint"
                 #endif
                 return [layer]
             }
@@ -247,7 +250,7 @@ public extension OMScrollableChart {
     //
     var polylineSubpaths: [UIBezierPath] {
         guard let polylinePath = polylinePath else {
-            print("Unexpected empty polylinePath (UIBezierPath).")
+//            print("Unexpected empty polylinePath (UIBezierPath).")
             return []
         }
         return polylinePath.cgPath.subpaths
@@ -262,7 +265,7 @@ public extension OMScrollableChart {
     var polylinePath: UIBezierPath? {
         let polylinePoints = engine.renders[RenderIdent.polyline.rawValue].data.points
         guard let polylinePath = polylineInterpolation.asPath(points: polylinePoints) else {
-            print("Unexpected empty polylinePath (UIBezierPath).")
+//            print("Unexpected empty polylinePath (UIBezierPath).")
             return nil
         }
         return polylinePath
@@ -270,10 +273,28 @@ public extension OMScrollableChart {
     
     /// regenerateFromBezier
     /// - Parameter path: CGPath
-    func regenerateFromBezier(withBezier path: CGPath?) {
+    func regenerateFromBezier(withBezier path: CGPath?,
+                              dotColor: UIColor) {
         if let path = path {
             bezier = BezierPathSegmenter(cgPath: path)
             bezier?.generateLookupTable()
+            
+//            glassLayer.frame = contentView.bounds
+//            glassLayer.path = path
+////            glassLayer.fillColor = lineColor.cgColor
+//            glassLayer.strokeColor = pointColor.cgColor
+////            let points = Path(cgPath: path).destinationPoints()
+//            contentView.layer.mask = glassLayer
+            
+//            strokeGradient(ctx: UIGraphicsGetCurrentContext(),
+//                     layer: glassLayer,
+//                     points: points,
+//                     color: UIColor.greenSea,
+//                     lowColor: UIColor.greenSea.complementaryColor,
+//                     lineWidth: lineWidth,
+//                     fadeFactor: 0.8)
+            
+//            self.contentView.layer.addSublayer(layer)
             //      debugLayoutLimit()
             if showPolylineNearPoints {
                 dotPathLayers.forEach{$0.removeFromSuperlayer()}
@@ -282,11 +303,11 @@ public extension OMScrollableChart {
                     drawDot(onLayer: self.contentView.layer,
                             atPoint: $0,
                             atSize: ScrollableRendersConfiguration.defaultPathPointSize,
-                            color: UIColor.navyTwo.lighter,
+                            color: dotColor,
                             alpha: 0.75)
                 }
             }
-            print("Regenerate path: \(path.boundingBoxOfPath)")
+//            print("Regenerate path: \(path.boundingBoxOfPath)")
         }
     }
     
@@ -301,7 +322,8 @@ public extension OMScrollableChart {
                 ´\(String(describing: layer.name))´ path change in layer
             """)
         
-        regenerateFromBezier(withBezier: polylineLayer.path)
+        regenerateFromBezier(withBezier: polylineLayer.path,
+                             dotColor: ScrollableChartColorConfiguration.bezierColor)
     }
     
     ///  Update the polyline layer with UIBezierPath, strokeColor, lineWidth
@@ -541,7 +563,8 @@ public extension OMScrollableChart {
                              _ gardientColor: UIColor = .red,
                              _ fillColor: UIColor = .black,
                              _ strokeColor: UIColor? = .black) -> [GradientShapeLayer] {
-        return self.createSegmentLayers(self.polylineSubpaths, lineWidth,
+        return self.createSegmentLayers(self.polylineSubpaths,
+                                        lineWidth,
                                         gardientColor,
                                         fillColor, strokeColor)
     }
