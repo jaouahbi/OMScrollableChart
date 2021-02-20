@@ -13,13 +13,6 @@
 		7D226A862384C3550074C44E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 7D226A852384C3550074C44E /* Assets.xcassets */; };
 		D125876E2558A34600FE25F3 /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = D125876D2558A34600FE25F3 /* TestUtils.swift */; };
 		D192CD24254AB4230047FBFB /* ExampleUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBAA402253A7FF9000EE535 /* ExampleUITests.swift */; };
-		D1C9349825DF6EE3008A7EAF /* BezierExampleModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C9349325DF6EE3008A7EAF /* BezierExampleModel.swift */; };
-		D1C9349925DF6EE3008A7EAF /* BezierCurveExampleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C9349725DF6EE3008A7EAF /* BezierCurveExampleViewController.swift */; };
-		D1C9349E25DF6F3E008A7EAF /* DraggablePointsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C9349C25DF6F3E008A7EAF /* DraggablePointsView.swift */; };
-		D1C9349F25DF6F3E008A7EAF /* DrawClosureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C9349D25DF6F3E008A7EAF /* DrawClosureView.swift */; };
-		D1C934A325DF6F81008A7EAF /* CycleSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C934A225DF6F81008A7EAF /* CycleSelector.swift */; };
-		D1C934B525DF71E9008A7EAF /* UIBezierPath+BezierPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C934B425DF71E9008A7EAF /* UIBezierPath+BezierPath.swift */; };
-		D1C934B925DF7267008A7EAF /* BezierPath.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1C934B825DF7267008A7EAF /* BezierPath.swift */; };
 		D1D16D7325DC5637007FEDD3 /* OMScrollableChart.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D1D16D4025DC559E007FEDD3 /* OMScrollableChart.framework */; };
 /* End PBXBuildFile section */
 
