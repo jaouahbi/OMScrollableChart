@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17156" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BYZ-38-t0r">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17125"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--View Controller-->
+        <scene sceneID="tne-QT-ifu">
+            <objects>
+                <viewController id="BYZ-38-t0r" customClass="ViewController" customModule="Example" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="se3-FH-eOH" customClass="OMScrollableChart" customModule="Example" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="39" width="414" height="598"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                            </view>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="wcL-CB-q5w">
+                                <rect key="frame" x="0.0" y="822" width="414" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="pwd-Vv-IiD"/>
+                                </constraints>
+                                <segments>
+                                    <segment title=""/>
+                                    <segment title=""/>
+                                </segments>
+                                <connections>
+                                    <action selector="interpolationSegmentChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="MdI-Nx-F7d"/>
+                                </connections>
+                            </segmentedControl>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="K2Z-EQ-pOF">
+                                <rect key="frame" x="0.0" y="645" width="414" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="40" id="UdS-oB-eHV"/>
+                                </constraints>
+                                <segments>
+                                    <segment title=""/>
+                                    <segment title=""/>
+                                </segments>
+                                <connections>
+                                    <action selector="typeOfDataSegmentChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="Tql-xW-3Fl"/>
+                                </connections>
+                            </segmentedControl>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="dra-Ym-beS">
+                                <rect key="frame" x="38" y="782" width="338" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="T11-zA-IE5"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="simplifySliderChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="kA6-ZT-tsu"/>
+                                </connections>
+                            </slider>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="b4F-3H-Tf0">
+                                <rect key="frame" x="38" y="737" width="338" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="boK-T0-t5W"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="simplifySliderChange:" destination="BYZ-38-t0r" eventType="valueChanged" id="wFW-PI-VNj"/>
+                                </connections>
+                            </slider>
+                            <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" translatesAutoresizingMaskIntoConstraints="NO" id="7HP-yy-oca">
+                                <rect key="frame" x="38" y="690" width="338" height="41"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="40" id="MTg-Fq-1h7"/>
+                                </constraints>
+                                <connections>
+                                    <action selector="limitsSliderChange:" destination="BYZ-38-t0r" eventType="touchUpInside" id="P55-cD-UQW"/>
+                                </connections>
+                            </slider>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="0Uv-DP-Nrs"/>
+                            <constraint firstItem="dra-Ym-beS" firstAttribute="top" secondItem="b4F-3H-Tf0" secondAttribute="bottom" constant="5" id="1GE-KY-JUX"/>
+                            <constraint firstItem="K2Z-EQ-pOF" firstAttribute="trailing" secondItem="wcL-CB-q5w" secondAttribute="trailing" id="1o0-XH-1RW"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="dra-Ym-beS" secondAttribute="trailing" constant="40" id="2AM-yb-Cfw"/>
+                            <constraint firstItem="se3-FH-eOH" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="5OY-Pg-vr1"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="wcL-CB-q5w" secondAttribute="bottom" id="9mM-z2-8RT"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="M4V-Vo-bTS"/>
+                            <constraint firstItem="7HP-yy-oca" firstAttribute="trailing" secondItem="b4F-3H-Tf0" secondAttribute="trailing" id="NMa-Wx-XKX"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="top" secondItem="dra-Ym-beS" secondAttribute="bottom" id="SYx-bB-mLq"/>
+                            <constraint firstItem="wcL-CB-q5w" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="aOI-pY-FKR"/>
+                            <constraint firstAttribute="trailing" secondItem="se3-FH-eOH" secondAttribute="trailing" id="bcl-mS-lSK"/>
+                            <constraint firstItem="K2Z-EQ-pOF" firstAttribute="leading" secondItem="wcL-CB-q5w" secondAttribute="leading" id="d2V-EL-lWx"/>
+                            <constraint firstItem="7HP-yy-oca" firstAttribute="leading" secondItem="b4F-3H-Tf0" secondAttribute="leading" id="deM-gF-K9C"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="b4F-3H-Tf0" secondAttribute="trailing" constant="40" id="h5g-ym-34U"/>
+                            <constraint firstItem="7HP-yy-oca" firstAttribute="top" secondItem="K2Z-EQ-pOF" secondAttribute="bottom" constant="5" id="iC4-sx-3vS"/>
+                            <constraint firstItem="dra-Ym-beS" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="iHj-hX-XxL"/>
+                            <constraint firstItem="b4F-3H-Tf0" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="40" id="kny-Qg-Cf1"/>
+                            <constraint firstAttribute="bottom" secondItem="K2Z-EQ-pOF" secondAttribute="bottom" constant="211" id="m0l-xa-tvF"/>
+                            <constraint firstItem="se3-FH-eOH" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="-5" id="mg8-dr-Fyc"/>
+                            <constraint firstItem="K2Z-EQ-pOF" firstAttribute="top" secondItem="se3-FH-eOH" secondAttribute="bottom" constant="8" id="x0f-5a-zQm"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="chart" destination="se3-FH-eOH" id="nIz-v2-1B4"/>
+                        <outlet property="segmentInterpolation" destination="wcL-CB-q5w" id="9TK-hY-FgN"/>
+                        <outlet property="segmentTypeOfData" destination="K2Z-EQ-pOF" id="PJ6-39-AdY"/>
+                        <outlet property="sliderAverage" destination="b4F-3H-Tf0" id="qqI-Og-G4M"/>
+                        <outlet property="sliderLimit" destination="7HP-yy-oca" id="VyR-Sp-WI3"/>
+                        <outlet property="toleranceSlider" destination="dra-Ym-beS" id="EHy-fL-fCH"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="137.68115942028987" y="116.51785714285714"/>
+        </scene>
+    </scenes>
+    <resources>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+    </resources>
+</document>

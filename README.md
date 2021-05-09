@@ -1,6 +1,5 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![codebeat badge](https://codebeat.co/badges/e870bb62-0c3e-4449-9159-3abaf5686ee5)](https://codebeat.co/projects/github-com-jaouahbi-omscrollablechart-master)
 
 # OMScrollableChart
 An adaptive scrollable chart for iOS to visualise simple discrete datasets. Written in Swift. Originally written in ObjectiveC for an old project, rewritten in swift and adapted to serve as a basic template for any kind of chart. The main goal of the this UIView graph component is to visualise simple discrete datasets and allow the the user to scroll through the graph selecting the discrete points.
