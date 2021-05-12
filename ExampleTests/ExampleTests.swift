@@ -84,10 +84,10 @@ class ExampleTests: XCTestCase {
               "Deci")
         
         for index in (0..<numberOfItems) {
-            result1 = OMSimplify.visvalingamSimplify(randomPoints, limit: CGFloat(index) )
-            result2 = OMSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: true)
-            result3 = OMSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: false)
-            result4 = OMSimplify.simplifyDouglasPeuckerDecimate(randomPoints)
+            result1 = PolylineSimplify.visvalingamSimplify(randomPoints, limit: CGFloat(index) )
+            result2 = PolylineSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: true)
+            result3 = PolylineSimplify.simplifyDouglasPeuckerRadial(randomPoints, tolerance: CGFloat(index), highestQuality: false)
+            result4 = PolylineSimplify.simplifyDouglasPeuckerDecimate(randomPoints)
             
             print(index,
                   result1.count,

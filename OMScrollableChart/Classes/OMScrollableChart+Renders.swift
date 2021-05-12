@@ -12,40 +12,96 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//
-//  OMScrollableChart.swift
-//
-//  Created by Jorge Ouahbi on 16/08/2020.
-
-//
-
 import UIKit
 
+extension Date {
+    var mouthTimeElapsedPercent: CGFloat {
+        let date = Date()
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.month, .day], from: date)
+        let currentDay = components.day ?? 1
+        let range = calendar.range(of: .day, in: .month, for: date)
+        let numberOfDaysInMouth = range!.count
+        let displacementInSection: CGFloat = CGFloat(1.0) / CGFloat(numberOfDaysInMouth) * CGFloat(currentDay)
+        return displacementInSection
+    }
+}
+
+
+/*
+ La idea es que el usuario facilmente pueda crear representacion
+ para sus datos.
+ 
+ El motor usa como herramientas de construccion los diferentes `renders` que se le proporcione,
+ Los 'renders´ proporcionan layers al motor cuando quieran representa datos, animaciones
+ cuando se quiera animar los datos representados...etc
+ 
+ Yo proporcionno los 6 primeros. Llamados: 'legacy renders´
+ 
+ polyline:  Mantiene una linea uniendo todos los puntos de información de la representación de los datos, la            linea por defecto está interpolada usando 'Catmull-Rom splines`, aunque es completamente
+ configurable.
+ puntos  :  Representa cada punto de información de la representación de los datos.
+ punto seleccionado
+ punto actual
+ segmento de seccion
+ */
+
+
 extension OMScrollableChart {
-    
-    // Render the internal layers:
-    // 0 - Polyline
-    // 1 - Discrete points
-    // 2 - Selected point
-    
     private func renderDefaultLayers(_ renderIndex: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
-        switch renderIndex {
-        case OMScrollableChart.Renders.polyline.rawValue:
+        switch Renders(rawValue: renderIndex) {
+        case .polyline:
             let lineWidth: CGFloat = 4
             let color  = UIColor.greyishBlue
             let layers = updatePolylineLayer(lineWidth: lineWidth, color: color)
             layers.forEach({$0.name = "polyline"})
             return layers
-        case OMScrollableChart.Renders.points.rawValue:
+        case .segments:
+            
+            guard let subPaths = self.polylinePath?.cgPath.subpaths, subPaths.count > 0 else {
+                print("[RENDER][ERROR] Empty polyline subpaths.")
+                return []
+            }
+            let strokeSegmentsColor: UIColor = lineColor.withAlphaComponent(0.1)
+            let segmentsFillColor: UIColor   = selectedColor.withAlphaComponent(0.11)
+            
+            let colors: [UIColor] = [UIColor.greyishBlue.adjust(by: 0.7).withAlphaComponent(0.41),
+                                     UIColor.greyishBlue.adjust(by: 0.5).withAlphaComponent(0.74),
+                                     UIColor.greyishBlue.adjust(by: 0.4).withAlphaComponent(0.61),
+                                     UIColor.greyishBlue.adjust(by: 0.5).withAlphaComponent(0.71),
+                                     UIColor.greyishBlue.adjust(by: 0.7).withAlphaComponent(0.41)]
+            
+            let layers = createSegmentLayers(subPaths,
+                                                  lineWidth * 2,
+                                                  colors,
+                                                  strokeSegmentsColor,
+                                                  segmentsFillColor)
+            
+            #if DEBUG
+                layers.enumerated().forEach { $1.name = "line segment \($0)" } // debug
+            #endif
+
+            return layers
+        case .points:
             let pointSize = CGSize(width: 8, height: 8)
             let layers = createPointsLayers(points,
                                             size: pointSize,
                                             color: .greyishBlue)
             layers.forEach({$0.name = "point"})
             return layers
-        case OMScrollableChart.Renders.selectedPoint.rawValue:
+        case .selectedPoint:
             if let point = maxPoint(in: renderIndex) {
-                let layer = createPointLayer(point, size: CGSize(width: 13, height: 13), color: .darkGreyBlueTwo)
+                let layer = createPointLayer(point,
+                                             size: CGSize(width: 13, height: 13),
+                                             color: .darkGreyBlueTwo)
+                layer.name = "selectedPointDefault"
+                return [layer]
+            }
+        case .currentPoint:
+            if let point = maxPoint(in: renderIndex) {
+                let layer = createPointLayer(point,
+                                             size: CGSize(width: 11, height: 11),
+                                             color: .paleGrey)
                 layer.name = "selectedPointDefault"
                 return [layer]
             }
@@ -71,7 +127,7 @@ extension OMScrollableChart {
         self.lineColor = color
         polylineLayer.path          = polylinePath.cgPath
         polylineLayer.fillColor     = UIColor.clear.cgColor
-        polylineLayer.strokeColor   = self.lineColor.withAlphaComponent(0.8).cgColor
+        polylineLayer.strokeColor   = self.lineColor.withAlphaComponent(0.5).cgColor
         polylineLayer.lineWidth     = self.lineWidth
         polylineLayer.shadowColor   = UIColor.black.cgColor
         polylineLayer.shadowOffset  = CGSize(width: 0, height:  self.lineWidth * 2)
@@ -292,4 +348,63 @@ extension OMScrollableChart {
         return layers
     }
     
+    
+    ///
+    /// createSegmentLayers
+    ///
+    /// - Parameters:
+    ///   - segmentsPaths: [UIBezierPath]
+    ///   - lineWidth: lineWidth
+    ///   - color: UIColor
+    ///   - strokeColor: UIColor
+    /// - Returns: [GlowPathLayer]
+    ///
+    ///
+    func createSegmentLayers(_ segmentsPaths: [UIBezierPath],
+                             _ lineWidth: CGFloat = 0.5,
+                             _ colors: [UIColor] = [.white, .red],
+                             _ fillColor: UIColor? = .clear,
+                             _ strokeColor: UIColor? = nil) -> [OMGradientShapeClipLayer] {
+        var layers = [OMGradientShapeClipLayer]()
+        for (idx, path) in segmentsPaths.enumerated() {
+            if idx % 4 == 0 {
+                continue
+            }
+            let shapeSegmentLayer = OMGradientShapeClipLayer()
+            let color = colors[idx % colors.count]
+            shapeSegmentLayer.strokeColor = color.withAlphaComponent(0.8).cgColor
+            
+            shapeSegmentLayer.lineWidth     = lineWidth
+            shapeSegmentLayer.path          = path.cgPath
+            let box = path.bounds
+
+            shapeSegmentLayer.position      = box.origin
+            shapeSegmentLayer.fillColor     = color.darker.withAlphaComponent(0.12).cgColor
+            shapeSegmentLayer.bounds        =  box //.insetBy(dx: -(lineWidth), dy: -(lineWidth))
+            shapeSegmentLayer.anchorPoint   = .zero
+            shapeSegmentLayer.zPosition     =  40
+            shapeSegmentLayer.lineCap       = .square
+            shapeSegmentLayer.lineJoin      = .round
+            shapeSegmentLayer.opacity       = 1.0
+
+            shapeSegmentLayer.setGlow( with: color)
+            
+            layers.append(shapeSegmentLayer)
+            shapeSegmentLayer.setNeedsLayout()
+        
+        }
+        return layers
+    }
+}
+
+
+extension CALayer {
+    public func setGlow(with color: UIColor) {
+        masksToBounds = false
+        shadowColor =  color.cgColor
+        shadowOpacity = 1
+        shadowRadius  = 4.0
+        shadowOpacity = 0.9
+        shadowOffset  = CGSize(width: 0,height: 3)
+    }
 }

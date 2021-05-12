@@ -15,7 +15,7 @@ protocol Recursive {
 
 extension Array: Recursive where Element: IterableElement {
     func recursiveSearch(leafBlock: VoidBlock, recursiveBlock: RecursiveBlock<Element>) {
-        guard count > 0 else {
+        guard !isEmpty else {
             leafBlock()
             return
         }

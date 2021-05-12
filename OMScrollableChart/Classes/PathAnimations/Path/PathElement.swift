@@ -6,48 +6,48 @@ import UIKit
 // swiftlint:disable cyclomatic_complexity
 
 extension Path {
-    enum Element {
-        case MoveToPoint(point: CGPoint)
-        case AddLineToPoint(point: CGPoint)
-        case AddQuadCurveToPoint(destination: CGPoint, control: CGPoint)
-        case AddCurveToPoint(destination: CGPoint, control1: CGPoint, control2: CGPoint)
-        case CloseSubpathWithLine
+    public enum Element {
+        case moveToPoint(point: CGPoint)
+        case addLineToPoint(point: CGPoint)
+        case addQuadCurveToPoint(destination: CGPoint, control: CGPoint)
+        case addCurveToPoint(destination: CGPoint, control1: CGPoint, control2: CGPoint)
+        case closeSubpathWithLine
         
         // MARK: - Interface
         
         func lastPoint() -> CGPoint? {
             switch self {
-            case let .MoveToPoint(point):
+            case let .moveToPoint(point):
                 return point
-            case let .AddLineToPoint(point):
+            case let .addLineToPoint(point):
                 return point
-            case let .AddQuadCurveToPoint(destination, _):
+            case let .addQuadCurveToPoint(destination, _):
                 return destination
-            case let .AddCurveToPoint(destination, _, _):
+            case let .addCurveToPoint(destination, _, _):
                 return destination
-            case .CloseSubpathWithLine:
+            case .closeSubpathWithLine:
                 return nil
             }
         }
 
         func updateSubpathStart(subpathStart: CGPoint?) -> CGPoint? {
             switch self {
-            case let .MoveToPoint(point):
+            case let .moveToPoint(point):
                 return point
-            case .AddLineToPoint: fallthrough
-            case .AddQuadCurveToPoint: fallthrough
-            case .AddCurveToPoint:
+            case .addLineToPoint: fallthrough
+            case .addQuadCurveToPoint: fallthrough
+            case .addCurveToPoint:
                 return subpathStart
-            case .CloseSubpathWithLine:
+            case .closeSubpathWithLine:
                 return nil
             }
         }
 
         func mayContainY(y: Double, ifStartedFrom from: CGPoint?, subpathStartedFrom subpathFrom: CGPoint?) -> Bool {
             switch self {
-            case .MoveToPoint:
+            case .moveToPoint:
                 return false
-            case let .AddLineToPoint(point):
+            case let .addLineToPoint(point):
                 if let haveFrom = from {
                     let fromY = Double(haveFrom.y)
                     let toY = Double(point.y)
@@ -59,15 +59,15 @@ extension Path {
                 } else {
                     return false
                 }
-            case .AddQuadCurveToPoint: fallthrough
-            case .AddCurveToPoint:
+            case .addQuadCurveToPoint: fallthrough
+            case .addCurveToPoint:
                 // TODO: decision should be based on extremities
                 if let _ = from {
                     return true
                 } else {
                     return false
                 }
-            case .CloseSubpathWithLine:
+            case .closeSubpathWithLine:
                 if let
                     haveFrom = from,
                     let haveSubpathStart = subpathFrom {
@@ -87,9 +87,9 @@ extension Path {
         
         func percentagesWhereYIs(y: Double, ifStartedFrom from: CGPoint?, subpathStartedFrom subpathFrom: CGPoint?, precalculatedLength: Double) -> [Double] {
             switch self {
-            case .MoveToPoint:
+            case .moveToPoint:
                 return []
-            case let .AddLineToPoint(point):
+            case let .addLineToPoint(point):
                 if let haveFrom = from {
                     let a = Double((point.y - haveFrom.y) / (point.x - haveFrom.x))
                     let b = Double(haveFrom.y) - a * Double(haveFrom.x)
@@ -123,7 +123,7 @@ extension Path {
                 } else {
                     return []
                 }
-            case let .AddQuadCurveToPoint(destination, control):
+            case let .addQuadCurveToPoint(destination, control):
                 if let haveFrom = from {
                     let P0 = Double(haveFrom.y)
                     let P1 = Double(control.y)
@@ -151,7 +151,7 @@ extension Path {
                 } else {
                     return []
                 }
-            case let .AddCurveToPoint(destination, control1, control2):
+            case let .addCurveToPoint(destination, control1, control2):
                 if let haveFrom = from {
                     let P0 = Double(haveFrom.y)
                     let P1 = Double(control1.y)
@@ -178,7 +178,7 @@ extension Path {
                 } else {
                     return []
                 }
-            case .CloseSubpathWithLine:
+            case .closeSubpathWithLine:
                 if let
                     haveFrom = from,
                     let haveTo = subpathFrom {
@@ -220,9 +220,9 @@ extension Path {
         
         func pointForPercentage(pathPercent: Double, ifStartedFrom from: CGPoint?, subpathStartedFrom subpathFrom: CGPoint?) -> CGPoint? {
             switch self {
-            case .MoveToPoint:
+            case .moveToPoint:
                 return nil
-            case let .AddLineToPoint(point):
+            case let .addLineToPoint(point):
                 if let haveFrom = from {
                     let startX = Double(haveFrom.x)
                     let xFullDistance = Double(point.x) - startX
@@ -234,21 +234,21 @@ extension Path {
                 } else {
                     return nil
                 }
-            case let .AddQuadCurveToPoint(destination, control):
+            case let .addQuadCurveToPoint(destination, control):
                 if let haveFrom = from {
                     let point = Path.pointOfQuad(t: pathPercent, from: haveFrom, to: destination, c: control)
                     return point
                 } else {
                     return nil
                 }
-            case let .AddCurveToPoint(destination, control1, control2):
+            case let .addCurveToPoint(destination, control1, control2):
                 if let haveFrom = from {
                     let point = Path.pointOfCubic(t: pathPercent, from: haveFrom, to: destination, c1: control1, c2: control2)
                     return point
                 } else {
                     return nil
                 }
-            case .CloseSubpathWithLine:
+            case .closeSubpathWithLine:
                 if let
                     haveFrom = from,
                     let haveTo = subpathFrom {

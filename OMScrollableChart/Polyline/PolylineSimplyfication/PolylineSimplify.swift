@@ -17,7 +17,7 @@
 import Foundation
 import UIKit
 
-public class OMSimplify {
+public class PolylineSimplify {
     // square distance between 2 points
     // distanceToLine
     private class func getSqDist(_ point1: CGPoint, point2: CGPoint) -> CGFloat {

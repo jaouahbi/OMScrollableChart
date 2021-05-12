@@ -12,20 +12,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 import UIKit
-let chartPoints: [Float] =   [110, 10, 30, 10, 10, 30,
-    150, -150, 80, -40, 60, 10]
-//             1510, 100, 3000, 100, 1200, 13000,
-//15000, -1500, 800, 1000, 6000, 1300]
+
+let chartPoints: [Float] =   [1510, 100,
+                              3000, 100,
+                              1200, 13000,
+                             15000, -1500,
+                             800, 1000,
+                             6000, 1300]
 
 
 class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollableChartRenderableProtocol, OMScrollableChartRenderableDelegateProtocol {
     
     var animationTimingTable: [AnimationTiming] = [
-        .noAnimation,
-        .noAnimation,
-        .oneShotAnimation,
-        .noAnimation,
-        .noAnimation
+        .none,
+        .none,
+        .oneShot,
+        .none,
+        .none,
+        .none,
+        .none
     ]
     func queryAnimation(chart: OMScrollableChart, renderIndex: Int) -> AnimationTiming {
         return animationTimingTable[renderIndex]
@@ -44,7 +49,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         switch renderIndex {
         case 0: break
         case 1: break
-        case 2: animationTimingTable[renderIndex].repeatCount = 0
+        case 2: animationTimingTable[renderIndex] = .none
         case 3: break
         case 4: break
         default: break
@@ -54,10 +59,10 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                        renderIndex: Int,
                        layerIndex: Int,
                        layer: OMGradientShapeClipLayer) -> CAAnimation? {
-        switch renderIndex {
-        case 0, 1:
+        switch OMScrollableChart.Renders(rawValue: renderIndex) {
+        case .points, .selectedPoint, .currentPoint, .segments:
             return nil
-        case 2:
+        case .polyline:
             guard let polylinePath = chart.polylinePath else {
                 return nil
             }
@@ -66,12 +71,12 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                                                       pointIndex: chart.numberOfSections,
                                                       duration: 10)
             
-        case 3:
+        case .bar1:
             let pathStart = pathsToAnimate[renderIndex - 3][layerIndex]
             return chart.animateLayerPath( layer,
                                            pathStart: pathStart,
                                            pathEnd: UIBezierPath( cgPath: layer.path!))
-        case 4:
+        case .bar2:
             let pathStart = pathsToAnimate[renderIndex - 3][layerIndex]
             return chart.animateLayerPath( layer,
                                            pathStart: pathStart,
@@ -82,13 +87,13 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
         }
     }
     var numberOfRenders: Int {
-        return 5
+        return OMScrollableChart.Renders.base.rawValue
     }
     func dataPoints(chart: OMScrollableChart, renderIndex: Int, section: Int) -> [Float] {
         return chartPoints
     }
     func dataLayers(chart: OMScrollableChart, renderIndex: Int, section: Int, points: [CGPoint]) -> [OMGradientShapeClipLayer] {
-        switch renderIndex {
+        switch OMScrollableChart.Renders(rawValue:  renderIndex) {
 //        case 0:
 //            let layers = chart.updatePolylineLayer(lineWidth: 4,
 //                                                   color: .greyishBlue)
@@ -110,7 +115,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
 ////            }
 ////            return []
 //            return []
-        case 3:
+        case .bar1:
             let layers =  chart.createRectangleLayers(points, columnIndex: 1, count: 6,
                                                       color: .black)
             layers.forEach({$0.name = "bar income"})  //debug
@@ -118,7 +123,7 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
                 chart.createInverseRectanglePaths(points, columnIndex: 1, count: 6),
                 at: 0)
             return layers
-        case 4:
+        case .bar2:
             
             let layers =  chart.createRectangleLayers(points, columnIndex: 4, count: 6,
                                                       color: .green)
@@ -154,8 +159,8 @@ class ViewController: UIViewController, OMScrollableChartDataSource, OMScrollabl
     func numberOfSectionsPerPage(chart: OMScrollableChart) -> Int {
         return 6
     }
-    var opacityTableLine: [CGFloat] = [1, 1, 1, 0, 0]
-    var opacityTableBar: [CGFloat]  = [0, 0, 0, 1, 1]
+    var opacityTableLine: [CGFloat] = [1, 1, 1, 1, 1, 0, 0]
+    var opacityTableBar: [CGFloat]  = [0, 0, 0, 0, 0, 1, 1]
     var curOpacityTable: [CGFloat]  = []
     @IBOutlet var toleranceSlider: UISlider!
     @IBOutlet var sliderLimit: UISlider!

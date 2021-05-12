@@ -23,7 +23,7 @@
 		D13C9C9224FB459B00498B01 /* OMScrollableChart+Renders.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7424FB459A00498B01 /* OMScrollableChart+Renders.swift */; };
 		D13C9C9324FB459B00498B01 /* OMBubbleTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7624FB459A00498B01 /* OMBubbleTextView.swift */; };
 		D13C9C9424FB459B00498B01 /* PolylineDecimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7824FB459A00498B01 /* PolylineDecimation.swift */; };
-		D13C9C9524FB459B00498B01 /* OMSimplify.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7924FB459A00498B01 /* OMSimplify.swift */; };
+		D13C9C9524FB459B00498B01 /* PolylineSimplify.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7924FB459A00498B01 /* PolylineSimplify.swift */; };
 		D13C9C9624FB459B00498B01 /* CAAnimation+Closure.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7B24FB459A00498B01 /* CAAnimation+Closure.swift */; };
 		D13C9C9724FB459B00498B01 /* CALayer+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7C24FB459A00498B01 /* CALayer+Extensions.swift */; };
 		D13C9C9824FB459B00498B01 /* RecursiveProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13C9C7D24FB459A00498B01 /* RecursiveProtocol.swift */; };
@@ -89,7 +89,7 @@
 		D13C9C7424FB459A00498B01 /* OMScrollableChart+Renders.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "OMScrollableChart+Renders.swift"; sourceTree = "<group>"; };
 		D13C9C7624FB459A00498B01 /* OMBubbleTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OMBubbleTextView.swift; sourceTree = "<group>"; };
 		D13C9C7824FB459A00498B01 /* PolylineDecimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PolylineDecimation.swift; sourceTree = "<group>"; };
-		D13C9C7924FB459A00498B01 /* OMSimplify.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OMSimplify.swift; sourceTree = "<group>"; };
+		D13C9C7924FB459A00498B01 /* PolylineSimplify.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PolylineSimplify.swift; sourceTree = "<group>"; };
 		D13C9C7B24FB459A00498B01 /* CAAnimation+Closure.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CAAnimation+Closure.swift"; sourceTree = "<group>"; };
 		D13C9C7C24FB459A00498B01 /* CALayer+Extensions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "CALayer+Extensions.swift"; sourceTree = "<group>"; };
 		D13C9C7D24FB459A00498B01 /* RecursiveProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecursiveProtocol.swift; sourceTree = "<group>"; };
@@ -252,7 +252,7 @@
 			isa = PBXGroup;
 			children = (
 				D13C9C7824FB459A00498B01 /* PolylineDecimation.swift */,
-				D13C9C7924FB459A00498B01 /* OMSimplify.swift */,
+				D13C9C7924FB459A00498B01 /* PolylineSimplify.swift */,
 			);
 			path = PolylineSimplyfication;
 			sourceTree = "<group>";
@@ -462,7 +462,7 @@
 				D161A516254B9EBA00DDE361 /* OMScrollableChart+PathRide.swift in Sources */,
 				D13C9C9C24FB459B00498B01 /* UIBezierPath+Interpolation.swift in Sources */,
 				D13C9CA324FB459B00498B01 /* OMScrollableChart+Selection.swift in Sources */,
-				D13C9C9524FB459B00498B01 /* OMSimplify.swift in Sources */,
+				D13C9C9524FB459B00498B01 /* PolylineSimplify.swift in Sources */,
 				D13C9C9624FB459B00498B01 /* CAAnimation+Closure.swift in Sources */,
 				D13C9C9224FB459B00498B01 /* OMScrollableChart+Renders.swift in Sources */,
 				D13C9C9424FB459B00498B01 /* PolylineDecimation.swift in Sources */,
